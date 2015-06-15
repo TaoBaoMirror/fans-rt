@@ -267,7 +267,7 @@ FANSAPI E_STATUS WaitObject(HANDLE handle, LONG WaitTime)
  * Close the specified object, the all tasks blocked by the object will be
  * awakened and giving STATE_REMOVE as the blocked task to result value.
  *
- * 等待指定的对象，如果对象没有信号，当前任务将被阻塞。
+ * 关闭指定的对象，所有被该对象阻塞的任务将被唤醒，并且阻塞任务将会返回 STATE_REMOVE。
  *
  * date           author          notes
  * 2015-06-16     JiangYong       first version
