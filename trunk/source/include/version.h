@@ -3,7 +3,7 @@
 
 #define     MAJOR_VERSION    0
 #define     MINOR_VERSION    11
-#define     DEBUG_VERSION    569
+#define     DEBUG_VERSION    572
 
 #endif
 
