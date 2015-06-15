@@ -1,0 +1,6 @@
+SUBDIRS				=
+TARGETS				=
+CONFIGS				=	$(CONFIGS_PATH)/birq.h $(CONFIGS_PATH)/$(COMPILER)/birq.inc
+CONFIGS_INFO		=	$(CONFIGS_PATH)/%.ini
+CONFIGS_PATH		=	$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)
+OBJECTS_PATH		=

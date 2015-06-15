@@ -1,0 +1,49 @@
+Usage: make [options] ...
+  The will be dependent on some environment variables.
+
+Options:
+   DEBUG=[boolean]     Set the debug mode.
+           true        Enable debug message.
+           false       Disable debug message.
+   config              Configure this project:
+                        1. Create some depend files.
+                        2. Create some arch-board.compiler files.
+                        3. Create some platform header files.
+   remove              Remove the all configuration.
+   clean               Clean the some objects and library files.
+   help                Show more help information.
+
+Environment variables:
+   ARCH=[cpu]          Select a cpu name you can select to :
+          x86          Make a target for intel 80x86.
+          stm8         Make a target for stm8
+          stm32        Make a target for stm32(cortex-m0/m1/m2/m3/m4).
+          other        Make other cpu target, the ARCH name is not "other".
+                       Eg. select cpu name is "avr":
+                        1.add directory "source/platform/arch/avr"
+                        2.add directory "source/platform/board/avr"
+                        3.add makefile "source/build/avr.mak"
+   BOARD=[type]        Select an board to build:
+          mini         Build mini board project, select this board will be
+                       to output to $(ARCH)-mini directory. The some
+                       output directory name:
+                        1. ARCH = stm8  source/stm8-mini
+                        2. ARCH = stm32 source/stm32-mini
+          lite         Build lite board project, select this board will be
+                       to output to $(ARCH)-mini directory. The some
+                        1. ARCH = stm8  source/stm8-lite
+                        2. ARCH = stm32 source/stm32-lite
+          huge         Build huge board project, select this board will be
+                       to output to $(ARCH)-mini directory. The some
+                        1. ARCH = stm8  source/stm8-huge
+                        2. ARCH = stm32 source/stm32-huge
+          16           Build 8086 project, select this board, you must be
+                       set ARCH to x86, the directory is source/x86-16
+          32           Build IA32 project, select this board, you must be
+                       set ARCH to x86. the directory is source/x86-32
+   COMPILER=[CC]       Select a C/C++ language compiler, select the
+                       assembly compiler wishes to do. support compiler:
+                        1. COMPILER = gcc    select gnu C/C ++ compiler.
+                        2. COMPILER = armcc  select arm cc compiler.
+                        3. COMPILER = other  not support
+
