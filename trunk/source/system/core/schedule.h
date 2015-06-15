@@ -724,8 +724,8 @@ STATIC E_STATUS WakeupTask(LPTASK_CONTEXT lpTaskContext, E_STATUS Result)
  *   4 the task reattach to the ready queue
  *   5 update the ready bitmap according to the new priority task
  *   6 set schedule flag
- *   7 current priority of the system will be change 
- *     if the priority of current task was changed
+ *   7 current priority of the system will be change if the priority 
+ *     of current task was changed
  *
  * 就绪队列中的任务调整优先级需要完成如下流程:
  *   1.从就绪队列中摘除任务
