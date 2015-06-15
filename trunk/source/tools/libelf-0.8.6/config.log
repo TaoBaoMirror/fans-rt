@@ -1,0 +1,14 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:578: checking whether make sets ${MAKE}
+configure:607: checking for gcc
+configure:720: checking whether the C compiler (gcc  ) works
+configure:736: gcc -o conftest    conftest.c  1>&5
+ld: crt2.o: No such file: No such file or directory
+configure: failed program was:
+
+#line 731 "configure"
+#include "confdefs.h"
+
+main(){return(0);}

@@ -1,0 +1,46 @@
+*** Creating Trace Output File 'stm32-lite.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '"clock.o"'
+### List of Objects: adding '"core.o"'
+### List of Objects: adding '"debug.o"'
+### List of Objects: adding '"isr.o"'
+### List of Objects: adding '"module.o"'
+### List of Objects: adding '"object.o"'
+### List of Objects: adding '"syscall.o"'
+### List of Objects: adding '"arm-stack.o"'
+### List of Objects: adding '".\cortex-m3.o"'
+### List of Objects: adding '"gcc-stack.o"'
+### List of Objects: adding '"stm32bug.o"'
+### List of Objects: adding '"stm32hal.o"'
+### List of Objects: adding '"stm32irq.o"'
+### List of Objects: adding '".\startup_stm32f10x_md.o"'
+### List of Objects: adding '"stm32_bsp.o"'
+### List of Objects: adding '"loader.o"'
+### List of Objects: adding '"main.o"'
+### List of Objects: adding '"mms.o"'
+### List of Objects: adding '"scheduler.o"'
+### List of Objects: adding '"tsscore.o"'
+### List of Objects: adding '"libpool.o"'
+### List of Objects: adding '"libtable.o"'
+### List of Objects: adding '"lite-task.o"'
+### List of Objects: adding '"coreapi.o"'
+### List of Objects: adding '"mmsapi.o"'
+### List of Objects: adding '"tssapi.o"'
+### List of Objects: adding '"tsscall.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 "clock.o" "core.o" "debug.o" "isr.o" "module.o" "object.o" "syscall.o" "arm-stack.o" ".\cortex-m3.o" "gcc-stack.o" "stm32bug.o" "stm32hal.o" "stm32irq.o" ".\startup_stm32f10x_md.o" "stm32_bsp.o" "loader.o" "main.o" "mms.o" "scheduler.o" "tsscore.o" "libpool.o" "libtable.o" "lite-task.o" "coreapi.o" "mmsapi.o" "tssapi.o" "tsscall.o" 
+--library_type=microlib --strict --scatter "stm32-lite.sct" 
+--userlibpath "..\..\Libs" Libfw.lib --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list "..\..\ListFile\stm32-lite\stm32-lite.map" -o stm32-lite.axf### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: 'stm32-lite.axf'
+### ADS-LD Command File: 'stm32-lite.lnp'
+### Checking for dirty Components...
+### Creating CmdFile 'stm32-lite.lnp', Handle=0x00000438
+### Writing '.lnp' file
+### ADS-LD Command file 'stm32-lite.lnp' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

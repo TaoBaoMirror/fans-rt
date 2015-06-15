@@ -1,0 +1,5 @@
+--cpu Cortex-M3 "clock.o" "core.o" "debug.o" "isr.o" "module.o" "object.o" "syscall.o" "arm-stack.o" ".\cortex-m3.o" "gcc-stack.o" "stm32bug.o" "stm32hal.o" "stm32irq.o" ".\startup_stm32f10x_md.o" "stm32_bsp.o" "loader.o" "main.o" "mms.o" "scheduler.o" "tsscore.o" "libpool.o" "libtable.o" "lite-task.o" "coreapi.o" "mmsapi.o" "tssapi.o" "tsscall.o" 
+--library_type=microlib --strict --scatter "stm32-lite.sct" 
+--userlibpath "..\..\Libs" Libfw.lib --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list "..\..\ListFile\stm32-lite\stm32-lite.map" -o stm32-lite.axf
