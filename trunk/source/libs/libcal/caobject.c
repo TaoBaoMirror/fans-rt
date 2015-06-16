@@ -25,7 +25,7 @@
 #include "libcal.h"
 
 
-EXPORT LPSTR ntChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
+EXPORT LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
 {
     STATIC UINT Count = 0;
     
@@ -34,7 +34,7 @@ EXPORT LPSTR ntChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
     return lpName;
 }
 
-EXPORT HANDLE ntMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
+EXPORT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -42,7 +42,7 @@ EXPORT HANDLE ntMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
     Packet.u1.pParam = (LPVOID) lpName;
     Packet.u2.pParam = lpParam;
     
-    if (STATE_SUCCESS != ntSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_MALLOC))
+    if (STATE_SUCCESS != caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_MALLOC))
     {
         return INVALID_HANDLE_VALUE;
     }
@@ -50,24 +50,24 @@ EXPORT HANDLE ntMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
     return Packet.u1.hParam; 
 }
 
-EXPORT E_STATUS ntActiveObject(HANDLE handle, LPVOID lpParam)
+EXPORT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
     Packet.u0.hParam = handle;
     Packet.u1.pParam = lpParam;
 
-    return ntSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_ACTIVE);
+    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_ACTIVE);
 }
 
-EXPORT HANDLE ntTakeObject(LPCSTR lpName, LPVOID lpParam)
+EXPORT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
     Packet.u0.pParam = (LPVOID) lpName;
     Packet.u1.pParam = lpParam;
     
-    if (STATE_SUCCESS != ntSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_TAKE))
+    if (STATE_SUCCESS != caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_TAKE))
     {
         return INVALID_HANDLE_VALUE;
     }
@@ -75,41 +75,41 @@ EXPORT HANDLE ntTakeObject(LPCSTR lpName, LPVOID lpParam)
     return Packet.u1.hParam;    
 }
 
-EXPORT E_STATUS ntWaitObject(HANDLE handle, LONG WaitTime)
+EXPORT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
 {
     LPC_REQUEST_PACKET Packet;
 
     Packet.u0.hParam = handle;
     Packet.u1.dParam = WaitTime;
 
-    return ntSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_WAIT);
+    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_WAIT);
 }
 
-EXPORT E_STATUS ntPostObject(HANDLE handle, LPVOID lpParam)
+EXPORT E_STATUS caPostObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
     Packet.u0.hParam = handle;
     Packet.u1.pParam = lpParam;
 
-    return ntSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_POST);
+    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_POST);
 }
 
-EXPORT E_STATUS ntResetObject(HANDLE handle, LPVOID lpParam)
+EXPORT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
     Packet.u0.hParam = handle;
     Packet.u1.pParam = lpParam;
 
-    return ntSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_RESET);
+    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_RESET);
 }
 
-EXPORT E_STATUS ntFreeObject(HANDLE handle)
+EXPORT E_STATUS caFreeObject(HANDLE handle)
 {
     LPC_REQUEST_PACKET Packet;
 
     Packet.u0.hParam = handle;
     
-    return ntSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_FREE);
+    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_FREE);
 }

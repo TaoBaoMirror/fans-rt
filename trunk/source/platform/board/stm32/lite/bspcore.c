@@ -33,7 +33,7 @@ PUBLIC LPSTR BSP_GetIRQNameString(E_IRQ_ID Id)
     case E_CORE_SYSTICK_IRQ_ID:
         return _TEXT("SysTick");
     case E_CORE_SYSCALL_IRQ_ID:
-        return _TEXT("ntSystemCall");
+        return _TEXT("caSystemCall");
     default:
         return _TEXT("Unknow");
     }

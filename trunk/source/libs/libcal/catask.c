@@ -30,7 +30,7 @@ EXPORT E_STATUS caIdleTask_Main(LPVOID lpParam)
 
     do{
         FW_SystemIdle();
-    }while(STATE_SUCCESS == (State = ntTestCancel()));
+    }while(STATE_SUCCESS == (State = caTestCancel()));
     
     return State;
 }
@@ -45,34 +45,34 @@ EXPORT E_STATUS caIdleTask_Main(LPVOID lpParam)
  *     新任务入口函数需要传入三个参数，在ARCH层实现的任务堆栈填充函数需要将这
  * 三个参数放入恰当的堆栈位置。
  */
-EXPORT VOID ntTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
+EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
 {
     CHAR Name[OBJECT_NAME_MAX];
     
-    ntGetTaskName(hTask, Name);
+    caGetTaskName(hTask, Name);
     
     LOG_DEBUG(TRUE, "Task 0x%08X name '%s' main 0x%P starting(%lld) now ...",
-        hTask, Name, fnMain, ntGetTaskStartTick(hTask));
+        hTask, Name, fnMain, caGetTaskStartTick(hTask));
 
     fnMain(lpArgument);
     
-    ntCloseTask(hTask);
+    caCloseTask(hTask);
     
     LOG_ERROR(TRUE, "******** why *********");
     
-    while(1) ntScheduleTimeout(1000);
+    while(1) caScheduleTimeout(1000);
 }
 
-EXPORT E_STATUS ntGetError(VOID)
+EXPORT E_STATUS caGetError(VOID)
 {
     LPC_REQUEST_PACKET Packet;
     
     memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
     
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKERROR);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKERROR);
 }
 
-EXPORT E_STATUS ntSetError(E_STATUS emCode)
+EXPORT E_STATUS caSetError(E_STATUS emCode)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -80,10 +80,10 @@ EXPORT E_STATUS ntSetError(E_STATUS emCode)
     
     Packet.u0.dParam = emCode;
 
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_SET_TASKERROR);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SET_TASKERROR);
 }
 
-EXPORT E_STATUS ntScheduleTimeout(LONG Timeout)
+EXPORT E_STATUS caScheduleTimeout(LONG Timeout)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -91,10 +91,10 @@ EXPORT E_STATUS ntScheduleTimeout(LONG Timeout)
     
     Packet.u0.lParam = Timeout;
 
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_SCHEDULE_TIMEOUT);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SCHEDULE_TIMEOUT);
 }
 
-EXPORT E_STATUS ntTaskWakeup(HANDLE hTask)
+EXPORT E_STATUS caTaskWakeup(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -102,19 +102,19 @@ EXPORT E_STATUS ntTaskWakeup(HANDLE hTask)
 
     Packet.u0.hParam = hTask;
 
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_WAKE_UP);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_WAKE_UP);
 }
 
-EXPORT E_STATUS ntTestCancel(VOID)
+EXPORT E_STATUS caTestCancel(VOID)
 {
     LPC_REQUEST_PACKET Packet;
     
     memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
     
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_TEST_CANCEL);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_TEST_CANCEL);
 }
 
-EXPORT E_STATUS ntPostCancel(HANDLE hTask)
+EXPORT E_STATUS caPostCancel(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -122,10 +122,10 @@ EXPORT E_STATUS ntPostCancel(HANDLE hTask)
 
     Packet.u0.hParam = hTask;
 
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_POST_CANCEL);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_POST_CANCEL);
 }
 
-EXPORT E_STATUS ntGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX])
+EXPORT E_STATUS caGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX])
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -134,10 +134,10 @@ EXPORT E_STATUS ntGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX])
     Packet.u0.hParam = hTask;
     Packet.u1.pParam = Name;
 
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKNAME);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKNAME);
 }
 
-EXPORT TICK ntGetTaskStartTick(HANDLE hTask)
+EXPORT TICK caGetTaskStartTick(HANDLE hTask)
 {
     TICK Tick = (TICK) 0;
     LPC_REQUEST_PACKET Packet;
@@ -146,7 +146,7 @@ EXPORT TICK ntGetTaskStartTick(HANDLE hTask)
 
     Packet.u0.hParam = hTask;
     
-    if (STATE_SUCCESS != ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKTICK))
+    if (STATE_SUCCESS != caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKTICK))
     {
         return INVALID_TICK;
     }
@@ -160,14 +160,14 @@ EXPORT TICK ntGetTaskStartTick(HANDLE hTask)
     return Tick;
 }
 
-EXPORT TASK_PRIORITY ntGetPriority(HANDLE hTask)
+EXPORT TASK_PRIORITY caGetPriority(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
     
     Packet.u0.hParam = hTask;
     Packet.u1.dParam = TASK_PRIORITY_INVALID;
     
-    if (STATE_SUCCESS != ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_PRIORITY))
+    if (STATE_SUCCESS != caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_PRIORITY))
     {
         return TASK_PRIORITY_INVALID;
     }
@@ -175,18 +175,18 @@ EXPORT TASK_PRIORITY ntGetPriority(HANDLE hTask)
     return (TASK_PRIORITY) Packet.u1.dParam;
 }
 
-EXPORT E_STATUS ntSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
+EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
 {
     LPC_REQUEST_PACKET Packet;
     
     Packet.u0.hParam = hTask;
     Packet.u1.dParam = Priority;
     
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_SET_PRIORITY);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SET_PRIORITY);
 }
-EXPORT_CORE_SYMBOL(ntSetPriority);
+EXPORT_CORE_SYMBOL(caSetPriority);
 
-EXPORT E_STATUS ntCloseTask(HANDLE hTask)
+EXPORT E_STATUS caCloseTask(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -194,10 +194,10 @@ EXPORT E_STATUS ntCloseTask(HANDLE hTask)
 
     Packet.u0.hParam = hTask;
     
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_CLOSE_TASK);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_CLOSE_TASK);
 }
 
-EXPORT E_STATUS ntStackMalloc(HANDLE hTask, LPVOID lpParam)
+EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -206,5 +206,5 @@ EXPORT E_STATUS ntStackMalloc(HANDLE hTask, LPVOID lpParam)
     Packet.u0.hParam = hTask;
     Packet.u1.pParam = lpParam;
     
-    return ntSystemCall(&Packet, STM_MAGIC, LPC_TSS_STACK_MALLOC);
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_STACK_MALLOC);
 }

@@ -34,7 +34,7 @@ FANSAPI HANDLE TakeObject(LPCTSTR lpCTName)
     strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
 #endif
     
-    return ntTakeObject(caName, NULL);
+    return caTakeObject(caName, NULL);
 }
 
 /**
@@ -69,7 +69,7 @@ FANSAPI HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
 
     if (NULL == lpCTName)
     {
-        ntChooseName(caName, "EVT");
+        caChooseName(caName, "EVT");
     }
     else
     {
@@ -83,13 +83,13 @@ FANSAPI HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
     Param.Marks.Value = ((!!Automatic) << MARK_EVENT_AUTO_SHIFT)
                       + ((!!Signal) << MARK_EVENT_SIGNAL_SHIFT);
 
-    hEvent = ntMallocObject(caName, EVT_MAGIC, &Param);
+    hEvent = caMallocObject(caName, EVT_MAGIC, &Param);
 
     if (INVALID_HANDLE_VALUE != hEvent)
     {
-        if (STATE_SUCCESS != ntActiveObject(hEvent, &Param))
+        if (STATE_SUCCESS != caActiveObject(hEvent, &Param))
         {
-            ntFreeObject(hEvent);
+            caFreeObject(hEvent);
             hEvent = INVALID_HANDLE_VALUE;
         }
     }
@@ -114,7 +114,7 @@ FANSAPI HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
  */
 FANSAPI E_STATUS PostEvent(HANDLE handle)
 {
-    return ntPostObject(handle, NULL);
+    return caPostObject(handle, NULL);
 }
 
 /**
@@ -134,7 +134,7 @@ FANSAPI E_STATUS PostEvent(HANDLE handle)
  */
 FANSAPI E_STATUS ResetEvent(HANDLE handle)
 {
-    return ntResetObject(handle, NULL);
+    return caResetObject(handle, NULL);
 }
 
 /**
@@ -166,7 +166,7 @@ FANSAPI HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 
     if (NULL == lpCTName)
     {
-        ntChooseName(caName, "EVT");
+        caChooseName(caName, "EVT");
     }
     else
     {
@@ -179,13 +179,13 @@ FANSAPI HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 
     Param.Marks.Value = ((!Owner) << MARK_MUTEX_SIGNAL_SHIFT);
 
-    hMutex = ntMallocObject(caName, MTX_MAGIC, &Param);
+    hMutex = caMallocObject(caName, MTX_MAGIC, &Param);
 
     if (INVALID_HANDLE_VALUE != hMutex)
     {
-        if (STATE_SUCCESS != ntActiveObject(hMutex, &Param))
+        if (STATE_SUCCESS != caActiveObject(hMutex, &Param))
         {
-            ntFreeObject(hMutex);
+            caFreeObject(hMutex);
             hMutex = INVALID_HANDLE_VALUE;
         }
     }
@@ -211,7 +211,7 @@ FANSAPI HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
  */
 FANSAPI E_STATUS MutexUnlock(HANDLE hMutex)
 {
-    return ntPostObject(hMutex, NULL);
+    return caPostObject(hMutex, NULL);
 }
 
 /**
@@ -232,7 +232,7 @@ FANSAPI E_STATUS MutexUnlock(HANDLE hMutex)
  */
 FANSAPI E_STATUS MutexLock(HANDLE hMutex)
 {
-    return ntWaitObject(hMutex, WAIT_INFINITE);
+    return caWaitObject(hMutex, WAIT_INFINITE);
 }
 
 /**
@@ -253,7 +253,7 @@ FANSAPI E_STATUS MutexLock(HANDLE hMutex)
  */
 FANSAPI E_STATUS WaitObject(HANDLE handle, LONG WaitTime)
 {
-    return ntWaitObject(handle, WaitTime);
+    return caWaitObject(handle, WaitTime);
 }
 
 /**
@@ -274,5 +274,5 @@ FANSAPI E_STATUS WaitObject(HANDLE handle, LONG WaitTime)
  */
 FANSAPI E_STATUS CloseHandle(HANDLE handle)
 {
-    return ntFreeObject(handle);
+    return caFreeObject(handle);
 }

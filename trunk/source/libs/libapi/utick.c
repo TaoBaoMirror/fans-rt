@@ -22,7 +22,7 @@
 
 FANSAPI TICK GetSystemTick(VOID)
 {
-    return ntGetSystemTick();
+    return caGetSystemTick();
 }
 EXPORT_SYMBOL(GetSystemTick);
 

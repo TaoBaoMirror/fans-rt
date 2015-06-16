@@ -49,7 +49,7 @@ PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, H
     LPDWORD StackPoint = Position;
 
     *(--StackPoint)  = (DWORD)0x01000000L;             /* xPSR                                               */
-    *(--StackPoint)  = (DWORD)ntTaskEntry;           /* R15  PC -->Entry Point                             */
+    *(--StackPoint)  = (DWORD)caTaskEntry;           /* R15  PC -->Entry Point                             */
     *(--StackPoint)  = (DWORD)0;                       /* R14 (LR) (init value will cause fault if ever used)*/
     *(--StackPoint)  = (DWORD)0x12121212L;             /* R12                                                */
     *(--StackPoint)  = (DWORD)0x03030303L;             /* R3                                                 */

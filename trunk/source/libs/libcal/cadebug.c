@@ -41,12 +41,12 @@ STATIC E_STATUS REQ_WriteDebug(BYTE cbData)
 
     Packet.u0.dParam = (DWORD) cbData;
 
-    ntSystemCall(&Packet, SDM_MAGIC, LPC_SDM_WRITE_BYTE);
+    caSystemCall(&Packet, SDM_MAGIC, LPC_SDM_WRITE_BYTE);
     
     return Packet.StateCode;
 }
 
-EXPORT LPSTR ntDebugLevel2String(E_LOG_LEVEL emLevel)
+EXPORT LPSTR caDebugLevel2String(E_LOG_LEVEL emLevel)
 {
     if (emLevel > LOG_LEVEL_MAX)
     {
@@ -55,24 +55,24 @@ EXPORT LPSTR ntDebugLevel2String(E_LOG_LEVEL emLevel)
     
     return (LPSTR) g_DebugLevelStringTable[emLevel];
 }
-EXPORT_SYMBOL(ntDebugLevel2String);
+EXPORT_SYMBOL(caDebugLevel2String);
 
-DWORD ntDebugGetMask(VOID)
+DWORD caDebugGetMask(VOID)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
 
     memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
 
-    if (STATE_SUCCESS != (State = ntSystemCall(&Packet, SDM_MAGIC, LPC_SDM_DEBUG_MASK)))
+    if (STATE_SUCCESS != (State = caSystemCall(&Packet, SDM_MAGIC, LPC_SDM_DEBUG_MASK)))
     {
-        ntSetError(State);
+        caSetError(State);
         return 0;
     }
     
     return Packet.u0.dParam;
 }
-EXPORT_SYMBOL(ntDebugGetMask);
+EXPORT_SYMBOL(caDebugGetMask);
 
 static int put_debug_char(INT Ch, LPVOID lpPrivate)
 {
@@ -86,7 +86,7 @@ static int put_debug_char(INT Ch, LPVOID lpPrivate)
     return Ch;
 }
 
-EXPORT int ntDebugVPrintf(BOOL Enter, CONST CHAR * Format, va_list Vargs)
+EXPORT int caDebugVPrintf(BOOL Enter, CONST CHAR * Format, va_list Vargs)
 {
     INT Length;
 
@@ -99,22 +99,22 @@ EXPORT int ntDebugVPrintf(BOOL Enter, CONST CHAR * Format, va_list Vargs)
     
     return Length;
 }
-EXPORT_SYMBOL(ntDebugVPrintf);
+EXPORT_SYMBOL(caDebugVPrintf);
 
-EXPORT int ntDebugPrintf(BOOL Enter, CONST CHAR * Format,...)
+EXPORT int caDebugPrintf(BOOL Enter, CONST CHAR * Format,...)
 {
     int Length;
     VA_LIST Args;
 
     VA_START(Args, Format);
-    Length = ntDebugVPrintf(Enter, Format, Args);
+    Length = caDebugVPrintf(Enter, Format, Args);
     VA_END(Args);
 
     return Length;
 }
-EXPORT_SYMBOL(ntDebugPrintf);
+EXPORT_SYMBOL(caDebugPrintf);
 
-EXPORT int ntDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG_LEVEL emLevel, CONST CHAR * Format,...)
+EXPORT int caDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG_LEVEL emLevel, CONST CHAR * Format,...)
 {
     SIZE_T Length = 0;
     VA_LIST Args;
@@ -124,21 +124,21 @@ EXPORT int ntDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG_LEVEL e
         return STATE_SUCCESS;
     }
 
-    Length += ntDebugPrintf(FALSE, "[%016lld][Line: %04d][%s][%s] ",
-            ntGetSystemTick(), Line, ntDebugLevel2String(emLevel), Function);
+    Length += caDebugPrintf(FALSE, "[%016lld][Line: %04d][%s][%s] ",
+            caGetSystemTick(), Line, caDebugLevel2String(emLevel), Function);
     
     VA_START (Args, Format);
     
-    Length += ntDebugVPrintf(Enter, Format, Args);
+    Length += caDebugVPrintf(Enter, Format, Args);
 
     VA_END(Args);
 
     return Length;
 }
-EXPORT_SYMBOL(ntDebugLog);
+EXPORT_SYMBOL(caDebugLog);
 
 
-EXPORT VOID ntDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
+EXPORT VOID caDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
 {
     DWORD Scale = 0;
     LPBYTE lpData = lpBuffer;
@@ -148,7 +148,7 @@ EXPORT VOID ntDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
         return;
     }
 
-    ntDebugPrintf(FALSE, "Show buffer(%p) is:", lpBuffer);
+    caDebugPrintf(FALSE, "Show buffer(%p) is:", lpBuffer);
     
     for (Scale = 0; Scale < Length; Scale ++)
     {
@@ -156,7 +156,7 @@ EXPORT VOID ntDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
         
         if (0 ==(Scale & 0xf))
         {
-            ntDebugPrintf(FALSE, "\n%08X:", Scale);
+            caDebugPrintf(FALSE, "\n%08X:", Scale);
         }
         else if (0 == (Scale & 0x7))
         {
@@ -167,9 +167,9 @@ EXPORT VOID ntDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
             Separator = ' ';
         }
         
-        ntDebugPrintf(FALSE, "%c%02X", Separator, lpData[Scale] & 0xff);
+        caDebugPrintf(FALSE, "%c%02X", Separator, lpData[Scale] & 0xff);
     }
 
-    ntDebugPrintf(FALSE, "\n");
+    caDebugPrintf(FALSE, "\n");
 }
 

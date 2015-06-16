@@ -36,7 +36,7 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
 
     if (NULL == lpTaskName)
     {
-        lpTaskName = ntChooseName(TaskName, "TSK");
+        lpTaskName = caChooseName(TaskName, "TSK");
     }
     else
     {
@@ -50,7 +50,7 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
     if (NULL == lpParam)
     {
         LOG_ERROR(TRUE, "Invalid parameter to create task '%s' !", TaskName);
-        ntSetError(STATE_INVALID_PARAMETER);
+        caSetError(STATE_INVALID_PARAMETER);
         return INVALID_HANDLE_VALUE;
     }
 
@@ -60,7 +60,7 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
     if (NULL == TaskParam.Param.fnTaskMain)
     {
         LOG_ERROR(TRUE, "Invalid entry to create task '%s' !", TaskName);
-        ntSetError(STATE_INVALID_METHOD);
+        caSetError(STATE_INVALID_METHOD);
         return INVALID_HANDLE_VALUE;
     }
 
@@ -68,7 +68,7 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
     if (TaskParam.Param.Priority >= CONFIG_TASK_PRIORITY_MAX)
     {
         LOG_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!", TaskParam.Param.Priority, TaskName);
-        ntSetError(STATE_INVALID_PRIORITY);
+        caSetError(STATE_INVALID_PRIORITY);
         return INVALID_HANDLE_VALUE;
     }
 #endif
@@ -76,14 +76,14 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
     if (TASK_PRIORITY_IDLE == TaskParam.Param.Priority)
     {
         LOG_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!", TaskParam.Param.Priority, TaskName);
-        ntSetError(STATE_INVALID_PRIORITY);
+        caSetError(STATE_INVALID_PRIORITY);
         return INVALID_HANDLE_VALUE;
     }
 
     if (TASK_SLICE_INFINITE == TaskParam.Param.SliceLength)
     {
         LOG_ERROR(TRUE, "Invalid slice time to create task '%s' !", TaskName);
-        ntSetError(STATE_INVALID_TIME);
+        caSetError(STATE_INVALID_TIME);
         return INVALID_HANDLE_VALUE;
     }
 
@@ -97,7 +97,7 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
                                 ?   CONFIG_TIME_SLICE_NORMAL
                                 :   TaskParam.Param.SliceLength;
     
-    if (INVALID_HANDLE_VALUE == (TaskParam.hTask = ntMallocObject(TaskName, TSK_MAGIC, &TaskParam)))
+    if (INVALID_HANDLE_VALUE == (TaskParam.hTask = caMallocObject(TaskName, TSK_MAGIC, &TaskParam)))
     {
         LOG_ERROR(TRUE, "No memory to create task '%s' !", TaskName);
         return INVALID_HANDLE_VALUE;
@@ -108,20 +108,20 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
     memcpy(StackName, TaskName, sizeof(TaskName));
     SetStackObjectName(StackName, '*');
     
-    if (INVALID_HANDLE_VALUE == ntMallocObject(StackName, STK_MAGIC, &TaskParam))
+    if (INVALID_HANDLE_VALUE == caMallocObject(StackName, STK_MAGIC, &TaskParam))
 #else
     if (STATE_SUCCESS != ntStackMalloc(TaskParam.hTask, &TaskParam))
 #endif
     {
         LOG_ERROR(TRUE, "No memory to create task '%s' !", TaskName);
-        ntCloseTask(TaskParam.hTask);
+        caCloseTask(TaskParam.hTask);
         return INVALID_HANDLE_VALUE;
     }
 
-    if (STATE_SUCCESS != ntActiveObject(TaskParam.hTask, &TaskParam))
+    if (STATE_SUCCESS != caActiveObject(TaskParam.hTask, &TaskParam))
     {
         LOG_ERROR(TRUE, "Active object failed to create task '%s' !", TaskName);
-        ntCloseTask(TaskParam.hTask);
+        caCloseTask(TaskParam.hTask);
         return INVALID_HANDLE_VALUE;
     }
 
@@ -207,7 +207,7 @@ EXPORT_SYMBOL(CreateTask);
 FANSAPI E_STATUS KillTask(HANDLE hTask)
 {
     LOG_FIX(TRUE, "Fix !!! Kill self to call close task.");
-    return ntCloseTask(hTask);
+    return caCloseTask(hTask);
 }
 EXPORT_SYMBOL(KillTask);
 
@@ -225,7 +225,7 @@ EXPORT_SYMBOL(KillTask);
  *******************************************************************************************/
 FANSAPI E_STATUS Sleep(LONG Timeout)
 {
-    return ntScheduleTimeout(Timeout);
+    return caScheduleTimeout(Timeout);
 }
 EXPORT_SYMBOL(Sleep);
 
@@ -243,7 +243,7 @@ EXPORT_SYMBOL(Sleep);
  *******************************************************************************************/
 FANSAPI E_STATUS TaskStartup(HANDLE hTask)
 {
-    return ntTaskWakeup(hTask);
+    return caTaskWakeup(hTask);
 }
 EXPORT_SYMBOL(TaskStartup);
 
@@ -262,7 +262,7 @@ EXPORT_SYMBOL(TaskStartup);
  *******************************************************************************************/
 FANSAPI E_STATUS SetError(E_STATUS emCode)
 {
-    return ntSetError(emCode);
+    return caSetError(emCode);
 }
 EXPORT_SYMBOL(SetError)
 
@@ -278,7 +278,7 @@ EXPORT_SYMBOL(SetError)
  *******************************************************************************************/
 FANSAPI E_STATUS GetError(VOID)
 {
-    return ntGetError();
+    return caGetError();
 }
 EXPORT_SYMBOL(GetError)
 
@@ -295,7 +295,7 @@ EXPORT_SYMBOL(GetError)
  *******************************************************************************************/
 FANSAPI E_STATUS PostCancel(HANDLE hTask)
 {
-    return ntPostCancel(hTask);
+    return caPostCancel(hTask);
 }
 EXPORT_SYMBOL(PostCancel);
 
@@ -312,7 +312,7 @@ EXPORT_SYMBOL(PostCancel);
  *******************************************************************************************/
 FANSAPI E_STATUS TestCancel(VOID)
 {
-    return ntTestCancel();
+    return caTestCancel();
 }
 EXPORT_SYMBOL(TestCancel);
 
@@ -327,7 +327,7 @@ FANSAPI E_STATUS GetTaskName(HANDLE hTask, LPTSTR lpName, SIZE_T SizeofBuffer)
         return STATE_INVALID_PARAMETER;
     }
 
-    if (STATE_SUCCESS == (State = ntGetTaskName(hTask, Name)))
+    if (STATE_SUCCESS == (State = caGetTaskName(hTask, Name)))
     {
 #ifdef _UNICODE
 #error "not support unicode charset."
@@ -370,7 +370,7 @@ EXPORT_SYMBOL(GetCurrentTask);
  *******************************************************************************************/
 FANSAPI E_STATUS SetPriority(HANDLE hTask, TASK_PRIORITY Priority)
 {
-    return ntSetPriority(hTask, Priority);
+    return caSetPriority(hTask, Priority);
 }
 EXPORT_SYMBOL(SetPriority);
 
@@ -386,7 +386,7 @@ EXPORT_SYMBOL(SetPriority);
  *******************************************************************************************/
 FANSAPI TASK_PRIORITY GetPriority(HANDLE hTask)
 {
-    return ntGetPriority(hTask);
+    return caGetPriority(hTask);
 }
 EXPORT_SYMBOL(GetPriority);
 

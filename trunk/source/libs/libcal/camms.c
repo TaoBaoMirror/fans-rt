@@ -31,20 +31,20 @@
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT LPVOID ntPageMalloc(SIZE_T Length)
+EXPORT LPVOID caPageMalloc(SIZE_T Length)
 {
     LPC_REQUEST_PACKET Packet;
 
     Packet.u1.dParam = (WORD)(Length / CONFIG_MEM_PAGE_SIZE + (!!(Length % CONFIG_MEM_PAGE_SIZE)));
 
-    if (STATE_SUCCESS != ntSystemCall(&Packet, SMM_MAGIC, LPC_MMS_PAGE_ALLOC))
+    if (STATE_SUCCESS != caSystemCall(&Packet, SMM_MAGIC, LPC_MMS_PAGE_ALLOC))
     {
         return NULL;
     }
     
     return Packet.u0.pParam;
 }
-EXPORT_SYMBOL(ntPageMalloc);
+EXPORT_SYMBOL(caPageMalloc);
 
 
 /**
@@ -55,15 +55,15 @@ EXPORT_SYMBOL(ntPageMalloc);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntPageFree(LPVOID lpPageAddress)
+EXPORT E_STATUS caPageFree(LPVOID lpPageAddress)
 {
     LPC_REQUEST_PACKET Packet;
     
     Packet.u0.pParam = lpPageAddress;
     
-    return ntSystemCall(&Packet, SMM_MAGIC, LPC_MMS_PAGE_FREE);
+    return caSystemCall(&Packet, SMM_MAGIC, LPC_MMS_PAGE_FREE);
 }
-EXPORT_SYMBOL(ntPageFree);
+EXPORT_SYMBOL(caPageFree);
 
 /**
  * Query the number of free pages.
@@ -73,23 +73,23 @@ EXPORT_SYMBOL(ntPageFree);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT DWORD ntGetSystemFreePages(BYTE RegionID)
+EXPORT DWORD caGetSystemFreePages(BYTE RegionID)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
 
     Packet.u0.dParam = (DWORD) RegionID;
 
-    if (STATE_SUCCESS != (State = ntSystemCall(&Packet, SMM_MAGIC, LPC_MMS_FREE_PAGES)))
+    if (STATE_SUCCESS != (State = caSystemCall(&Packet, SMM_MAGIC, LPC_MMS_FREE_PAGES)))
     {
         LOG_ERROR(TRUE, "Call system service MMS function %d failed, return %d", LPC_MMS_FREE_PAGES, State);
-        ntSetError(State);
+        caSetError(State);
         return INVALID_VALUE;
     }
 
     return Packet.u0.dParam;
 }
-EXPORT_SYMBOL(ntGetSystemFreePages);
+EXPORT_SYMBOL(caGetSystemFreePages);
 
 /**
  * Query the information of memory manager service(only for debug).
@@ -99,7 +99,7 @@ EXPORT_SYMBOL(ntGetSystemFreePages);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntGetMmsInformation(LPMMS_INFOR lpInfor)
+EXPORT E_STATUS caGetMmsInformation(LPMMS_INFOR lpInfor)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -115,7 +115,7 @@ EXPORT E_STATUS ntGetMmsInformation(LPMMS_INFOR lpInfor)
 
     Packet.u0.pParam = lpInfor;
 
-    State = ntSystemCall(&Packet, SMM_MAGIC, LPC_MMS_TAKE_INFOR);
+    State = caSystemCall(&Packet, SMM_MAGIC, LPC_MMS_TAKE_INFOR);
 
     if (STATE_SUCCESS != State)
     {
@@ -125,7 +125,7 @@ EXPORT E_STATUS ntGetMmsInformation(LPMMS_INFOR lpInfor)
     return State;
 #endif
 }
-EXPORT_SYMBOL(ntGetMmsInformation);
+EXPORT_SYMBOL(caGetMmsInformation);
 
 /**
  * Show the information of memory manager service(only for debug).
@@ -134,7 +134,7 @@ EXPORT_SYMBOL(ntGetMmsInformation);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntShowMmsInformation(VOID)
+EXPORT E_STATUS caShowMmsInformation(VOID)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -142,7 +142,7 @@ EXPORT E_STATUS ntShowMmsInformation(VOID)
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
     
-    State = ntSystemCall(&Packet, SMM_MAGIC, LPC_MMS_SHOW_INFOR);
+    State = caSystemCall(&Packet, SMM_MAGIC, LPC_MMS_SHOW_INFOR);
 
     if (STATE_SUCCESS != State)
     {
@@ -152,7 +152,7 @@ EXPORT E_STATUS ntShowMmsInformation(VOID)
     return State;
 #endif
 }
-EXPORT_SYMBOL(ntShowMmsInformation);
+EXPORT_SYMBOL(caShowMmsInformation);
 
 /**
  * Show the information of sections(only for debug).
@@ -163,7 +163,7 @@ EXPORT_SYMBOL(ntShowMmsInformation);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
+EXPORT E_STATUS caShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -173,7 +173,7 @@ EXPORT E_STATUS ntShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
     
     Packet.u0.dParam = (RegionID << 8) + Buddy;
 
-    State = ntSystemCall(&Packet, SMM_MAGIC, LPC_MMS_SHOW_SECTION);
+    State = caSystemCall(&Packet, SMM_MAGIC, LPC_MMS_SHOW_SECTION);
 
     if (STATE_SUCCESS != State)
     {
@@ -183,7 +183,7 @@ EXPORT E_STATUS ntShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
     return State;
 #endif
 }
-EXPORT_SYMBOL(ntShowMmsRegionSection);
+EXPORT_SYMBOL(caShowMmsRegionSection);
 
 /**
  * Create new memory region.
@@ -194,7 +194,7 @@ EXPORT_SYMBOL(ntShowMmsRegionSection);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntCreateMMRegion(LPVOID lpAddress, SIZE_T Length)
+EXPORT E_STATUS caCreateMMRegion(LPVOID lpAddress, SIZE_T Length)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
@@ -202,7 +202,7 @@ EXPORT E_STATUS ntCreateMMRegion(LPVOID lpAddress, SIZE_T Length)
     Packet.u0.pParam = lpAddress;
     Packet.u1.dParam = (DWORD) Length;
 
-    State = ntSystemCall(&Packet, SMM_MAGIC, LPC_MMS_NEW_REGION);
+    State = caSystemCall(&Packet, SMM_MAGIC, LPC_MMS_NEW_REGION);
 
     if (STATE_SUCCESS != State)
     {
@@ -211,6 +211,6 @@ EXPORT E_STATUS ntCreateMMRegion(LPVOID lpAddress, SIZE_T Length)
 
     return State;
 }
-EXPORT_SYMBOL(ntCreateMMRegion);
+EXPORT_SYMBOL(caCreateMMRegion);
 #endif
 
