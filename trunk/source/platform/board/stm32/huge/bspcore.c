@@ -20,7 +20,7 @@ PUBLIC LPSTR BSP_GetIRQNameString(E_IRQ_ID Id)
     case E_CORE_SYSTICK_IRQ_ID:
         return _TEXT("SysTick");
     case E_CORE_SYSCALL_IRQ_ID:
-        return _TEXT("ntSystemCall");
+        return _TEXT("caSystemCall");
     default:
         return _TEXT("Unknow");
     }
@@ -32,7 +32,7 @@ BYTE g_OnChipRegion[CONFIG_MEM_ONCHIP_LENGTH] __attribute__((at(CONFIG_MEM_ONCHI
 
 PUBLIC E_STATUS BSP_ScanMemoryRegion(VOID)
 {
-    return ntCreateMMRegion(g_OnChipRegion, sizeof(g_OnChipRegion));
+    return caCreateMMRegion(g_OnChipRegion, sizeof(g_OnChipRegion));
 }
 #endif
 

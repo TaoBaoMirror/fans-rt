@@ -32,7 +32,7 @@
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-PUBLIC E_STATUS ntSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE FunctionID)
+PUBLIC E_STATUS caSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE FunctionID)
 {
     if (NULL == lpPacket)
     {
@@ -55,15 +55,15 @@ PUBLIC E_STATUS ntSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYT
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntInstallLPC(CONST LPC_SERVICE * lpService)
+EXPORT E_STATUS caInstallLPC(CONST LPC_SERVICE * lpService)
 {
     LPC_REQUEST_PACKET Packet;
     
     Packet.u0.pParam = (void *) lpService;
 
-    return ntSystemCall(&Packet, LPC_MAGIC, LPC_SERVICE_INSTALL);
+    return caSystemCall(&Packet, LPC_MAGIC, LPC_SERVICE_INSTALL);
 }
-EXPORT_CORE_SYMBOL(ntInstallLPC);
+EXPORT_CORE_SYMBOL(caInstallLPC);
 
 /**
  * Unregister the specified LPC service.
@@ -73,15 +73,15 @@ EXPORT_CORE_SYMBOL(ntInstallLPC);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntUnstallLPC(CONST LPC_SERVICE * lpService)
+EXPORT E_STATUS caUnstallLPC(CONST LPC_SERVICE * lpService)
 {
     LPC_REQUEST_PACKET Packet;
     
     Packet.u0.pParam = (void *) lpService;
 
-    return ntSystemCall(&Packet, LPC_MAGIC, LPC_SERVICE_UNSTALL);
+    return caSystemCall(&Packet, LPC_MAGIC, LPC_SERVICE_UNSTALL);
 }
-EXPORT_CORE_SYMBOL(ntUnstallLPC);
+EXPORT_CORE_SYMBOL(caUnstallLPC);
 
 
 /**
@@ -92,15 +92,15 @@ EXPORT_CORE_SYMBOL(ntUnstallLPC);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntInstallIRQ(LPIRQ_SERVICE lpHandler)
+EXPORT E_STATUS caInstallIRQ(LPIRQ_SERVICE lpHandler)
 {
     LPC_REQUEST_PACKET Packet;
     
     Packet.u0.pParam = lpHandler;
 
-    return ntSystemCall(&Packet, IRQ_MAGIC, LPC_SERVICE_INSTALL);
+    return caSystemCall(&Packet, IRQ_MAGIC, LPC_SERVICE_INSTALL);
 }
-EXPORT_CORE_SYMBOL(ntInstallIRQ);
+EXPORT_CORE_SYMBOL(caInstallIRQ);
 
 /**
  * Unregister the specified IRQ handler object.
@@ -110,12 +110,12 @@ EXPORT_CORE_SYMBOL(ntInstallIRQ);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS ntUnstallIRQ(LPIRQ_SERVICE lpHandler)
+EXPORT E_STATUS caUnstallIRQ(LPIRQ_SERVICE lpHandler)
 {
     LPC_REQUEST_PACKET Packet;
     
     Packet.u0.pParam = lpHandler;
 
-    return ntSystemCall(&Packet, IRQ_MAGIC, LPC_SERVICE_UNSTALL);
+    return caSystemCall(&Packet, IRQ_MAGIC, LPC_SERVICE_UNSTALL);
 }
-EXPORT_CORE_SYMBOL(ntUnstallIRQ);
+EXPORT_CORE_SYMBOL(caUnstallIRQ);

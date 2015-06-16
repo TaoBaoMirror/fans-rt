@@ -112,8 +112,8 @@ enum{
 extern "C" {
 #endif
     EXPORT E_STATUS CORE_InstallLPC(CONST LPC_SERVICE * lpService);
-    EXPORT E_STATUS ntInstallLPC(CONST LPC_SERVICE * lpService);
-    EXPORT E_STATUS ntUnstallLPC(CONST LPC_SERVICE * lpService);
+    EXPORT E_STATUS caInstallLPC(CONST LPC_SERVICE * lpService);
+    EXPORT E_STATUS caUnstallLPC(CONST LPC_SERVICE * lpService);
     EXPORT VOID CORE_HandlerLPC(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE FunctionID);
 #ifdef __cplusplus
 }

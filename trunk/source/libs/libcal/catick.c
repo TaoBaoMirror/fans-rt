@@ -21,7 +21,7 @@
 #include "libcal.h"
 #include "cadebug.h"
 
-EXPORT TICK ntGetSystemTick(VOID)
+EXPORT TICK caGetSystemTick(VOID)
 {
     TICK Tick;
     E_STATUS State;
@@ -29,9 +29,9 @@ EXPORT TICK ntGetSystemTick(VOID)
     
     memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
 
-    if (STATE_SUCCESS != (State = ntSystemCall(&Packet, SCM_MAGIC, LPC_SCM_GET_SYSTICK)))
+    if (STATE_SUCCESS != (State = caSystemCall(&Packet, SCM_MAGIC, LPC_SCM_GET_SYSTICK)))
     {
-        ntSetError(State);
+        caSetError(State);
         return INVALID_TICK;
     }
 
@@ -40,5 +40,5 @@ EXPORT TICK ntGetSystemTick(VOID)
 
     return Tick;
 }
-EXPORT_SYMBOL(ntGetSystemTick);
+EXPORT_SYMBOL(caGetSystemTick);
 

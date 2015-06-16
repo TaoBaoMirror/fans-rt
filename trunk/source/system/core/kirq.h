@@ -55,7 +55,7 @@ enum{
 #define IRQ_INSTALL(SVC, Msg)                                                           \
         do{                                                                             \
             LPTSTR lpMessage = Msg;                                                     \
-            if (STATE_SUCCESS != ntInstallIRQ(SVC))                                 \
+            if (STATE_SUCCESS != caInstallIRQ(SVC))                                 \
             {                                                                           \
                 kprintf("%s ... [FAILED]\n", lpMessage);                            \
                 SYSTEM_CALL_OOPS();                                                     \
@@ -66,8 +66,8 @@ enum{
 #ifdef __cplusplus
 extern "C" {
 #endif
-    EXPORT E_STATUS ntInstallIRQ(LPIRQ_SERVICE lpHandler);
-    EXPORT E_STATUS ntUnstallIRQ(LPIRQ_SERVICE lpHandler);
+    EXPORT E_STATUS caInstallIRQ(LPIRQ_SERVICE lpHandler);
+    EXPORT E_STATUS caUnstallIRQ(LPIRQ_SERVICE lpHandler);
     EXPORT VOID CORE_HandlerIRQ(LPVOID lpPacket, E_IRQ_ID IRQNumber);
 #ifdef __cplusplus
 }
