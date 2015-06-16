@@ -94,7 +94,7 @@ STATIC E_STATUS TaskGetError(VOID)
 
 STATIC  E_STATUS SetContextParam(LPTASK_CONTEXT lpTaskContext, LPKTASK_CREATE_PARAM lpTaskParam)
 {
-#if (CONFIG_ENABLE_FAST_SCHEDULE == TRUE)
+#ifdef SYSTEM_HAVE_TICK64
     SetContextResumeTick(lpTaskContext, TASK_SLICE_INFINITE);
 #else
     SetContextResumeRemain(lpTaskContext, TASK_SLICE_INFINITE);

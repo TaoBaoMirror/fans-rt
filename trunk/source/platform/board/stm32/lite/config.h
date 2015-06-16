@@ -81,7 +81,6 @@
 #define     CONFIG_PROFILER_CYCLE               1000        /**< 系统性能统计刷新周期 */
 #define     CONFIG_TIME_SLICE_NORMAL            10          /**< 默认任务时间片 */
 #define     MILLI_SECOND_TO_TICK(Ms)            ((Ms) * (CONFIG_SYSTICK_FREQUENCY / 1000))
-#define     CONFIG_ENABLE_FAST_SCHEDULE         TRUE
 #define     CONFIG_LPC_HASH_FUNCTION            Magic2Hash01
 #define     CONFIG_LPC_SERVICE_MAX              32
 #define     CONFIG_SYSTEM_MODULES               8           /**< 系统模块数量 */

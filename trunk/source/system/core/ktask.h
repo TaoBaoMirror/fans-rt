@@ -87,17 +87,24 @@ typedef struct tagTASK_CONTEXT FAR * LPTASK_CONTEXT;
 
 struct tagTASK_CONTEXT{
     KOBJECT_HEADER          Header;
-    LIST_HEAD               SystemNode;                         /* 系统任务链表 */
-    LIST_HEAD               IPCNode;                            /* IPC对象的任务链表 */
+    HANDLE                  hLockedMutex;                       /* Mutex handle */
+    SIZE_T                  StackCapacity;                      /* 堆栈容量 */
+    LPVOID                  lpStackBuffer;                      /* 堆栈指针 */
+    LPVOID                  lpStackPoint;                       /* 栈顶指针 */
+    LPVOID                  lpPlatform;                         /* 平台相关 */
+    LIST_HEAD               SystemNode;                         /* 系统任务节点*/
+    LIST_HEAD               IPCNode;                            /* IPC对象的任务节点 */
     union{
-        LIST_HEAD               ReadyNode;                      /* 就绪任务表 */
-        LIST_HEAD               SleepNode;                      /* 休眠任务表 */
+        LIST_HEAD               ReadyNode;                      /* 就绪任务节点 */
+        LIST_HEAD               SleepNode;                      /* 休眠任务节点 */
     }Node;
+#ifdef SYSTEM_HAVE_TICK64
     TICK                    StartTick;                          /* 任务的开始时间 */
-#if (CONFIG_ENABLE_FAST_SCHEDULE == TRUE)
     TICK                    ResumeTick;                         /* 休眠时的唤醒时间 */
 #else
+    TICK                    StartTick;                          /* 任务的开始时间 */
     LONG                    ResumeRemain;                       /* 休眠后剩余的唤醒时间 */
+    DWORD                   TickReserved[2];
 #endif
 #ifdef SYSTEM_HAVE_QWORD
     QWORD                   WorkTimes;
@@ -126,14 +133,9 @@ struct tagTASK_CONTEXT{
     TASK_PRIORITY           ThisPriority;                       /* 当前优先级 */
     TASK_PRIORITY           InitPriority;                       /* 初始优先级 */
     E_STATUS                ErrorCode;                          /* 错误码 */
-    SIZE_T                  StackCapacity;                      /* 堆栈容量 */
-    LPVOID                  lpStackBuffer;                      /* 堆栈指针 */
-    LPVOID                  lpStackPoint;                       /* 栈顶指针 */
     LPLPC_REQUEST_PACKET    lpLPCPacket;                        /* LPC 请求包指针 for wait object */
-    HANDLE                  hLockedMutex;
-    LPVOID                  lpPlatform;                         /* 平台相关 */
     LPVOID                  lpLocalData[TASK_LOCAL_MAX];        /* 任务本地数据 */
-    DWORD                   Reserved[3];                        /* 保留 */
+    DWORD                   Reserved[1];                        /* 保留 */
 #if (CONFIG_BUILD_TASK_PATH == TRUE)
     CHAR                    cbTaskPath[MAX_PATH];               /* 任务当前路径 */
 #endif
@@ -205,7 +207,7 @@ struct tagTASK_CONTEXT{
             } while(0)
 #endif
 
-#if (CONFIG_ENABLE_FAST_SCHEDULE == TRUE)
+#ifdef SYSTEM_HAVE_TICK64
 #define     GetContextResumeTick(lpTC)                      ((lpTC)->ResumeTick)
 #define     SetContextResumeTick(lpTC, Ticks)                                                           \
             do {                                                                                        \
