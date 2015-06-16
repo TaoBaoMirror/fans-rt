@@ -400,9 +400,9 @@ STATIC VOID Attach2ReadyQueue(LPTASK_CONTEXT lpTaskContext)
     SetNeedSchedule();
 }
 
-#if (CONFIG_ENABLE_FAST_SCHEDULE == TRUE)
+#ifdef SYSTEM_HAVE_TICK64
 /**
- * Task insert to the suspend queue(if enable fast schedule of the config).
+ * Task insert to the suspend queue(only for have system tick64).
  * @param The context of the task.
  * @return VOID
  * \par
@@ -466,7 +466,7 @@ STATIC VOID Attach2SuspendQueue(LPTASK_CONTEXT lpTaskContext, TICK Ticks)
 {
     DetachReady(lpTaskContext);
     SetContextState(lpTaskContext, TASK_STATE_SLEEP);
-#if (CONFIG_ENABLE_FAST_SCHEDULE == TRUE)
+#ifdef SYSTEM_HAVE_TICK64
     SetContextResumeTick(lpTaskContext, Ticks);
     Insert2SuspendQueue(lpTaskContext);
 #else
@@ -568,9 +568,9 @@ STATIC VOID ScheduleSliceHandler(VOID)
     CORE_RestoreIRQ(dwFlags);
 }
 
-#if (CONFIG_ENABLE_FAST_SCHEDULE == TRUE)
+#ifdef SYSTEM_HAVE_TICK64
 /**
- * Task resume handler(fast schedule enable).
+ * Task resume handler(have system tick64).
  * \par
  * The task resume handler will be periodically checks the suspend queue to the system
  * tick frequency. The first task of the suspend queue will be wakeup when the system
@@ -609,7 +609,7 @@ STATIC VOID ScheduleResumeHandler(VOID)
 }
 #else
 /**
- * Task resume handler(fast schedule disable).
+ * Task resume handler(no system tick64).
  * \par
  * The task resume handler will be periodically checks the suspend queue to the system
  * tick frequency. When sleep timer is 0, the task will be attach to the ready queue.
@@ -780,7 +780,7 @@ STATIC E_STATUS SetTaskThisPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY 
     {
     case TASK_STATE_SLEEP:
         SetContextThisPriority(lpTaskContext, Priority);
-#if (CONFIG_ENABLE_FAST_SCHEDULE == TRUE)
+#ifdef SYSTEM_HAVE_TICK64
         DetachSleep(lpTaskContext);
         Insert2SuspendQueue(lpTaskContext);
 #endif
