@@ -403,13 +403,38 @@ STATIC E_STATUS SVC_SetTaskError(LPVOID lpPrivate, LPVOID lpParam)
     return TaskSetError((E_STATUS) lpPacket->u0.dParam);
 }
 
+STATIC E_STATUS SVC_GetCurrentTask(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+
+    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
+    
+    lpPacket->u0.hParam = GetContextHandle(lpCurrentTask);
+    
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS SVC_GetTaskState(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+
+    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
+    
+    lpPacket->u0.dParam = GetContextState(lpCurrentTask);
+    
+    return STATE_SUCCESS;
+}
+
+
 STATIC E_STATUS SVC_GetTaskName(LPVOID lpPrivate, LPVOID lpParam)
 {
     LPDWORD lpdName;
     LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    
-    lpTaskContext = INVALID_HANDLE_VALUE == lpPacket->u0.hParam
+
+    lpTaskContext = TASK_SELF_HANDLE == lpPacket->u0.hParam
                   ? GetCurrentTaskContext()
                   : Handle2TaskContext(lpPacket->u0.hParam);
     
@@ -430,7 +455,7 @@ STATIC E_STATUS SVC_GetTaskStartTick(LPVOID lpPrivate, LPVOID lpParam)
     LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
     
-    lpTaskContext = INVALID_HANDLE_VALUE == lpPacket->u0.hParam
+    lpTaskContext = TASK_SELF_HANDLE == lpPacket->u0.hParam
                   ? GetCurrentTaskContext()
                   : Handle2TaskContext(lpPacket->u0.hParam);
     
@@ -447,9 +472,15 @@ STATIC E_STATUS SVC_GetTaskStartTick(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_TaskSchedule(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    E_STATUS State;
     DWORD dwFlags = CORE_DisableIRQ();
-    E_STATUS State = SuspendTask(GetCurrentTaskContext(), lpPacket->u0.lParam);
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+
+     CORE_ASSERT(lpCurrentTask, CORE_DisableIRQ(); SYSTEM_CALL_OOPS();,
+            "BUG: Invalid current task context.");
+    
+    State = SuspendTask(lpCurrentTask, lpPacket->u0.lParam);
     
     CORE_RestoreIRQ(dwFlags);
 
@@ -461,16 +492,11 @@ STATIC E_STATUS SVC_TaskWakeup(LPVOID lpPrivate, LPVOID lpParam)
     LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
 
-    if (INVALID_HANDLE_VALUE == lpPacket->u0.hParam)
-    {
-        return STATE_INVALID_PARAMETER;
-    }
-
     lpTaskContext = Handle2TaskContext(lpPacket->u0.hParam);
 
     if (NULL == lpTaskContext)
     {
-        return STATE_INVALID_OBJECT;
+        return STATE_INVALID_PARAMETER;
     }
     
     SetContextCancel(lpTaskContext, TRUE);
@@ -480,13 +506,16 @@ STATIC E_STATUS SVC_TaskWakeup(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_TestCancel(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPTASK_CONTEXT lpTaskContext = GetCurrentTaskContext();
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
     
-    CORE_ASSERT(lpTaskContext, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
+    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
 
-    if (TRUE == GetContextCancel(lpTaskContext))
+    lpPacket->u0.dParam = GetContextCancel(lpCurrentTask);
+    
+    if (TRUE == lpPacket->u0.dParam)
     {
-        return STATE_REMOVED;
+        TaskSetError(STATE_REMOVED);
     }
     
     return STATE_SUCCESS;
@@ -497,16 +526,11 @@ STATIC E_STATUS SVC_PostCancel(LPVOID lpPrivate, LPVOID lpParam)
     LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
 
-    if (INVALID_HANDLE_VALUE == lpPacket->u0.hParam)
-    {
-        return STATE_INVALID_PARAMETER;
-    }
-
     lpTaskContext = Handle2TaskContext(lpPacket->u0.hParam);
 
     if (NULL == lpTaskContext)
     {
-        return STATE_INVALID_OBJECT;
+        return STATE_INVALID_PARAMETER;
     }
     
     SetContextCancel(lpTaskContext, TRUE);
@@ -520,13 +544,13 @@ STATIC E_STATUS SVC_GetTaskPriority(LPVOID lpPrivate, LPVOID lpParam)
     LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
     
-    lpTaskContext = INVALID_HANDLE_VALUE == lpPacket->u0.hParam
+    lpTaskContext = TASK_SELF_HANDLE == lpPacket->u0.hParam
                   ? GetCurrentTaskContext()
                   : Handle2TaskContext(lpPacket->u0.hParam);
     
     if (NULL == lpTaskContext)
     {
-        return STATE_INVALID_OBJECT;
+        return STATE_INVALID_PARAMETER;
     }
     
     lpPacket->u1.dParam = GetContextThisPriority(lpTaskContext);
@@ -541,13 +565,13 @@ STATIC E_STATUS SVC_SetTaskPriority(LPVOID lpPrivate, LPVOID lpParam)
     LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
     
-    lpTaskContext = INVALID_HANDLE_VALUE == lpPacket->u0.hParam
+    lpTaskContext = TASK_SELF_HANDLE == lpPacket->u0.hParam
                   ? GetCurrentTaskContext()
                   : Handle2TaskContext(lpPacket->u0.hParam);
     
     if (NULL == lpTaskContext)
     {
-        return STATE_INVALID_OBJECT;
+        return STATE_INVALID_PARAMETER;
     }
     
     dwFlags = CORE_DisableIRQ();
@@ -562,13 +586,13 @@ STATIC E_STATUS SVC_CloseTask(LPVOID lpPrivate, LPVOID lpParam)
     LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
     
-    lpTaskContext = INVALID_HANDLE_VALUE == lpPacket->u0.hParam
+    lpTaskContext = TASK_SELF_HANDLE == lpPacket->u0.hParam
                   ? GetCurrentTaskContext()
                   : Handle2TaskContext(lpPacket->u0.hParam);
     
     if (NULL == lpTaskContext)
     {
-        return STATE_INVALID_OBJECT;
+        return STATE_INVALID_PARAMETER;
     }
 
     return CloseTaskContext(lpTaskContext);
@@ -577,6 +601,8 @@ STATIC E_STATUS SVC_CloseTask(LPVOID lpPrivate, LPVOID lpParam)
 STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_GetTaskError,
     SVC_SetTaskError,
+    SVC_GetCurrentTask,
+    SVC_GetTaskState,
     SVC_GetTaskName,
     SVC_GetTaskStartTick,
     SVC_GetTaskPriority,
@@ -689,12 +715,12 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
 
     LPC_INSTALL(&LPCService, "Task Schedule(TSK) service starting");
 
-    State = CreateCoreTask("Boot", caIdleTask_Main, NULL, BOOT_TASK_ID);
+    State = CreateCoreTask("Boot", NULL, NULL, BOOT_TASK_ID);
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Create boot task failed, result = %d !", State);
 
-    State = CreateCoreTask("Idle", caIdleTask_Main, NULL, IDLE_TASK_ID);
+    State = CreateCoreTask("Idle", caIdleEntry, NULL, IDLE_TASK_ID);
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Create idle task failed, result %d.", State);

@@ -23,16 +23,15 @@
 #include "request.h"
 #include "cadebug.h"
 
-EXPORT E_STATUS caIdleTask_Main(LPVOID lpParam)
+EXPORT E_STATUS caIdleEntry(LPVOID lpParam)
 {
-    E_STATUS State;
     LOG_INFOR(TRUE, "System idle task working now ....");
 
     do{
         FW_SystemIdle();
-    }while(STATE_SUCCESS == (State = caTestCancel()));
+    }while(FALSE == caTestCancel());
     
-    return State;
+    return STATE_SUCCESS;
 }
 
 /**
@@ -58,7 +57,7 @@ EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
     
     caCloseTask(hTask);
     
-    LOG_ERROR(TRUE, "******** why *********");
+    LOG_ERROR(TRUE, "BUG: ****The task has been died ****");
     
     while(1) caScheduleTimeout(1000);
 }
@@ -83,6 +82,38 @@ EXPORT E_STATUS caSetError(E_STATUS emCode)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SET_TASKERROR);
 }
 
+EXPORT HANDLE caGetCurrentTask(VOID)
+{
+    E_STATUS Result;
+    LPC_REQUEST_PACKET Packet;
+    
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+    
+    if (STATE_SUCCESS != (Result = caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_CURRENT)))
+    {
+        SetError(Result);
+        return INVALID_HANDLE_VALUE;
+    }
+
+    return Packet.u0.hParam;
+}
+
+EXPORT TASK_STATUS caGetTaskState(HANDLE hTask)
+{
+    E_STATUS Result;
+    LPC_REQUEST_PACKET Packet;
+    
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+    
+    if (STATE_SUCCESS != (Result = caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKSTATE)))
+    {
+        SetError(Result);
+        return TASK_STATE_MAX;
+    }
+
+    return (TASK_STATUS) Packet.u0.dParam;
+}
+
 EXPORT E_STATUS caScheduleTimeout(LONG Timeout)
 {
     LPC_REQUEST_PACKET Packet;
@@ -105,13 +136,17 @@ EXPORT E_STATUS caTaskWakeup(HANDLE hTask)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_WAKE_UP);
 }
 
-EXPORT E_STATUS caTestCancel(VOID)
+EXPORT BOOL caTestCancel(VOID)
 {
     LPC_REQUEST_PACKET Packet;
-    
+
     memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
     
-    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_TEST_CANCEL);
+    Packet.u0.dParam = TRUE;
+    
+    (VOID) caSystemCall(&Packet, STM_MAGIC, LPC_TSS_TEST_CANCEL);
+    
+    return Packet.u0.dParam;
 }
 
 EXPORT E_STATUS caPostCancel(HANDLE hTask)

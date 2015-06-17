@@ -165,54 +165,8 @@ STATIC E_STATUS TestCase03(VOID)
     return STATE_SUCCESS;
 }
 
-STATIC E_STATUS TestTask04(LPVOID lpArgment)
-{
-    DWORD dwFlags;
-    do{
-        dwFlags = CORE_DisableIRQ();
-        g_TaskCount ++;
-        CORE_RestoreIRQ(dwFlags);
-    }while(STATE_SUCCESS == TestCancel());
-
-    return STATE_SUCCESS;
-}
-
 STATIC E_STATUS TestCase04(VOID)
 {
-    DWORD OldValue;
-    DWORD Count = 0;
-    HANDLE hTask;
-    E_STATUS State;
-    CHAR Name[OBJECT_NAME_MAX] = {"Test04"};
-    
-    g_TaskCount = 0;
-    OldValue = g_TaskCount;
-
-    hTask = CreateTask(Name, TestTask04, NULL);
-    
-    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hTask, return STATE_NOT_MATCH, "Create task %s failed !", Name);
-    
-    for (Count = 0 ; Count < 10; Count ++)
-    {
-        Sleep(1);
-        TEST_CASE_ASSERT(g_TaskCount != OldValue, return STATE_NOT_MATCH, "The test task not started !");
-        OldValue = g_TaskCount;
-    }
-    
-    State = KillTask(hTask);
-    
-    TEST_CASE_ASSERT(STATE_SUCCESS == State, return State, "kill task %s failed.", Name);
-
-    Sleep(50);
-    
-    for (Count = 0 ; Count < 10; Count ++)
-    {
-        Sleep(1);
-        TEST_CASE_ASSERT(g_TaskCount == OldValue, return STATE_NOT_MATCH, "The test task not stoped !");
-    }
-
-    Sleep(50);
-
     return STATE_SUCCESS;
 }
 

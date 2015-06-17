@@ -25,6 +25,15 @@
 
 #define     SetStackObjectName(Name, Value)            do { Name[0] = Value; } while(0)
 
+/**
+ * Create new task.
+ * @param The name of new task.
+ * @param The some parameters of new task.
+ * @return The handle of new task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
 {
     KTASK_CREATE_PARAM TaskParam;
@@ -55,7 +64,6 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
     }
 
     TaskParam.Param = *lpParam;
-    TaskParam.hTask = INVALID_HANDLE_VALUE;
 
     if (NULL == TaskParam.Param.fnTaskMain)
     {
@@ -129,22 +137,17 @@ FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
 }
 EXPORT_SYMBOL(CreateTaskEx);
 
-/*******************************************************************************************
- *  函 数 名：CreatePriorityTask
- *  函数类型: 系统API接口函数
- *  功    能：以指定优先级创建一个任务
- *  参    数：LPCSTR __IN    lpTaskName        任务名
- *            FNTASKMAIN     fnMain            任务主函数
- *            LPVOID         lpArgument        任务参数
- *            TASK_PRIORITY  Priority          任务优先级
- *                                             TASK_PRIORITY_IDLE 为最低优先级，不能创建 IDLE 任务
- *  返 回 值：HANDLE         失败              INVALID_HANDLE_VALUE
- *            HANDLE         成功              任务句柄
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
+/**
+ * Create new task.
+ * @param The name of new task.
+ * @param The entry function of new task.
+ * @param The argument of new task.
+ * @param The priority of new task.
+ * @return The handle of new task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
                                   LPVOID lpArgument, TASK_PRIORITY Priority)
 {
@@ -162,85 +165,74 @@ FANSAPI HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
 }
 EXPORT_SYMBOL(CreatePriorityTask);
 
-/*******************************************************************************************
- *  函 数 名：CreateTask
- *  函数类型: 系统API接口函数
- *  功    能：创建一个默认优先级的普通任务
- *  参    数：LPCSTR __IN    lpTaskName        任务名
- *            FNTASKMAIN     fnMain           任务的入口函数
- *            LPVOID         lpArgument        任务参数
- *  返 回 值：HANDLE         失败              INVALID_HANDLE_VALUE
- *            HANDLE         成功              任务句柄
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
-
-FANSAPI HANDLE CreateTask(LPCTSTR __IN lpTaskName, FNTASKMAIN fnMain, LPVOID lpArgument)
-{
-    TASK_CREATE_PARAM TaskParam;
-    
-    TaskParam.AutoStartup   =   TRUE;
-    TaskParam.lpTaskPath    =   NULL;
-    TaskParam.fnTaskMain    =   fnMain;
-    TaskParam.lpArgument    =   lpArgument;
-    TaskParam.Priority      =   TASK_PRIORITY_NORMAL;
-    TaskParam.SliceLength   =   CONFIG_TIME_SLICE_NORMAL;
-    TaskParam.StackSize     =   CONFIG_DEFAULT_STACK_SIZE;
-
-    return CreateTaskEx(lpTaskName, &TaskParam);
-}
-EXPORT_SYMBOL(CreateTask);
-
-/*******************************************************************************************
- *  函 数 名：KillTask
- *  功    能：杀死任务，将任务从系统队列中删除
- *  参    数：HANDLE         hTask             任务句柄
- *  返 回 值：E_STATUS       失败              失败原因
- *            E_STATUS       成功              STATE_SUCCESS
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
+#if 0
+/**
+ * Kill the specified task.
+ * @param The handle of the specified task.
+ * @return The state of current operating result.
+ * \par
+ * If the task want to kill self, must be specify correct handle of current task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI E_STATUS KillTask(HANDLE hTask)
 {
-    LOG_FIX(TRUE, "Fix !!! Kill self to call close task.");
+    if (INVALID_HANDLE_VALUE == hTask)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+    
     return caCloseTask(hTask);
 }
 EXPORT_SYMBOL(KillTask);
+#endif
 
+/**
+ * Kill current task.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
+FANSAPI E_STATUS TaskExit(VOID)
+{
+    return caCloseTask(TASK_SELF_HANDLE);
+}
 
-/*******************************************************************************************
- *  函 数 名：Sleep
- *  功    能：当前任务休眠
- *  参    数: LONG Timeout
- *  返 回 值：E_STATUS       成功              STATUS_SUCCESS
- *            E_STATUS       失败              失败原因
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
+/**
+ * Current task will be sleep.
+ * @param how many milliseconds as sleep.
+ * @return The state of current operating result.
+ * \par
+ * If the member AutoStartup of the second argument is FALSE to call the function CreateTaskEx,
+ * an infinite sleep task will be created, you may call this function to wakeup the new task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI E_STATUS Sleep(LONG Timeout)
 {
+    if (Timeout <= 0)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+    
     return caScheduleTimeout(Timeout);
 }
 EXPORT_SYMBOL(Sleep);
 
-
-/*******************************************************************************************
- *  函 数 名：TaskStartup
- *  功    能：唤醒任务(新创建非自动执行任务需要唤醒)
- *  参    数: HANDLE hTask
- *  返 回 值：E_STATUS       成功              STATUS_SUCCESS
- *            E_STATUS       失败              失败原因
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
+/**
+ * Post start signal to the specified task.
+ * @param The handle of the specified task.
+ * @return The state of current operating result.
+ * \par
+ * If the member AutoStartup of the second argument is FALSE to call the function CreateTaskEx,
+ * an infinite sleep task will be created, you may call this function to wakeup the new task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI E_STATUS TaskStartup(HANDLE hTask)
 {
     return caTaskWakeup(hTask);
@@ -248,81 +240,114 @@ FANSAPI E_STATUS TaskStartup(HANDLE hTask)
 EXPORT_SYMBOL(TaskStartup);
 
 
-
-/*******************************************************************************************
- *  函 数 名：SetError
- *  功    能：设置错误码
- *  参    数: E_STATUS       emCode            错误码
- *  返 回 值：E_STATUS       成功              STATUS_SUCCESS
- *            E_STATUS       失败              失败原因
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
-FANSAPI E_STATUS SetError(E_STATUS emCode)
+/**
+ * Set the last error of the current task.
+ * @param The last error code.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
+FANSAPI E_STATUS SetError(E_STATUS State)
 {
-    return caSetError(emCode);
+    return caSetError(State);
 }
 EXPORT_SYMBOL(SetError)
 
-/*******************************************************************************************
- *  函 数 名：GetError
- *  功    能：获取当前错误码
- *  参    数NONE
- *  返 回 值：E_STATUS       错误码
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
+/**
+ * Get the last error of the current task.
+ * @return The last error code.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI E_STATUS GetError(VOID)
 {
     return caGetError();
 }
 EXPORT_SYMBOL(GetError)
 
-/*******************************************************************************************
- *  函 数 名：PostCancel
- *  功    能：取消任务
- *  参    数：HANDLE         hTask             任务句柄
- *  返 回 值：E_STATUS       失败              失败原因
- *            E_STATUS       成功              STATE_SUCCESS
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
+/**
+ * Get the handle of current task.
+ * @return The handle of current task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
+FANSAPI HANDLE GetCurrentTask(VOID)
+{
+    return caGetCurrentTask();
+}
+EXPORT_SYMBOL(GetCurrentTask);
+
+/**
+ * Get the start time for the specified task.
+ * @param The handle of the specified task.
+ * @return The start tick of time.
+ *
+ * date           author          notes
+ * 2015-06-17     JiangYong       new function
+ */
+FANSAPI TICK GetTaskStartTick(HANDLE hTask)
+{
+    if (INVALID_HANDLE_VALUE == hTask)
+    {
+        SetError(STATE_INVALID_PARAMETER);
+        return INVALID_TICK;
+    }
+
+    return GetTaskStartTick(hTask);
+}
+
+/**
+ * Post cancel signal to the specified task.
+ * @param The handle of the specified task.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI E_STATUS PostCancel(HANDLE hTask)
 {
+    if (INVALID_HANDLE_VALUE == hTask)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+
     return caPostCancel(hTask);
 }
 EXPORT_SYMBOL(PostCancel);
 
-/*******************************************************************************************
- *  函 数 名：TestCancel
- *  功    能：检测任务是否被取消
- *  参    数: NONE
- *  返 回 值：E_STATUS       取消原因          其他值
- *            E_STATUS       未被取消          STATE_SUCCESS
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
-FANSAPI E_STATUS TestCancel(VOID)
+/**
+ * Testing cancel signal of the current task.
+ * @return TRUE The cancel signal has been set.
+ * @return FALSE The cancel signal is not detected.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
+FANSAPI BOOL TestCancel(VOID)
 {
     return caTestCancel();
 }
 EXPORT_SYMBOL(TestCancel);
 
-
+/**
+ * Get the name of the specified task.
+ * @param The handle of the specified task.
+ * @param The name buffer.
+ * @param The size of the name buffer.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI E_STATUS GetTaskName(HANDLE hTask, LPTSTR lpName, SIZE_T SizeofBuffer)
 {
     E_STATUS State;
     TCHAR Name[OBJECT_NAME_MAX];
     
-    if (NULL == lpName || 0 == SizeofBuffer)
+    if (NULL == lpName || SizeofBuffer < OBJECT_NAME_MAX || INVALID_HANDLE_VALUE == hTask)
     {
         return STATE_INVALID_PARAMETER;
     }
@@ -332,7 +357,7 @@ FANSAPI E_STATUS GetTaskName(HANDLE hTask, LPTSTR lpName, SIZE_T SizeofBuffer)
 #ifdef _UNICODE
 #error "not support unicode charset."
 #else
-        strncpy(lpName, Name, SizeofBuffer);
+        strncpy(lpName, Name, SizeofBuffer-1);
 #endif
     }
 
@@ -340,56 +365,67 @@ FANSAPI E_STATUS GetTaskName(HANDLE hTask, LPTSTR lpName, SIZE_T SizeofBuffer)
 }
 EXPORT_SYMBOL(GetTaskName);
 
-/*******************************************************************************************
- *  函 数 名：GetCurrentTask
- *  功    能：获得当前任务句柄
- *  参    数：NONE
- *  返 回 值：HANDLE         失败              INVALID_HANDLE_VALUE
- *            HANDLE         成功              当前任务句柄
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
-FANSAPI HANDLE GetCurrentTask(VOID)
-{
-    return INVALID_HANDLE_VALUE;
-}
-EXPORT_SYMBOL(GetCurrentTask);
-
-/*******************************************************************************************
- *  函 数 名：SetPriority
- *  功    能：设置任务优先级
- *  参    数: HANDLE hTask
- *  返 回 值：E_STATUS       成功              STATUS_SUCCESS
- *            E_STATUS       失败              失败原因
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
+/**
+ * Get the priority of the specified task.
+ * @param The handle of the specified task.
+ * @param The new priority will be setting.
+ * @return The priority of the task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI E_STATUS SetPriority(HANDLE hTask, TASK_PRIORITY Priority)
 {
+    if (INVALID_HANDLE_VALUE == hTask)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+
     return caSetPriority(hTask, Priority);
 }
 EXPORT_SYMBOL(SetPriority);
 
-/*******************************************************************************************
- *  函 数 名：GetPriority
- *  功    能：查询任务优先级
- *  参    数: HANDLE hTask
- *  返 回 值：DWORD          任务优先级
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
+/**
+ * Get the priority of the specified task.
+ * @param The handle of the specified task.
+ * @return The priority of the task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
 FANSAPI TASK_PRIORITY GetPriority(HANDLE hTask)
 {
+    if (INVALID_HANDLE_VALUE == hTask)
+    {
+        SetError(STATE_INVALID_PARAMETER);
+
+        return TASK_PRIORITY_INVALID;
+    }
+    
     return caGetPriority(hTask);
 }
 EXPORT_SYMBOL(GetPriority);
 
+/**
+ * Get the state of the specified task.
+ * @param The handle of the specified task.
+ * @return The state of the task.
+ *
+ * date           author          notes
+ * 2014-11-16     JiangYong       new function
+ */
+FANSAPI TASK_STATUS GetTaskState(HANDLE hTask)
+{
+    if (INVALID_HANDLE_VALUE == hTask)
+    {
+        SetError(STATE_INVALID_PARAMETER);
+
+        return TASK_STATE_MAX;
+    }
+    
+    return caGetTaskState(hTask);
+}
+EXPORT_SYMBOL(GetTaskState);
 
 /*******************************************************************************************
  *  函 数 名：GetTaskLocalData
@@ -423,23 +459,6 @@ FANSAPI E_STATUS SetTaskLocalData(LPVOID lpPrivate)
 }
 EXPORT_SYMBOL(SetTaskLocalData);
 
-
-/*******************************************************************************************
- *  函 数 名：GetTaskState
- *  功    能：查询任务状态
- *  参    数: HANDLE hTask
- *  返 回 值：TASK_STATUS       成功  < TASK_STATE_MAX
- *            TASK_STATUS       失败  >= TASK_STATE_MAX
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
-FANSAPI TASK_STATUS GetTaskState(HANDLE hTask)
-{
-    return TASK_STATE_MAX;
-}
-EXPORT_SYMBOL(GetTaskState);
 
 /*******************************************************************************************
  *  函 数 名：GetTaskInformation
