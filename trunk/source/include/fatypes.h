@@ -145,6 +145,7 @@ typedef unsigned long long FAR * LPSIZE_L;
 #endif
 
 #define     INVALID_HANDLE_VALUE                ((HANDLE)(-1))
+#define     TASK_SELF_HANDLE                    ((HANDLE)(-2))
 
 typedef unsigned long HANDLE;
 typedef unsigned long * PHANDLE;

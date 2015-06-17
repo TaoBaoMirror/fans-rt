@@ -31,55 +31,43 @@ extern "C" {
 #endif
     EXPORT E_STATUS caGetError(VOID);
     EXPORT E_STATUS caSetError(E_STATUS emCode);
+    EXPORT HANDLE caGetCurrentTask(VOID);
     EXPORT TICK caGetTaskStartTick(HANDLE hTask);
 
     EXPORT E_STATUS caScheduleTimeout(LONG Timeout);
     EXPORT E_STATUS caTaskWakeup(HANDLE hTask);
-    EXPORT E_STATUS caTestCancel(VOID);
+    EXPORT BOOL caTestCancel(VOID);
     EXPORT E_STATUS caPostCancel(HANDLE hTask);
     EXPORT TASK_PRIORITY caGetPriority(HANDLE hTask);
     EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority);
     EXPORT E_STATUS caCloseTask(HANDLE hTask);
-    EXPORT E_STATUS caIdleTask_Main(LPVOID lpParam);
     
-    EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam);
-    EXPORT E_STATUS caStackFree(HANDLE hTask);
-
     EXPORT E_STATUS caGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX]);
-    EXPORT HANDLE caGetCurrentTask(VOID);
     
+    EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
     EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask);
-#if 0
-    EXPORT E_STATUS ntSchedulerRun(LPVOID StackDump);
-    EXPORT E_STATUS caScheduleTimeout(DWORD Timeout);
-    
-    
-    EXPORT E_STATUS ntTaskCancel(HANDLE hTask);
-    
-    EXPORT TASK_PRIORITY caGetPriority(HANDLE hTask);
-    EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority);
-    
+
     EXPORT LPVOID ntGetLocalData(BYTE LocalID);
     EXPORT E_STATUS ntSetLocalData(BYTE LocalID, LPVOID lpPrivate);
     
-    EXPORT TASK_STATUS ntGetTaskState(HANDLE hTask);
+    EXPORT TASK_STATUS caGetTaskState(HANDLE hTask);
     EXPORT E_STATUS ntGetTaskInfor(HANDLE hTask, LPTASK_INFOR lpTaskInfor);
     EXPORT HANDLE ntEnumNextTask(HANDLE hTask);
     
 #if (CONFIG_PROFILER_CYCLE != 0)
     EXPORT E_STATUS ntSystemProfiler(VOID);
 #endif
-
-#endif                    
+                  
     EXPORT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam);
     EXPORT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam);
     EXPORT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam);
-    EXPORT E_STATUS ntCloseObject(HANDLE handle);
-    EXPORT E_STATUS caFreeObject(HANDLE handle);
     EXPORT E_STATUS caPostObject(HANDLE handle, LPVOID lpParam);
     EXPORT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime);
     EXPORT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam);
-    
+    EXPORT E_STATUS caFreeObject(HANDLE handle);
+    EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam);
+    EXPORT E_STATUS caStackFree(HANDLE hTask);
+
     EXPORT LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType);
 
 #ifdef __cplusplus

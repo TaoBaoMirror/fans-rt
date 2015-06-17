@@ -32,15 +32,14 @@ extern "C" {
 #endif
 
     FANSAPI E_STATUS GetError(VOID);
-    FANSAPI E_STATUS SetError(E_STATUS emCode);
+    FANSAPI E_STATUS SetError(E_STATUS State);
     
     FANSAPI HANDLE GetCurrentTask(VOID);
     
-    FANSAPI E_STATUS TestCancel(VOID);
+    FANSAPI BOOL TestCancel(VOID);
     FANSAPI E_STATUS PostCancel(HANDLE hTask);
     
     FANSAPI E_STATUS TaskExit(VOID);
-    FANSAPI E_STATUS KillTask(HANDLE hTask);
     
     FANSAPI E_STATUS Sleep(LONG Timeout);
     FANSAPI E_STATUS TaskStartup(HANDLE hTask);
@@ -54,12 +53,11 @@ extern "C" {
 
     FANSAPI TASK_STATUS GetTaskState(HANDLE hTask);
 
-#define     TaskExit()                          KillTask(INVALID_HANDLE_VALUE)
-#define     GetTaskSelfState()                  GetTaskState(INVALID_HANDLE_VALUE)
-#define     GetTaskSelfPriority()               GetPriority(INVALID_HANDLE_VALUE)
-#define     SetTaskSelfPriority(p)              SetPriority(INVALID_HANDLE_VALUE, p)
-#define     GetTaskSelfName(n, sz)              GetTaskName(INVALID_HANDLE_VALUE, n, sz)
-#define     GetTaskSelfInformation(lpInfor)     GetTaskInformation(INVALID_HANDLE_VALUE, lpInfor)
+#define     GetTaskSelfState()                  GetTaskState(TASK_SELF_HANDLE)
+#define     GetTaskSelfPriority()               GetPriority(TASK_SELF_HANDLE)
+#define     SetTaskSelfPriority(p)              SetPriority(TASK_SELF_HANDLE, p)
+#define     GetTaskSelfName(n, sz)              GetTaskName(TASK_SELF_HANDLE, n, sz)
+#define     GetTaskSelfInformation(lpInfor)     GetTaskInformation(TASK_SELF_HANDLE, lpInfor)
 
 
     FANSAPI E_STATUS GetTaskInformation(HANDLE hTask, LPTASK_INFOR lpTaskInfor);
@@ -67,15 +65,17 @@ extern "C" {
     
     FANSAPI E_STATUS GetTaskName(HANDLE hTask, LPTSTR lpName, SIZE_T SizeofBuffer);
     FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam);
-    FANSAPI HANDLE CreateTask(LPCTSTR __IN lpTaskName, FNTASKMAIN fnMain, LPVOID lpArgument);
+#define     CreateTask(lpTaskName, fnMain, lpArgument)                                          \
+            CreatePriorityTask(lpTaskName, fnMain, lpArgument, TASK_PRIORITY_NORMAL)
+
     FANSAPI HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain, 
                                       LPVOID lpArgument, TASK_PRIORITY Priority);
 
     FANSAPI HANDLE TakeObject(LPCTSTR lpName);
 
     FANSAPI HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal);
-    FANSAPI E_STATUS PostEvent(HANDLE handle);
-    FANSAPI E_STATUS ResetEvent(HANDLE handle);
+    FANSAPI E_STATUS PostEvent(HANDLE hEvent);
+    FANSAPI E_STATUS ResetEvent(HANDLE hEvent);
 
     FANSAPI HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner);
     FANSAPI E_STATUS MutexLock(HANDLE hMutex);
