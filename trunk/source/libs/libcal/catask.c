@@ -198,6 +198,8 @@ EXPORT TICK caGetTaskStartTick(HANDLE hTask)
 EXPORT TASK_PRIORITY caGetPriority(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
     
     Packet.u0.hParam = hTask;
     Packet.u1.dParam = TASK_PRIORITY_INVALID;
@@ -213,6 +215,8 @@ EXPORT TASK_PRIORITY caGetPriority(HANDLE hTask)
 EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
 {
     LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
     
     Packet.u0.hParam = hTask;
     Packet.u1.dParam = Priority;
@@ -243,3 +247,63 @@ EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam)
     
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_STACK_MALLOC);
 }
+
+EXPORT SMLT_KEY_T caGetSmltKey(VOID)
+{
+    LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+
+    if (STATE_SUCCESS != caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_SMLTKEY))
+    {
+        return TASK_SMLTKEY_INVALID;
+    }
+    
+    return (SMLT_KEY_T) Packet.u0.dParam;
+}
+
+EXPORT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey)
+{
+    LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+    
+    Packet.u0.dParam = SmltKey;
+
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_PUT_SMLTKEY);
+}
+
+EXPORT E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue)
+{
+    E_STATUS State;
+    LPC_REQUEST_PACKET Packet;
+    
+    if (NULL == lpValue)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+    
+    Packet.u0.dParam = SmltKey;
+    
+    if (STATE_SUCCESS == (State = caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_SMLTVALUE)))
+    {
+        *lpValue = Packet.u1.dParam;
+    }
+
+    return State;
+}
+
+EXPORT E_STATUS caSetSmltValue(SMLT_KEY_T SmltKey, DWORD Value)
+{
+    LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+    
+    Packet.u0.dParam = SmltKey;
+    Packet.u1.dParam = Value;
+
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_SMLTVALUE);
+}
+

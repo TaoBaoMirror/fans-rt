@@ -47,8 +47,10 @@ extern "C" {
     EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
     EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask);
 
-    EXPORT LPVOID ntGetLocalData(BYTE LocalID);
-    EXPORT E_STATUS ntSetLocalData(BYTE LocalID, LPVOID lpPrivate);
+    EXPORT SMLT_KEY_T caGetSmltKey(VOID);
+    EXPORT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey);
+    EXPORT E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue);
+    EXPORT E_STATUS caSetSmltValue(SMLT_KEY_T SmltKey, DWORD Value);
     
     EXPORT TASK_STATUS caGetTaskState(HANDLE hTask);
     EXPORT E_STATUS ntGetTaskInfor(HANDLE hTask, LPTASK_INFOR lpTaskInfor);

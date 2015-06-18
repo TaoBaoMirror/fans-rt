@@ -38,18 +38,20 @@ extern "C" {
     
     FANSAPI BOOL TestCancel(VOID);
     FANSAPI E_STATUS PostCancel(HANDLE hTask);
-    
+
     FANSAPI E_STATUS TaskExit(VOID);
+    FANSAPI E_STATUS KillTask(HANDLE hTask);
     
     FANSAPI E_STATUS Sleep(LONG Timeout);
     FANSAPI E_STATUS TaskStartup(HANDLE hTask);
     
     FANSAPI TASK_PRIORITY GetPriority(HANDLE hTask);
     FANSAPI E_STATUS SetPriority(HANDLE hTask, TASK_PRIORITY Priority);
-        
 
-    FANSAPI LPVOID GetTaskLocalData(VOID);
-    FANSAPI E_STATUS SetTaskLocalData(LPVOID lpData);
+    FANSAPI SMLT_KEY_T GetSmltKey(VOID);
+    FANSAPI E_STATUS PutSmltKey(SMLT_KEY_T SmtKey);
+    FANSAPI E_STATUS GetSmltValue(SMLT_KEY_T SmtKey, LPDWORD lpValue);
+    FANSAPI E_STATUS SetSmltValue(SMLT_KEY_T SmtKey, DWORD Value);
 
     FANSAPI TASK_STATUS GetTaskState(HANDLE hTask);
 
@@ -84,15 +86,11 @@ extern "C" {
     FANSAPI E_STATUS WaitObject(HANDLE handle, LONG WaitTime);
     FANSAPI E_STATUS CloseHandle(HANDLE handle);
 #if 0
-    FANSAPI E_STATUS PostEvent(LPVOID lpParam, E_EVENT_LISTS emEvent, E_EVENT_PRIORITY emPriority);
-    FANSAPI E_STATUS SubscribeEvent(LPEVENT_HANDLER lpHandler, E_EVENT_LISTS emEvent);
-    
     FANSAPI E_STATUS CreateFile(__IN CONST LPTSTR FileName, DWORD Attribute);
     FANSAPI E_STATUS FileIOCtrl(HANDLE Handle, DWORD dwCmd, ...);
     FANSAPI HANDLE OpenFile(__IN CONST LPTSTR FileName, DWORD AccessFlags, E_FILEOPEN OpenMode);
     FANSAPI SIZE_T ReadFile(HANDLE Handle, __IN __OUT LPVOID Buffer, SIZE_T Length);
     FANSAPI SIZE_T WriteFile(HANDLE Handle, __IN CONST LPVOID Buffer, SIZE_T Length);
-    FANSAPI E_STATUS CloseHandle(HANDLE Handle);
 #endif
 #ifdef __cplusplus
 }
