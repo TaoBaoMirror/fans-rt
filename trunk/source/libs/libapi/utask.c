@@ -165,13 +165,10 @@ FANSAPI HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
 }
 EXPORT_SYMBOL(CreatePriorityTask);
 
-#if 0
 /**
  * Kill the specified task.
  * @param The handle of the specified task.
  * @return The state of current operating result.
- * \par
- * If the task want to kill self, must be specify correct handle of current task.
  *
  * date           author          notes
  * 2014-11-16     JiangYong       new function
@@ -186,7 +183,6 @@ FANSAPI E_STATUS KillTask(HANDLE hTask)
     return caCloseTask(hTask);
 }
 EXPORT_SYMBOL(KillTask);
-#endif
 
 /**
  * Kill current task.
@@ -427,38 +423,62 @@ FANSAPI TASK_STATUS GetTaskState(HANDLE hTask)
 }
 EXPORT_SYMBOL(GetTaskState);
 
-/*******************************************************************************************
- *  函 数 名：GetTaskLocalData
- *  功    能：查询任务优先级
- *  参    数: BYTE LocalID
- *  返 回 值：LPVOID
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
-FANSAPI LPVOID GetTaskLocalData(VOID)
+/**
+ * Get free key of static memory local to a task.
+ * @return The key id.
+ *
+ * date           author          notes
+ * 2015-06-19     JiangYong       new function
+ */
+FANSAPI SMLT_KEY_T GetSmltKey(VOID)
 {
-    return NULL;
+    return caGetSmltKey();
 }
-EXPORT_SYMBOL(GetTaskLocalData);
+EXPORT_SYMBOL(GetSmltKey);
 
-/*******************************************************************************************
- *  函 数 名：SetTaskLocalData
- *  功    能：设置任务本地静态变量
- *  参    数: LPVOID lpPrivate
- *  返 回 值：LPVOID
- *  修改历史：
- *      1.修改时间：2014-11-16
- *        作    者: 姜勇
- *        修改内容: 创建函数
- *******************************************************************************************/
-FANSAPI E_STATUS SetTaskLocalData(LPVOID lpPrivate)
+/**
+ * Free the key of static memory local to a task.
+ * @param The key want to free.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-06-19     JiangYong       new function
+ */
+FANSAPI E_STATUS PutSmltKey(SMLT_KEY_T SmtKey)
 {
-    return STATE_NOT_IMPLEMENTED;
+    return caPutSmltKey(SmtKey);
 }
-EXPORT_SYMBOL(SetTaskLocalData);
+EXPORT_SYMBOL(PutSmltKey);
 
+/**
+ * Get the value of static memory local to a task.
+ * @param The key id.
+ * @param The pointer to store data.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-06-19     JiangYong       new function
+ */
+FANSAPI E_STATUS GetSmltValue(SMLT_KEY_T SmtKey, LPDWORD lpValue)
+{
+    return caGetSmltValue(SmtKey, lpValue);
+}
+EXPORT_SYMBOL(GetSmltValue);
+
+/**
+ * Set the value of static memory local to a task.
+ * @param The key id.
+ * @param The value to set.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-06-19     JiangYong       new function
+ */
+FANSAPI E_STATUS SetSmltValue(SMLT_KEY_T SmtKey, DWORD Value)
+{
+    return caSetSmltValue(SmtKey, Value);
+}
+EXPORT_SYMBOL(caSetSmltValue);
 
 /*******************************************************************************************
  *  函 数 名：GetTaskInformation

@@ -598,6 +598,111 @@ STATIC E_STATUS SVC_CloseTask(LPVOID lpPrivate, LPVOID lpParam)
     return CloseTaskContext(lpTaskContext);
 }
 
+
+STATIC SMLT_KEY_T MallocSmltKey(LPTASK_CONTEXT lpTaskContext)
+{
+    return 0;
+}
+
+STATIC E_STATUS FreeSmltKey(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey)
+{
+    if (SmltKey >= SMLT_ARRAY_SIZE)
+    {
+        return STATE_OVER_RANGE;
+    }
+    
+    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
+    {
+        return STATE_MEMORY_OVERFLOW;
+    }
+    
+    SetContextSmltKeyToFree(lpTaskContext, SmltKey);
+    
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS SetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, DWORD Value)
+{
+    if (SmltKey >= SMLT_ARRAY_SIZE)
+    {
+        return STATE_OVER_RANGE;
+    }
+
+    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
+    {
+        return STATE_MEMORY_OVERFLOW;
+    }
+
+    SetContextSmltValue(lpTaskContext, SmltKey, Value);
+
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, LPDWORD lpValue)
+{
+    if (SmltKey >= SMLT_ARRAY_SIZE)
+    {
+        return STATE_OVER_RANGE;
+    }
+
+    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
+    {
+        return STATE_MEMORY_OVERFLOW;
+    }
+
+    *lpValue = GetContextSmltValue(lpTaskContext, SmltKey);
+
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS SVC_GetSmltKey(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+    
+    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
+
+    lpPacket->u0.dParam = MallocSmltKey(lpCurrentTask);
+    
+    if (TASK_SMLTKEY_INVALID == (SMLT_KEY_T) lpPacket->u0.dParam)
+    {
+        TaskSetError(STATE_OUT_OF_MEMORY);
+        return STATE_OUT_OF_MEMORY;
+    }
+    
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS SVC_PutSmltKey(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+    
+    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
+    
+    return FreeSmltKey(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam);
+}
+
+STATIC E_STATUS SVC_GetSmltValue(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+    
+    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
+    
+    return GetSmltKeyValue(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam, (LPDWORD)&lpPacket->u1.dParam);
+}
+
+STATIC E_STATUS SVC_SetSmltValue(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+    
+    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
+    
+    return SetSmltKeyValue(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam, lpPacket->u1.dParam);
+}
+
 STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_GetTaskError,
     SVC_SetTaskError,
@@ -607,6 +712,10 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_GetTaskStartTick,
     SVC_GetTaskPriority,
     SVC_SetTaskPriority,
+    SVC_GetSmltKey,
+    SVC_PutSmltKey,
+    SVC_GetSmltValue,
+    SVC_SetSmltValue,
     SVC_TaskSchedule,
     SVC_TaskWakeup,
     SVC_TestCancel,

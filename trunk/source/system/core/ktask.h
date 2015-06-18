@@ -36,6 +36,10 @@ enum{
     LPC_TSS_GET_TASKTICK,
     LPC_TSS_GET_PRIORITY,
     LPC_TSS_SET_PRIORITY,
+    LPC_TSS_GET_SMLTKEY,
+    LPC_TSS_PUT_SMLTKEY,
+    LPC_TSS_GET_SMLTVALUE,
+    LPC_TSS_SET_SMLTVALUE,
     LPC_TSS_SCHEDULE_TIMEOUT,
     LPC_TSS_WAKE_UP,
     LPC_TSS_TEST_CANCEL,
@@ -81,7 +85,7 @@ enum{
 #define     BOOT_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, BOOT_TASK_ID, 0)                       \
 
 #define     TASK_USER_LOCAL_ID          3
-#define     TASK_LOCAL_MAX              4                               /* 任务本地数据最大数量 */
+#define     SMLT_ARRAY_SIZE              4                               /* 任务本地数据最大数量 */
 
 typedef struct tagTASK_CONTEXT TASK_CONTEXT;
 typedef struct tagTASK_CONTEXT * PTASK_CONTEXT;
@@ -114,15 +118,14 @@ struct tagTASK_CONTEXT{
     DWORD                   WorkTimesL;                         /* 任务被调度的次数，低位 */
     DWORD                   WorkTimesH;                         /* 任务被调度的次数，高位 */
 #endif
-    TIME_SLICE_T            SliceRemain;                        /* W时间片剩余TICK数 */
-    TIME_SLICE_T            SliceLength;                        /* W时间片最大TICK数 */
     union{
         struct {
             DWORD           CPUPercent:8;                       /* 单位时间内任务的CPU占用率 */
             DWORD           TaskState:3;                        /* 任务当前状态: TASK_STATUS*/
             DWORD           FaultBit:1;                         /* 任务异常标记(堆栈溢出) */
             DWORD           CancelBit:1;                        /* 任务取消标志 */
-            DWORD           Reserved0:6;                        /* 保留位 */
+            DWORD           SmltMark:SMLT_ARRAY_SIZE;           /* The mark of smlt */
+            DWORD           Reserved0:2;                        /* Reserved bits */
 #if (CONFIG_DYNAMIC_STACK_ENABLE != TRUE)
             DWORD           StackTid:3;                         /* 堆栈TID */
             DWORD           StackPid:10;                        /* 堆栈PID */
@@ -134,17 +137,19 @@ struct tagTASK_CONTEXT{
     }ub;
     TASK_PRIORITY           ThisPriority;                       /* 当前优先级 */
     TASK_PRIORITY           InitPriority;                       /* 初始优先级 */
+    TIME_SLICE_T            SliceRemain;                        /* W时间片剩余TICK数 */
+    TIME_SLICE_T            SliceLength;                        /* W时间片最大TICK数 */
     E_STATUS                ErrorCode;                          /* 错误码 */
     LPLPC_REQUEST_PACKET    lpLPCPacket;                        /* LPC 请求包指针 for wait object */
-    LPVOID                  lpLocalData[TASK_LOCAL_MAX];        /* 任务本地数据 */
-    DWORD                   Reserved[1];                        /* 保留 */
+    DWORD                   SmltArray[SMLT_ARRAY_SIZE];        /* static memory local to a task */
+    DWORD                   Reserved[2];                        /* 保留 */
 #if (CONFIG_BUILD_TASK_PATH == TRUE)
     CHAR                    cbTaskPath[MAX_PATH];               /* 任务当前路径 */
 #endif
 };
 
-#define     TASK_BITS_STACKPID_MASK             ((DWORD)OBJECT_PID_MASK)
-#define     TASK_BITS_STACKTID_MASK             ((DWORD)OBJECT_TID_MASK)
+#define     TASK_BITS_STACKPID_MASK             OBJECT_PID_MASK
+#define     TASK_BITS_STACKTID_MASK             OBJECT_TID_MASK
 #define     TASK_BITS_PERCENT_MASK              (0xffUL)
 #define     TASK_BITS_STATE_MASK                (0x7UL)
 #define     TASK_BITS_FAULT_MASK                (0x1UL)
@@ -245,6 +250,11 @@ struct tagTASK_CONTEXT{
 #define     GetContextCancel(lpTC)                          ((lpTC)->ub.Bits.CancelBit)
 #define     SetContextCancel(lpTC, boolean)                 do { (lpTC)->ub.Bits.CancelBit = (boolean); } while(0)
 
+#define     GetContextSmltKeyIsFree(lpTC, id)               (0 == (((lpTC)->ub.Bits.SmltMark) & (1 << (id))))
+#define     SetContextSmltKeyToFree(lpTC, id)                do { (lpTC)->ub.Bits.SmltMark &= (~(1 << (id))); } while(0)
+#define     GetContextSmltValue(lpTC, id)                   ((lpTC)->SmltArray[id])
+#define     SetContextSmltValue(lpTC, id, Value)            do {(lpTC)->SmltArray[id] = (Value);} while(0)
+
 #define     GetContextThisPriority(lpTC)                    ((lpTC)->ThisPriority)
 #define     SetContextThisPriority(lpTC, Prio)              do {(lpTC)->ThisPriority = (Prio); } while(0)
 #define     GetContextInitPriority(lpTC)                    ((lpTC)->InitPriority)
@@ -267,16 +277,6 @@ struct tagTASK_CONTEXT{
 
 #define     GetContextLockedMutex(lpTC)                     ((lpTC)->hLockedMutex)
 #define     SetContextLockedMutex(lpTC, hMutex)             do {((lpTC)->hLockedMutex) = (hMutex); } while(0)
-
-//#define     GetContextArgment(lpTC)                         ((lpTC)->lpArgument)
-//#define     SetContextArgment(lpTC, Arg)                    do {((lpTC)->lpArgument) = (Arg); } while(0)
-
-//#define     GetContextEntry(lpTC)                           ((lpTC)->fnTaskEntry)
-//#define     SetContextEntry(lpTC, Entry)                    do {((lpTC)->fnTaskEntry) = (Entry); } while(0)
-
-#define     GetContextLocalData(lpTC, Lid)                  ((lpTC)->lpLocalData[Lid])
-#define     SetContextLocalData(lpTC, Lid, Value)           do {(lpTC)->lpLocalData[Lid] = (Value);} while(0)
-
 
 #define     TaskContextReadyNodeInit(lpTC)                  LIST_HEAD_INIT(&(lpTC)->Node.ReadyNode);
 #define     GetContextByReadyNode(lpNode)                   (lpNode ? TASK_ENTRY(lpNode, Node.ReadyNode) : NULL)

@@ -225,8 +225,10 @@ typedef enum{
 #define TASK_PRIORITY_NORMAL                (TASK_PRIORITY_IDLE - 1)            /**< 普通任务 */
 #define TASK_PRIORITY_INVALID               (255)                               /**< 无效任务优先级 */
 #define TASK_SLICE_INFINITE                 ((TIME_SLICE_T)(-1))                /**< 任务时间片无限 - 只能 IDLE 使用 */
+#define TASK_SMLTKEY_INVALID                (~0U)
 
-typedef long TIME_SLICE_T;
+typedef unsigned int SMLT_KEY_T;
+typedef short TIME_SLICE_T;
 typedef unsigned char TASK_PRIORITY;
 typedef unsigned char * PTASK_PRIORITY;
 typedef unsigned char FAR * LPTASK_PRIORITY;
