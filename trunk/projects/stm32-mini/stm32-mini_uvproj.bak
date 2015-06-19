@@ -67,7 +67,7 @@
           <BeforeMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>C:\mgw_x86so\msys\1.0\bin\make.exe -C /e/fans-rt/Source/build -f keil.mak ARCH=stm32 BOARD=mini COMPILER=armcc</UserProg1Name>
+            <UserProg1Name>C:\mgw_x86so\msys\1.0\bin\make.exe -C ../../source/build -f keil.mak ARCH=stm32 BOARD=mini COMPILER=armcc</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -364,13 +364,13 @@
             <uSurpInc>1</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>DEBUG_IRQ_MONITOR</Define>
+              <Define></Define>
               <Undefine></Undefine>
               <IncludePath>..\..\source\platform\board\stm32\mini\armcc</IncludePath>
             </VariousControls>
           </Aads>
           <LDads>
-            <umfTarg>1</umfTarg>
+            <umfTarg>0</umfTarg>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
             <noStLib>0</noStLib>
@@ -378,7 +378,7 @@
             <useFile>0</useFile>
             <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
-            <ScatterFile>..\..\Object\stm32-mini\stm32-mini.sct</ScatterFile>
+            <ScatterFile>..\..\source\platform\board\stm32\mini\armcc\stm32-mini.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc>--userlibpath "..\..\libs\thumb" libfw.a</Misc>
@@ -572,14 +572,39 @@
           <GroupName>testcode</GroupName>
           <Files>
             <File>
-              <FileName>tasktest.c</FileName>
+              <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\Source\testcode\mini\tasktest.c</FilePath>
+              <FilePath>..\..\source\testcode\mini\main.c</FilePath>
             </File>
             <File>
-              <FileName>modules.h</FileName>
+              <FileName>testcode.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\source\testcode\mini\modules.h</FilePath>
+              <FilePath>..\..\source\testcode\mini\testcode.h</FilePath>
+            </File>
+            <File>
+              <FileName>tasktest.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\mini\tasktest.c</FilePath>
+            </File>
+            <File>
+              <FileName>amodule.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\mini\amodule.c</FilePath>
+            </File>
+            <File>
+              <FileName>testipc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\mini\testipc.c</FilePath>
+            </File>
+            <File>
+              <FileName>testtask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\mini\testtask.c</FilePath>
+            </File>
+            <File>
+              <FileName>testbase.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\mini\testbase.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -767,11 +792,6 @@
               <FilePath>..\..\source\libs\libcmini\wsprintf.c</FilePath>
             </File>
             <File>
-              <FileName>vprintf.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\libs\libcmini\vprintf.c</FilePath>
-            </File>
-            <File>
               <FileName>csprintf.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libcmini\csprintf.c</FilePath>
@@ -837,11 +857,6 @@
               <FilePath>..\..\source\libs\libcal\libcal.h</FilePath>
             </File>
             <File>
-              <FileName>module.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\libs\libcal\module.c</FilePath>
-            </File>
-            <File>
               <FileName>request.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libcal\request.c</FilePath>
@@ -850,6 +865,11 @@
               <FileName>request.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\libs\libcal\request.h</FilePath>
+            </File>
+            <File>
+              <FileName>camodule.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libcal\camodule.c</FilePath>
             </File>
           </Files>
         </Group>
