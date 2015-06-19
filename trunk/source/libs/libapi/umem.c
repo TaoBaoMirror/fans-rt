@@ -11,6 +11,7 @@
  *    2014-09-07     JiangYong       new file
  */
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -22,44 +23,44 @@
 
 
 #if (CONFIG_MEM_REGION_MAX != 0)
-FANSAPI LPVOID PageMalloc(SIZE_T Length)
+FANSAPI CODE_TEXT LPVOID PageMalloc(SIZE_T Length)
 {
     return caPageMalloc(Length);
 }
 EXPORT_SYMBOL(PageMalloc);
 
 
-FANSAPI E_STATUS PageFree(LPVOID lpPageAddress)
+FANSAPI CODE_TEXT E_STATUS PageFree(LPVOID lpPageAddress)
 {
     return caPageFree(lpPageAddress);
 }
 EXPORT_SYMBOL(PageFree);
 
-FANSAPI DWORD GetSystemFreePages(BYTE RegionID)
+FANSAPI CODE_TEXT DWORD GetSystemFreePages(BYTE RegionID)
 {
     return caGetSystemFreePages(RegionID);
 }
 EXPORT_SYMBOL(GetSystemFreePages);
 
-FANSAPI E_STATUS GetMmsInformation(LPMMS_INFOR lpInfor)
+FANSAPI CODE_TEXT E_STATUS GetMmsInformation(LPMMS_INFOR lpInfor)
 {
     return caGetMmsInformation(lpInfor);
 }
 EXPORT_SYMBOL(GetMmsInformation);
 
-FANSAPI E_STATUS ShowMmsInformation(VOID)
+FANSAPI CODE_TEXT E_STATUS ShowMmsInformation(VOID)
 {
     return caShowMmsInformation();
 }
 EXPORT_SYMBOL(ShowMmsInformation);
 
-FANSAPI E_STATUS ShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
+FANSAPI CODE_TEXT E_STATUS ShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
 {
     return caShowMmsRegionSection(RegionID, Buddy);
 }
 EXPORT_SYMBOL(ShowMmsRegionSection);
 
-FANSAPI E_STATUS CreateMMRegion(LPVOID lpAddress, SIZE_T Length)
+FANSAPI CODE_TEXT E_STATUS CreateMMRegion(LPVOID lpAddress, SIZE_T Length)
 {
     return caCreateMMRegion(lpAddress, Length);
 }

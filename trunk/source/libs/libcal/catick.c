@@ -12,6 +12,7 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -21,7 +22,7 @@
 #include "libcal.h"
 #include "cadebug.h"
 
-EXPORT TICK caGetSystemTick(VOID)
+EXPORT CODE_TEXT TICK caGetSystemTick(VOID)
 {
     TICK Tick;
     E_STATUS State;

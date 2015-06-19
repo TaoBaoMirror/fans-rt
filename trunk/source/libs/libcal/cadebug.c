@@ -12,6 +12,7 @@
  */
 #include <string.h>
 #include <stdio.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -21,7 +22,7 @@
 #include "libcmini.h"
 #include "cadebug.h"
 
-PUBLIC CONST CHAR * CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1] = {
+CONST RO_DATA CHAR * CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1] = {
     "FATAL",
     "ERROR",
     "WARN",
@@ -33,7 +34,7 @@ PUBLIC CONST CHAR * CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1] = {
     "UNKNOW",
 };
 
-STATIC E_STATUS REQ_WriteDebug(BYTE cbData)
+STATIC CODE_TEXT E_STATUS REQ_WriteDebug(BYTE cbData)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -46,7 +47,7 @@ STATIC E_STATUS REQ_WriteDebug(BYTE cbData)
     return Packet.StateCode;
 }
 
-EXPORT LPSTR caDebugLevel2String(E_LOG_LEVEL emLevel)
+EXPORT CODE_TEXT LPSTR caDebugLevel2String(E_LOG_LEVEL emLevel)
 {
     if (emLevel > LOG_LEVEL_MAX)
     {
@@ -57,7 +58,7 @@ EXPORT LPSTR caDebugLevel2String(E_LOG_LEVEL emLevel)
 }
 EXPORT_SYMBOL(caDebugLevel2String);
 
-DWORD caDebugGetMask(VOID)
+EXPORT CODE_TEXT DWORD caDebugGetMask(VOID)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
@@ -74,7 +75,7 @@ DWORD caDebugGetMask(VOID)
 }
 EXPORT_SYMBOL(caDebugGetMask);
 
-static int put_debug_char(INT Ch, LPVOID lpPrivate)
+STATIC CODE_TEXT int put_debug_char(INT Ch, LPVOID lpPrivate)
 {
     if ('\n' == Ch)
     {
@@ -86,7 +87,7 @@ static int put_debug_char(INT Ch, LPVOID lpPrivate)
     return Ch;
 }
 
-EXPORT int caDebugVPrintf(BOOL Enter, CONST CHAR * Format, va_list Vargs)
+EXPORT CODE_TEXT int caDebugVPrintf(BOOL Enter, CONST CHAR * Format, va_list Vargs)
 {
     INT Length;
 
@@ -101,7 +102,7 @@ EXPORT int caDebugVPrintf(BOOL Enter, CONST CHAR * Format, va_list Vargs)
 }
 EXPORT_SYMBOL(caDebugVPrintf);
 
-EXPORT int caDebugPrintf(BOOL Enter, CONST CHAR * Format,...)
+EXPORT CODE_TEXT int caDebugPrintf(BOOL Enter, CONST CHAR * Format,...)
 {
     int Length;
     VA_LIST Args;
@@ -114,7 +115,7 @@ EXPORT int caDebugPrintf(BOOL Enter, CONST CHAR * Format,...)
 }
 EXPORT_SYMBOL(caDebugPrintf);
 
-EXPORT int caDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG_LEVEL emLevel, CONST CHAR * Format,...)
+EXPORT CODE_TEXT int caDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG_LEVEL emLevel, CONST CHAR * Format,...)
 {
     SIZE_T Length = 0;
     VA_LIST Args;
@@ -138,7 +139,7 @@ EXPORT int caDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG_LEVEL e
 EXPORT_SYMBOL(caDebugLog);
 
 
-EXPORT VOID caDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
+EXPORT CODE_TEXT VOID caDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
 {
     DWORD Scale = 0;
     LPBYTE lpData = lpBuffer;

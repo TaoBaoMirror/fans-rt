@@ -11,23 +11,24 @@
  *    2014-09-07     JiangYong       new file
  */
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
+#include <famodule.h>
 #include <fapi.h>
 
 #include "libcal.h"
 #include "cadebug.h"
-#include "modules.h"
 
 #if (CONFIG_BUILD_DYNAMIC_SYMBOL == TRUE)
 /** build some elf file modules  */
 
-STATIC CONST FANSMODULE * g_SystemModules[CONFIG_SYSTEM_MODULES] = {NULL};
+STATIC CONST RO_DATA MODULE_HEADER * g_SystemModuleArray[CONFIG_SYSTEM_MODULES] = {NULL};
 
-EXPORT E_STATUS RegisterModule(LPFANSMODULE lpModule)
+EXPORT CODE_TEXT E_STATUS RegisterModule(LPMODULE_HEADER lpModule)
 {
-    DWORD Id, Who = SIZEOF_ARRAY(g_SystemModules);
+    DWORD Id, Who = SIZEOF_ARRAY(g_SystemModuleArray);
     
     if (NULL == lpModule)
     {
@@ -42,16 +43,16 @@ EXPORT E_STATUS RegisterModule(LPFANSMODULE lpModule)
         return STATE_INVALID_OBJECT;
     }
     
-    for (Id = 0; Id < SIZEOF_ARRAY(g_SystemModules); Id ++)
+    for (Id = 0; Id < SIZEOF_ARRAY(g_SystemModuleArray); Id ++)
     {
-        if (NULL == g_SystemModules[Id])
+        if (NULL == g_SystemModuleArray[Id])
         {
             Who = Id;
         }
         else
         {
-            if (g_SystemModules[Id]->dwModuleType == lpModule->dwModuleType ||
-                0 == strcmp(g_SystemModules[Id]->lpModuleName, lpModule->lpModuleName))
+            if (g_SystemModuleArray[Id]->dwModuleType == lpModule->dwModuleType ||
+                0 == strcmp(g_SystemModuleArray[Id]->lpModuleName, lpModule->lpModuleName))
             {
                 LOG_ERROR(TRUE, "This module(%s) has been registered.", lpModule->lpModuleName);
                 return STATE_EXISTING;
@@ -59,9 +60,9 @@ EXPORT E_STATUS RegisterModule(LPFANSMODULE lpModule)
         }
     }
     
-    if (Who < SIZEOF_ARRAY(g_SystemModules))
+    if (Who < SIZEOF_ARRAY(g_SystemModuleArray))
     {
-        g_SystemModules[Who] = lpModule;
+        g_SystemModuleArray[Who] = lpModule;
         return (STATE_SUCCESS);
     }
 
@@ -72,13 +73,13 @@ EXPORT E_STATUS RegisterModule(LPFANSMODULE lpModule)
 EXPORT_SYMBOL(RegisterModule);
 
 
-PUBLIC E_STATUS ProbeModule(LPTSTR lpModuleName)
+EXPORT CODE_TEXT E_STATUS ProbeModule(LPTSTR lpModuleName)
 {
     DWORD Id;
 
-    for (Id = 0; Id < SIZEOF_ARRAY(g_SystemModules); Id ++)
+    for (Id = 0; Id < SIZEOF_ARRAY(g_SystemModuleArray); Id ++)
     {
-        CONST FANSMODULE * lpFansModule = g_SystemModules[Id];
+        CONST MODULE_HEADER * lpFansModule = g_SystemModuleArray[Id];
         
         if (NULL == lpFansModule)
         {
@@ -101,38 +102,37 @@ PUBLIC E_STATUS ProbeModule(LPTSTR lpModuleName)
     
     return (STATE_NOT_FOUND);
 }
-
+EXPORT_SYMBOL(ProbeModule);
 #else
-/** single flash on this board */
 
-
-PUBLIC E_STATUS ProbeModule(DWORD ModuleID)
+EXPORT CODE_TEXT E_STATUS initSystemApplicationModulesStartup(VOID)
 {
     DWORD Id;
 
-    for (Id = 0; Id < SIZEOF_ARRAY(g_SystemModules); Id ++)
+    for (Id = 0; Id < GetNumberOfSystemModules(); Id ++)
     {
-        LPCFANSMODULE lpcFansModule = g_SystemModules[Id];
+        LPCMODULE_HEADER lpModule = GetModuleArray()[Id];
         
-        if (NULL == lpcFansModule)
+        if (NULL == lpModule)
         {
             continue;
         }
 
-        if (lpcFansModule->un.ModuleID != ModuleID)
+        if (NULL == lpModule->fnEntry)
         {
+            LOG_INFOR(TRUE, "Invalid module '%s' ...", lpModule->lpName);
             continue;
         }
         
-        LOG_INFOR(TRUE, "Probe module '%s' ...", lpcFansModule->un.ModuleName);
+        LOG_INFOR(TRUE, "Probe module '%s' ...", lpModule->lpName);
         
-        return lpcFansModule->fnEntry(lpcFansModule);
+        if (STATE_SUCCESS != lpModule->fnEntry(lpModule))
+        {
+            LOG_INFOR(TRUE, "Probe module '%s' ... failed.", lpModule->lpName);
+        }
     }
 
-    return (STATE_NOT_FOUND);
+    return STATE_SUCCESS;
 }
 
 #endif
-
-EXPORT_SYMBOL(ProbeModule);
-

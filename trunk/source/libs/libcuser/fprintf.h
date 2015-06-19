@@ -3,6 +3,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <fauser.h>
+#include <fadefs.h>
 #include <fatypes.h>
 
 #include "libcmini.h"
@@ -67,24 +69,24 @@
 
 
 
-static int put_stream_char(int ch, LPVOID lpPrivate)
+STATIC CODE_TEXT  int put_stream_char(int ch, LPVOID lpPrivate)
 {
     return fputc(ch, lpPrivate);
 }
 
-int vfnprintf(FILE * stream, size_t count, const STRING_CHAR_T * format, va_list vargs)
+EXPORT CODE_TEXT int vfnprintf(FILE * stream, size_t count, const STRING_CHAR_T * format, va_list vargs)
 {
     return fa_vxnprintf(put_stream_char, stream, count, format, vargs);
 }
 EXPORT_SYMBOL(vfnprintf);
 
-int vfprintf(FILE * stream, const STRING_CHAR_T * format,va_list vargs)
+EXPORT CODE_TEXT int vfprintf(FILE * stream, const STRING_CHAR_T * format,va_list vargs)
 {
     return fa_vxnprintf(put_stream_char, stream, ~0, format, vargs);
 }
 EXPORT_SYMBOL(vfprintf);
 
-int fnprintf(FILE * stream, size_t count, const STRING_CHAR_T * format,...)
+EXPORT CODE_TEXT int fnprintf(FILE * stream, size_t count, const STRING_CHAR_T * format,...)
 {
     int length;
     va_list vargs;
@@ -95,7 +97,7 @@ int fnprintf(FILE * stream, size_t count, const STRING_CHAR_T * format,...)
 
     return (length);
 }
-int fprintf(FILE * stream, const STRING_CHAR_T * format,...)
+EXPORT CODE_TEXT int fprintf(FILE * stream, const STRING_CHAR_T * format,...)
 {
     int length;
     va_list vargs;
@@ -108,13 +110,13 @@ int fprintf(FILE * stream, const STRING_CHAR_T * format,...)
 }
 EXPORT_SYMBOL(fprintf);
 
-int vprintf(const STRING_CHAR_T * format, va_list vargs)
+EXPORT CODE_TEXT int vprintf(const STRING_CHAR_T * format, va_list vargs)
 {
     return fa_vxnprintf(put_stream_char, stdout, ~0, format, vargs);
 }
 EXPORT_SYMBOL(vprintf);
 
-int printf(const STRING_CHAR_T * format, ...)
+EXPORT CODE_TEXT int printf(const STRING_CHAR_T * format, ...)
 {
     int length;
     va_list vargs;

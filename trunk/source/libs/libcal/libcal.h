@@ -13,6 +13,7 @@
 #ifndef __LIB_CAL_H
 #define __LIB_CAL_H
 
+#include <fauser.h>
 #include <fadefs.h>
 #include <fatypes.h>
 

@@ -1,4 +1,5 @@
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -23,7 +24,7 @@
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI HANDLE TakeObject(LPCTSTR lpCTName)
+FANSAPI CODE_TEXT HANDLE TakeObject(LPCTSTR lpCTName)
 {
     CHAR caName[OBJECT_NAME_MAX];
 
@@ -59,7 +60,7 @@ FANSAPI HANDLE TakeObject(LPCTSTR lpCTName)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
+FANSAPI CODE_TEXT HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
 {
     HANDLE hEvent;
     IPC_EVENT_CREATE_PARAM Param;
@@ -112,7 +113,7 @@ FANSAPI HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI E_STATUS PostEvent(HANDLE handle)
+FANSAPI CODE_TEXT E_STATUS PostEvent(HANDLE handle)
 {
     return caPostObject(handle, NULL);
 }
@@ -132,7 +133,7 @@ FANSAPI E_STATUS PostEvent(HANDLE handle)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI E_STATUS ResetEvent(HANDLE handle)
+FANSAPI CODE_TEXT E_STATUS ResetEvent(HANDLE handle)
 {
     return caResetObject(handle, NULL);
 }
@@ -156,7 +157,7 @@ FANSAPI E_STATUS ResetEvent(HANDLE handle)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
+FANSAPI CODE_TEXT HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 {
     HANDLE hMutex;
     IPC_MUTEX_CREATE_PARAM Param;
@@ -166,7 +167,7 @@ FANSAPI HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 
     if (NULL == lpCTName)
     {
-        caChooseName(caName, "EVT");
+        caChooseName(caName, "MTX");
     }
     else
     {
@@ -209,7 +210,7 @@ FANSAPI HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI E_STATUS MutexUnlock(HANDLE hMutex)
+FANSAPI CODE_TEXT E_STATUS MutexUnlock(HANDLE hMutex)
 {
     return caPostObject(hMutex, NULL);
 }
@@ -230,7 +231,7 @@ FANSAPI E_STATUS MutexUnlock(HANDLE hMutex)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI E_STATUS MutexLock(HANDLE hMutex)
+FANSAPI CODE_TEXT E_STATUS MutexLock(HANDLE hMutex)
 {
     return caWaitObject(hMutex, WAIT_INFINITE);
 }
@@ -251,7 +252,7 @@ FANSAPI E_STATUS MutexLock(HANDLE hMutex)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI E_STATUS WaitObject(HANDLE handle, LONG WaitTime)
+FANSAPI CODE_TEXT E_STATUS WaitObject(HANDLE handle, LONG WaitTime)
 {
     return caWaitObject(handle, WaitTime);
 }
@@ -272,7 +273,7 @@ FANSAPI E_STATUS WaitObject(HANDLE handle, LONG WaitTime)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI E_STATUS CloseHandle(HANDLE handle)
+FANSAPI CODE_TEXT E_STATUS CloseHandle(HANDLE handle)
 {
     return caFreeObject(handle);
 }

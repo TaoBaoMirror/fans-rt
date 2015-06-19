@@ -12,6 +12,7 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -20,7 +21,7 @@
 #include "libcal.h"
 #include "cadebug.h"
 
-FANSAPI TICK GetSystemTick(VOID)
+FANSAPI CODE_TEXT TICK GetSystemTick(VOID)
 {
     return caGetSystemTick();
 }

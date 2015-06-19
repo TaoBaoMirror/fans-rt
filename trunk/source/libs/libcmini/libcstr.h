@@ -10,6 +10,7 @@
  *    date           author          notes
  *    2014-09-07     JiangYong       new file
  */
+#include <fauser.h>
 #include <fadefs.h>
 #include <fatypes.h>
 
@@ -24,7 +25,7 @@
 #else
 #define strlen_lib  strlen
 #endif
-size_t strlen_lib(const STRING_CHAR_T *str)
+EXPORT CODE_TEXT size_t strlen_lib(const STRING_CHAR_T *str)
 {
     const STRING_CHAR_T *s = str;
     while (*s)s++;
@@ -36,7 +37,7 @@ size_t strlen_lib(const STRING_CHAR_T *str)
 #else
 #define strcpy_lib  strcpy
 #endif
-STRING_CHAR_T *strcpy_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src)
+EXPORT CODE_TEXT STRING_CHAR_T *strcpy_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src)
 {
     STRING_CHAR_T *p = dst;
     while ('\0' != (*p++ = *src++));
@@ -48,7 +49,7 @@ STRING_CHAR_T *strcpy_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src)
 #else
 #define strncpy_lib strncpy
 #endif
-STRING_CHAR_T *strncpy_lib(STRING_CHAR_T *dst,const STRING_CHAR_T *src, size_t count)
+EXPORT CODE_TEXT STRING_CHAR_T *strncpy_lib(STRING_CHAR_T *dst,const STRING_CHAR_T *src, size_t count)
 {
     STRING_CHAR_T *p = dst;
     if ( count == 0) return NULL;
@@ -62,7 +63,7 @@ STRING_CHAR_T *strncpy_lib(STRING_CHAR_T *dst,const STRING_CHAR_T *src, size_t c
 #else
 #define strcmp_lib  strcmp
 #endif
-int strcmp_lib(const STRING_CHAR_T *str1, const STRING_CHAR_T *str2)
+EXPORT CODE_TEXT int strcmp_lib(const STRING_CHAR_T *str1, const STRING_CHAR_T *str2)
 {
     while (*str1 && (*str1 == *str2)) { str1++; str2++; }
     return *str1 - *str2;
@@ -73,7 +74,7 @@ int strcmp_lib(const STRING_CHAR_T *str1, const STRING_CHAR_T *str2)
 #else
 #define strncmp_lib strncmp
 #endif
-int strncmp_lib(const STRING_CHAR_T *str1, const STRING_CHAR_T *str2, int n)
+EXPORT CODE_TEXT int strncmp_lib(const STRING_CHAR_T *str1, const STRING_CHAR_T *str2, int n)
 {
     if (n <= 0) return 0;
     while ((--n > 0) && *str1 && (*str1 == *str2)) { str1++; str2++; }
@@ -85,7 +86,7 @@ int strncmp_lib(const STRING_CHAR_T *str1, const STRING_CHAR_T *str2, int n)
 #else
 #define strcat_lib  strcat
 #endif
-STRING_CHAR_T *strcat_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src)
+EXPORT CODE_TEXT STRING_CHAR_T *strcat_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src)
 {
     strcpy_lib( dst + strlen_lib(dst), src );
     return dst;
@@ -96,7 +97,7 @@ STRING_CHAR_T *strcat_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src)
 #else
 #define strncat_lib strncat
 #endif
-STRING_CHAR_T * strncat_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src, size_t length)
+EXPORT CODE_TEXT STRING_CHAR_T * strncat_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src, size_t length)
 {
     strncpy_lib(dst + strlen_lib(dst), src, length );
     return dst;
@@ -108,7 +109,7 @@ STRING_CHAR_T * strncat_lib(STRING_CHAR_T *dst, const STRING_CHAR_T *src, size_t
 #else
 #define strchr_lib  strchr
 #endif
-STRING_CHAR_T *strchr_lib(const STRING_CHAR_T *str, int ch)
+EXPORT CODE_TEXT STRING_CHAR_T *strchr_lib(const STRING_CHAR_T *str, int ch)
 {
     do { if (*str == ch) return (STRING_CHAR_T *)str; } while (*str++);
     return NULL;
@@ -120,7 +121,7 @@ STRING_CHAR_T *strchr_lib(const STRING_CHAR_T *str, int ch)
 #else
 #define strrchr_lib strrchr
 #endif
-STRING_CHAR_T *strrchr_lib(const STRING_CHAR_T *str, int ch)
+EXPORT CODE_TEXT STRING_CHAR_T *strrchr_lib(const STRING_CHAR_T *str, int ch)
 {
     STRING_CHAR_T *ret = NULL;
     do { if (*str == ch) ret = (STRING_CHAR_T *)str; } while (*str++);
@@ -133,7 +134,7 @@ STRING_CHAR_T *strrchr_lib(const STRING_CHAR_T *str, int ch)
 #else
 #define strdup_lib  strdup
 #endif
-STRING_CHAR_T *strdup_lib(const STRING_CHAR_T *str)
+EXPORT CODE_TEXT STRING_CHAR_T *strdup_lib(const STRING_CHAR_T *str)
 {
     STRING_CHAR_T *newstr;
     newstr = malloc((strlen_lib(str)+1) * sizeof(STRING_CHAR_T) );
@@ -148,7 +149,7 @@ STRING_CHAR_T *strdup_lib(const STRING_CHAR_T *str)
 #else
 #define strpbrk_lib strpbrk
 #endif
-STRING_CHAR_T *strpbrk_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *accept)
+EXPORT CODE_TEXT STRING_CHAR_T *strpbrk_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *accept)
 {
     for ( ; *str; str++) if (strchr_lib( accept, *str )) return (STRING_CHAR_T *)str;
     return NULL;
@@ -159,7 +160,7 @@ STRING_CHAR_T *strpbrk_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *accept
 #else
 #define strspn_lib  strspn
 #endif
-size_t strspn_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *accept)
+EXPORT CODE_TEXT size_t strspn_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *accept)
 {
     const STRING_CHAR_T *ptr;
     for (ptr = str; *ptr; ptr++) if (!strchr_lib( accept, *ptr )) break;
@@ -171,7 +172,7 @@ size_t strspn_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *accept)
 #else
 #define strcspn_lib strcspn
 #endif
-size_t strcspn_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *reject)
+EXPORT CODE_TEXT size_t strcspn_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *reject)
 {
     const STRING_CHAR_T *ptr;
     for (ptr = str; *ptr; ptr++) if (strchr_lib( reject, *ptr )) break;
@@ -184,7 +185,7 @@ size_t strcspn_lib(const STRING_CHAR_T *str, const STRING_CHAR_T *reject)
 #else
 #define memchr_lib  memchr
 #endif
-void *memchr_lib(const STRING_CHAR_T *ptr, STRING_CHAR_T ch, size_t n)
+EXPORT CODE_TEXT void *memchr_lib(const STRING_CHAR_T *ptr, STRING_CHAR_T ch, size_t n)
 {
     const STRING_CHAR_T *end;
     for (end = ptr + n; ptr < end; ptr++) if (*ptr == ch) return (STRING_CHAR_T *)ptr;
@@ -197,7 +198,7 @@ void *memchr_lib(const STRING_CHAR_T *ptr, STRING_CHAR_T ch, size_t n)
 #else
 #define memrchr_lib memrchr
 #endif
-void *memrchr_lib(const STRING_CHAR_T *ptr, STRING_CHAR_T ch, size_t n)
+EXPORT CODE_TEXT void *memrchr_lib(const STRING_CHAR_T *ptr, STRING_CHAR_T ch, size_t n)
 {
     const STRING_CHAR_T *end;
     STRING_CHAR_T *ret = NULL;
@@ -209,7 +210,7 @@ void *memrchr_lib(const STRING_CHAR_T *ptr, STRING_CHAR_T ch, size_t n)
 
 #if (BUILD_CHAR_WIDTH == 1)
 #ifndef __CC_ARM
-static void * fast_memcpy(void * dst, const void * src, size_t length)
+STATIC CODE_TEXT void * fast_memcpy(void * dst, const void * src, size_t length)
 {
     union{
         LPSTR lpstr;
@@ -268,7 +269,7 @@ static void * fast_memcpy(void * dst, const void * src, size_t length)
     return dst;    
 }
 
-void * memcpy(void * dst, const void * src, size_t length)
+EXPORT CODE_TEXT void * memcpy(void * dst, const void * src, size_t length)
 {
     if ((((MMADDR)src) & (~(sizeof(DWORD)-1))) != (((MMADDR)dst) & (~(sizeof(DWORD)-1))))
     {
@@ -284,7 +285,7 @@ void * memcpy(void * dst, const void * src, size_t length)
     return fast_memcpy(dst, src, length);
 }
 
-void * memset(void * ptr, int ch, size_t length)
+EXPORT CODE_TEXT void * memset(void * ptr, int ch, size_t length)
 {
     DWORD cv = (ch & 0xff);
     register DWORD w4 = (cv << 24) + (cv << 16) + (cv <<8) + (cv << 0);

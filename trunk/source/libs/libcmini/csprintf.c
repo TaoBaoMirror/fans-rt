@@ -12,8 +12,9 @@
  */
 #include <stdlib.h>
 #include <string.h>
+#include <fauser.h>
+#include <fadefs.h>
 
 #define BUILD_CHAR_WIDTH    1
-#include "kboard.h"
 #include "tsprintf.h"
 

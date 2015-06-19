@@ -16,6 +16,8 @@
 #include <wchar.h>
 #include <string.h>
 #include <stdio.h>
+#include <fauser.h>
+#include <fadefs.h>
 
 typedef int (* FNPUTCHAR)(int Ch, void * lpPrivate);
 
@@ -59,10 +61,10 @@ typedef unsigned long ULL_TYPE;
 
 typedef double FLL_TYPE;
 
-static const STRING_CHAR_T * lcharset = _TEXT("0123456789abcdef");
-static const STRING_CHAR_T * ucharset = _TEXT("0123456789ABCDEF");
+STATIC CONST RO_DATA STRING_CHAR_T * lcharset = _TEXT("0123456789abcdef");
+STATIC CONST RO_DATA STRING_CHAR_T * ucharset = _TEXT("0123456789ABCDEF");
 
-static ULL_TYPE __std_ulldiv_mod(ULL_TYPE divisor,ULL_TYPE dividend, ULL_TYPE * remainder)
+STATIC CODE_TEXT ULL_TYPE __std_ulldiv_mod(ULL_TYPE divisor,ULL_TYPE dividend, ULL_TYPE * remainder)
 {
     unsigned Bits = MAX_BITS_WIDTH;
     ULL_TYPE business = 0;
@@ -82,7 +84,7 @@ static ULL_TYPE __std_ulldiv_mod(ULL_TYPE divisor,ULL_TYPE dividend, ULL_TYPE * 
 }
 
 
-static int fa_p_itoa(ULL_TYPE number, STRING_CHAR_T * buffer, size_t length,
+STATIC CODE_TEXT int fa_p_itoa(ULL_TYPE number, STRING_CHAR_T * buffer, size_t length,
                     int precision, const STRING_CHAR_T * charset, int radix, int prefix)
 {
     int count = 0;
@@ -130,7 +132,7 @@ static int fa_p_itoa(ULL_TYPE number, STRING_CHAR_T * buffer, size_t length,
     return count;
 }
 
-static int fa_p_show_string(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+STATIC CODE_TEXT int fa_p_show_string(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int width, size_t max_length, int scale, STRING_CHAR_T * string, int flags,
     STRING_CHAR_T prefix, STRING_CHAR_T suffix)
 {
@@ -187,7 +189,7 @@ static int fa_p_show_string(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T typ
 }
 
 
-static int fa_p_show_number(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+STATIC CODE_TEXT int fa_p_show_number(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int precision, size_t max_length, int scale, SLL_TYPE number, int flags)
 {
     int width = 0;
@@ -255,7 +257,7 @@ static int fa_p_show_number(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T typ
     return fa_p_show_string(fnPut, lpPrivate, type, width, max_length, scale, string, flags, ' ', ' ');
 }
 
-static int fa_p_show_address(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+STATIC CODE_TEXT int fa_p_show_address(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int width, size_t max_length, int scale, SLL_TYPE number, int flags)
 {
     int count = 0;
@@ -301,7 +303,7 @@ static int fa_p_show_address(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T ty
 
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 
-static ULL_TYPE fa_p_decpart(ULL_TYPE number)
+STATIC CODE_TEXT ULL_TYPE fa_p_decpart(ULL_TYPE number)
 {
     int Bits;
     ULL_TYPE base = IEEE754_DECIMAL_BASE;
@@ -320,7 +322,7 @@ static ULL_TYPE fa_p_decpart(ULL_TYPE number)
     return result;
 }
 
-static int fa_p_ftoa(int shift, ULL_TYPE mantissa, STRING_CHAR_T * buffer, int length,
+STATIC CODE_TEXT int fa_p_ftoa(int shift, ULL_TYPE mantissa, STRING_CHAR_T * buffer, int length,
                     int precision, const STRING_CHAR_T * charset, int prefix)
 {
     int carry = 0;
@@ -403,7 +405,7 @@ static int fa_p_ftoa(int shift, ULL_TYPE mantissa, STRING_CHAR_T * buffer, int l
     return int_count;
 }
 
-static int fa_p_show_float(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+STATIC CODE_TEXT int fa_p_show_float(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int width, int precision, size_t max_length, int scale, FLL_TYPE fnumber, int flags)
 {
     int sign;
@@ -439,7 +441,7 @@ static int fa_p_show_float(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type
 #if (BUILD_CHAR_WIDTH  != 1)
 #define fa_vxnprintf        fa_wvxnprintf
 #endif
-int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t length, const STRING_CHAR_T * format, va_list args)
+PUBLIC CODE_TEXT int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t length, const STRING_CHAR_T * format, va_list args)
 {
     int ch;
     int result = 0;
@@ -708,7 +710,7 @@ int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t length, const STRING_
 #define fa_xnprintf fa_wxnprintf
 #endif
 
-int fa_xnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t size, const STRING_CHAR_T * format, ...)
+EXPORT CODE_TEXT int fa_xnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t size, const STRING_CHAR_T * format, ...)
 {
     int length;
     va_list vargs;
@@ -733,7 +735,7 @@ struct tagSTRING_BUFFER
 };
 
 
-static int put_string_char(int ch, LPVOID lpPrivate)
+STATIC CODE_TEXT int put_string_char(int ch, LPVOID lpPrivate)
 {
     LPSTRING_BUFFER string = lpPrivate;
     
@@ -749,7 +751,7 @@ static int put_string_char(int ch, LPVOID lpPrivate)
 #undef vsnprintf
 #define vsnprintf wvsnprintf
 #endif
-int vsnprintf(STRING_CHAR_T * buffer, size_t count, const STRING_CHAR_T * format, va_list vargs)
+EXPORT CODE_TEXT int vsnprintf(STRING_CHAR_T * buffer, size_t count, const STRING_CHAR_T * format, va_list vargs)
 {
     STRING_BUFFER String;
 
@@ -764,7 +766,7 @@ int vsnprintf(STRING_CHAR_T * buffer, size_t count, const STRING_CHAR_T * format
 #undef vsprintf
 #define vsprintf wvsprintf
 #endif
-int vsprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format, va_list vargs)
+EXPORT CODE_TEXT int vsprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format, va_list vargs)
 {
     return vsnprintf(buffer, ~0, format, vargs);
 }
@@ -773,7 +775,7 @@ int vsprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format, va_list vargs
 #undef sprintf
 #define sprintf wsprintf
 #endif
-int sprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format,...)
+EXPORT CODE_TEXT int sprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format,...)
 {
     va_list vargs;
     int string_length;
@@ -789,7 +791,7 @@ int sprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format,...)
 #undef snprintf
 #define snprintf wsnprintf
 #endif
-int snprintf(STRING_CHAR_T * buffer,size_t count, const STRING_CHAR_T * format,...)
+EXPORT CODE_TEXT int snprintf(STRING_CHAR_T * buffer,size_t count, const STRING_CHAR_T * format,...)
 {
     int length;
     va_list vargs;

@@ -12,6 +12,7 @@
  */
 #include <string.h>
 #include <stdio.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -25,7 +26,7 @@
 #include "libcal.h"
 
 
-EXPORT LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
+EXPORT CODE_TEXT LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
 {
     STATIC UINT Count = 0;
     
@@ -34,7 +35,7 @@ EXPORT LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
     return lpName;
 }
 
-EXPORT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
+EXPORT CODE_TEXT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -50,7 +51,7 @@ EXPORT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
     return Packet.u1.hParam; 
 }
 
-EXPORT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
+EXPORT CODE_TEXT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -60,7 +61,7 @@ EXPORT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_ACTIVE);
 }
 
-EXPORT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
+EXPORT CODE_TEXT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -75,7 +76,7 @@ EXPORT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
     return Packet.u1.hParam;    
 }
 
-EXPORT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
+EXPORT CODE_TEXT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -85,7 +86,7 @@ EXPORT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_WAIT);
 }
 
-EXPORT E_STATUS caPostObject(HANDLE handle, LPVOID lpParam)
+EXPORT CODE_TEXT E_STATUS caPostObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -95,7 +96,7 @@ EXPORT E_STATUS caPostObject(HANDLE handle, LPVOID lpParam)
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_POST);
 }
 
-EXPORT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam)
+EXPORT CODE_TEXT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -105,7 +106,7 @@ EXPORT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam)
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_RESET);
 }
 
-EXPORT E_STATUS caFreeObject(HANDLE handle)
+EXPORT CODE_TEXT E_STATUS caFreeObject(HANDLE handle)
 {
     LPC_REQUEST_PACKET Packet;
 

@@ -17,67 +17,39 @@
 #include <fatypes.h>
 #include <faerror.h>
 
-typedef struct tagFANSMODULE FANSMODULE;
-typedef struct tagFANSMODULE * PFANSMODULE;
-typedef struct tagFANSMODULE FAR * LPFANSMODULE;
-typedef const struct tagFANSMODULE CFANSMODULE;
-typedef const struct tagFANSMODULE * PCFANSMODULE;
-typedef const struct tagFANSMODULE FAR * LPCFANSMODULE;
+typedef struct tagMODULE_HEADER MODULE_HEADER;
+typedef struct tagMODULE_HEADER * PMODULE_HEADER;
+typedef struct tagMODULE_HEADER FAR * LPMODULE_HEADER;
+typedef CONST struct tagMODULE_HEADER CMODULE_HEADER;
+typedef CONST struct tagMODULE_HEADER * PCMODULE_HEADER;
+typedef CONST struct tagMODULE_HEADER FAR * LPCMODULE_HEADER;
 
 #define     MODULE_MAGIC        MAKE_DWORD('M', 'O', 'D')
 
 #if (CONFIG_BUILD_DYNAMIC_SYMBOL == FALSE)
 
-#define     DECLARE_MODULE(name)                                                \
-            EXTERN CFANSMODULE g_##name##_module_descriptor
-#define     EXCERPT_MODULE(name)                                                \
-            &g_##name##_module_descriptor
+#define     DECLARE_MODULE(Name)                                                \
+            EXTERN CMODULE_HEADER g_##Name##_module_descriptor
+#define     EXCERPT_MODULE(Name)                                                \
+            &g_##Name##_module_descriptor
 
-#ifdef __GNUC__
-#define     DEFINE_MODULE(name, id, prvdata, Entry, Leave)                      \
-            PUBLIC CFANSMODULE g_##name##_module_descriptor = {                 \
-                .un.ModuleID        =       id,                                 \
-                .lpPrivate          =       prvdata,                            \
-                .fnEntry            =       Entry,                              \
-                .fnLeave            =       Leave,                              \
+#define     DEFINE_MODULE(Name, PrvData)                                        \
+            RO_DATA CMODULE_HEADER g_##Name##_module_descriptor = {             \
+                #Name,                                                          \
+                PrvData,                                                        \
+                FansMain,                                                       \
             };
-#else
-#define     DEFINE_MODULE(name, id, prvdata, Entry, Leave)                      \
-            PUBLIC CFANSMODULE g_##name##_module_descriptor = {                 \
-                id,                                                             \
-                prvdata,                                                        \
-                Entry,                                                          \
-                Leave,                                                          \
-            };
-#endif
-struct tagFANSMODULE{
-    union{
-        DWORD           ModuleID;
-        CHAR            ModuleName[4];
-    }un;
+
+struct tagMODULE_HEADER{
+    LPCSTR              lpName;
     LPVOID              lpPrivate;
-    E_STATUS            (*fnEntry)(LPCFANSMODULE lpFansModule);
-    VOID                (*fnLeave)(LPCFANSMODULE lpFansModule);
+    E_STATUS            (*fnEntry)(LPCMODULE_HEADER lpModule);
 };
-
-typedef struct tagUSER_MODULES_DESCRIPTOR USER_MODULES_DESCRIPTOR;
-typedef struct tagUSER_MODULES_DESCRIPTOR * PUSER_MODULES_DESCRIPTOR;
-typedef struct tagUSER_MODULES_DESCRIPTOR FAR * LPUSER_MODULES_DESCRIPTOR;
-
-typedef const struct tagUSER_MODULES_DESCRIPTOR CUSER_MODULES_DESCRIPTOR;
-typedef const struct tagUSER_MODULES_DESCRIPTOR * PCUSER_MODULES_DESCRIPTOR;
-typedef const struct tagUSER_MODULES_DESCRIPTOR FAR * LPCUSER_MODULES_DESCRIPTOR;
-
-struct tagUSER_MODULES_DESCRIPTOR{
-    DWORD               UserModules;
-    LPCFANSMODULE *     lpcModuleTable;
-};
-
 
 #else
 
 #define     DEFINE_MODULE(name, id, prvdata, fnEntry, fnLeave)                  \
-            STATIC FANSMODULE g_module_descriptor = {                           \
+            STATIC MODULE_HEADER g_module_descriptor = {                        \
                 MODULE_MAGIC,                                                   \
                 {NULL, NULL},                                                   \
                 id,                                                             \
@@ -86,7 +58,7 @@ struct tagUSER_MODULES_DESCRIPTOR{
                 fnLeave,                                                        \
             };
 
-struct tagFANSMODULE{
+struct tagMODULE_HEADER{
     DWORD               Magic;
     LIST_HEAD           ModuleTable;
     union{
@@ -94,18 +66,21 @@ struct tagFANSMODULE{
         CHAR            ModuleName[4];
     }un;
     LPVOID              lpPrivate;
-    E_STATUS            (*fnEntry)(LPCFANSMODULE lpFansModule);
-    VOID                (*fnLeave)(LPCFANSMODULE lpFansModule);
+    E_STATUS            (*fnEntry)(LPCMODULE_HEADER lpFansModule);
+    VOID                (*fnLeave)(LPCMODULE_HEADER lpFansModule);
 };
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-    typedef E_STATUS (FAR * FNREGISTERMODULE)(LPFANSMODULE lpModule);
-    EXPORT E_STATUS ProbeModule(DWORD ModuleID);
+    typedef E_STATUS (FAR * FNREGISTERMODULE)(LPMODULE_HEADER lpModule);
+    STATIC E_STATUS FansMain(LPCMODULE_HEADER lpModule);
+    EXPORT LPCMODULE_HEADER * GetModuleArray(VOID);
+    EXPORT DWORD GetNumberOfSystemModules(VOID);
 #if (CONFIG_BUILD_DYNAMIC_SYMBOL == TRUE)
-    EXPORT E_STATUS RegisterModule(LPFANSMODULE lpModule);
+    PUBLIC E_STATUS ProbeModule(LPCSTR lpModuleName);
+    EXPORT E_STATUS RegisterModule(LPMODULE_HEADER lpModule);
 #endif
 #ifdef __cplusplus
 }

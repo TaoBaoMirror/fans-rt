@@ -16,13 +16,15 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <fauser.h>
+#include <fadefs.h>
 #include <fatypes.h>
 
 struct __FILE{
     int             fd;
 };
 
-FILE * stdin = NULL;
-FILE * stdout = NULL;
-FILE * stderr = NULL;
+EXPORT RW_DATA FILE * stdin = NULL;
+EXPORT RW_DATA FILE * stdout = NULL;
+EXPORT RW_DATA FILE * stderr = NULL;
 

@@ -22,7 +22,6 @@
 #include "klist.h"
 #include "kcore.h"
 #include "kdebug.h"
-#include "libcal.h"
 
 typedef struct tagIPC_BASE_OBJECT IPC_BASE_OBJECT;
 typedef struct tagIPC_BASE_OBJECT * PIPC_BASE_OBJECT;
@@ -215,7 +214,7 @@ struct tagIPC_MUTEX_OBJECT{
 #define     SetMutexValue(lpObject, data)                                                           \
             do { (((LPIPC_MUTEX_OBJECT)(lpObject))->un.Bits.MutexValue) = (data); } while(0)
 #define     IncMutexValue(lpObject)                                                                 \
-            (((LPIPC_MUTEX_OBJECT)(lpObject))->un.Bits.MutexValue ++)
+            (++ ((LPIPC_MUTEX_OBJECT)(lpObject))->un.Bits.MutexValue)
 #define     DecMutexValue(lpObject)                                                                 \
             (-- ((LPIPC_MUTEX_OBJECT)(lpObject))->un.Bits.MutexValue)
             
@@ -270,8 +269,9 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
 {
     LPTASK_CONTEXT lpOnwerContext;
 
-    CORE_INFOR(TRUE, "lock mutex '%s', value '%d'...",
-        GetObjectName(lpHeader), GetMutexValue(lpHeader));
+    CORE_DEBUG(TRUE, "Lock mutex '%s' by '%s', value is %d.",
+        GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
+        GetMutexValue(lpHeader));
 
     /* 不需要屏蔽中断，mutex 不能在中断中使用 */
     /* 该函数已经在内核中执行，没有任务切换的可能 */
@@ -307,12 +307,12 @@ STATIC E_STATUS IPC_UnlockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     LPTASK_CONTEXT lpThisContext, lpNextContext;
 
+    CORE_DEBUG(TRUE, "Unlock mutex '%s' by '%s', value is %d.",
+        GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
+        GetMutexValue(lpHeader));
     /* 未锁或没有任务等待解锁 */
     if (GetMutexValue(lpHeader) > 0 || IncMutexValue(lpHeader) > 0)
     {
-        CORE_INFOR(TRUE, "Unlock mutex '%s', value is %d.",
-            GetContextTaskName(CORE_GetCurrentTask()),
-            GetObjectName(lpHeader), GetMutexValue(lpHeader));
         return STATE_SUCCESS;
     }
 

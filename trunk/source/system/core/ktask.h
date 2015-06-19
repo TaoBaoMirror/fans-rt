@@ -45,47 +45,27 @@ enum{
     LPC_TSS_TEST_CANCEL,
     LPC_TSS_POST_CANCEL,
     LPC_TSS_CLOSE_TASK,
+    LPC_TSS_GET_TASKINFO,
+    LPC_TSS_SYS_ENUMTASK,
+    LPC_TSS_PERFORMANCE,
     LPC_TSS_STACK_MALLOC,
     LPC_TSS_STACK_FREE,
-#if 0
-    LPC_TSS_TASK_MALLOC,
-    LPC_TSS_TASK_FREE,
-    LPC_TSS_TASK_ATTACH         =       5,
-    LPC_TSS_TASK_DETACH,
-    LPC_TSS_TASK_CANCEL,
-    
-    
-    LPC_TSS_TASK_CURRENT        =       10,
-
-    LPC_TSS_GET_PRIORITY        =       15,
-    LPC_TSS_SET_PRIORITY,
-    LPC_TSS_GET_LOCAL_DATA,
-    LPC_TSS_SET_LOCAL_DATA,
-    LPC_TSS_GET_STATE,
-    LPC_TSS_GET_INFOR           =       20,
-    LPC_TSS_SYS_ENUM_TASK,
-    LPC_TSS_SYS_PROFILER,
-#endif
     LPC_TSS_REQUEST_MAX
 };
 
 
 #define     TASK_ENTRY(Ptr, Member)     ((LPTASK_CONTEXT)CONTAINER_OF(Ptr, TASK_CONTEXT, Member))
-#define     STACK_CHECK_COUNT           8
 
 #define     CORE_TASK_MAX               2
 #define     BOOT_TASK_ID                0
 #define     IDLE_TASK_ID                1
-
+#define     SMLT_ARRAY_SIZE             4                       /* 任务局部变量数组大小 */
 #define     MakeCoreStackHandle(id)                                                             \
             MakeCoreHandle(Magic2ClassID(STK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
 #define     MakeCoreTaskHandle(id)                                                              \
             MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
 #define     IDLE_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, IDLE_TASK_ID, 0)
 #define     BOOT_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, BOOT_TASK_ID, 0)                       \
-
-#define     TASK_USER_LOCAL_ID          3
-#define     SMLT_ARRAY_SIZE              4                               /* 任务本地数据最大数量 */
 
 typedef struct tagTASK_CONTEXT TASK_CONTEXT;
 typedef struct tagTASK_CONTEXT * PTASK_CONTEXT;
@@ -141,7 +121,7 @@ struct tagTASK_CONTEXT{
     TIME_SLICE_T            SliceLength;                        /* W时间片最大TICK数 */
     E_STATUS                ErrorCode;                          /* 错误码 */
     LPLPC_REQUEST_PACKET    lpLPCPacket;                        /* LPC 请求包指针 for wait object */
-    DWORD                   SmltArray[SMLT_ARRAY_SIZE];        /* static memory local to a task */
+    DWORD                   SmltArray[SMLT_ARRAY_SIZE];         /* static memory local to a task */
     DWORD                   Reserved[2];                        /* 保留 */
 #if (CONFIG_BUILD_TASK_PATH == TRUE)
     CHAR                    cbTaskPath[MAX_PATH];               /* 任务当前路径 */
@@ -250,8 +230,9 @@ struct tagTASK_CONTEXT{
 #define     GetContextCancel(lpTC)                          ((lpTC)->ub.Bits.CancelBit)
 #define     SetContextCancel(lpTC, boolean)                 do { (lpTC)->ub.Bits.CancelBit = (boolean); } while(0)
 
+#define     GetContextSmltMarkBits(lpTC)                    ((lpTC)->ub.Bits.SmltMark)
 #define     GetContextSmltKeyIsFree(lpTC, id)               (0 == (((lpTC)->ub.Bits.SmltMark) & (1 << (id))))
-#define     SetContextSmltKeyToFree(lpTC, id)                do { (lpTC)->ub.Bits.SmltMark &= (~(1 << (id))); } while(0)
+#define     SetContextSmltKeyToFree(lpTC, id)               do { (lpTC)->ub.Bits.SmltMark &= (~(1 << (id))); } while(0)
 #define     GetContextSmltValue(lpTC, id)                   ((lpTC)->SmltArray[id])
 #define     SetContextSmltValue(lpTC, id, Value)            do {(lpTC)->SmltArray[id] = (Value);} while(0)
 

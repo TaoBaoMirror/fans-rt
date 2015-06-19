@@ -13,15 +13,16 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
-
+#include <fauser.h>
+#include <fadefs.h>
 #include "libcmini.h"
 
-int fputc(int ch, FILE * stream)
+EXPORT CODE_TEXT int fputc(int ch, FILE * stream)
 {
     return ch;
 }
 
-int wfputc(int ch, FILE * stream)
+EXPORT CODE_TEXT int wfputc(int ch, FILE * stream)
 {
     return ch;
 }

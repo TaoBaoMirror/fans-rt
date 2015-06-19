@@ -11,6 +11,7 @@
  *    2014-09-07     JiangYong       new file
  */
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -31,7 +32,7 @@
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT LPVOID caPageMalloc(SIZE_T Length)
+EXPORT CODE_TEXT LPVOID caPageMalloc(SIZE_T Length)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -55,7 +56,7 @@ EXPORT_SYMBOL(caPageMalloc);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caPageFree(LPVOID lpPageAddress)
+EXPORT CODE_TEXT E_STATUS caPageFree(LPVOID lpPageAddress)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -73,7 +74,7 @@ EXPORT_SYMBOL(caPageFree);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT DWORD caGetSystemFreePages(BYTE RegionID)
+EXPORT CODE_TEXT DWORD caGetSystemFreePages(BYTE RegionID)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
@@ -99,7 +100,7 @@ EXPORT_SYMBOL(caGetSystemFreePages);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caGetMmsInformation(LPMMS_INFOR lpInfor)
+EXPORT CODE_TEXT E_STATUS caGetMmsInformation(LPMMS_INFOR lpInfor)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -134,7 +135,7 @@ EXPORT_SYMBOL(caGetMmsInformation);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caShowMmsInformation(VOID)
+EXPORT CODE_TEXT E_STATUS caShowMmsInformation(VOID)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -163,7 +164,7 @@ EXPORT_SYMBOL(caShowMmsInformation);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
+EXPORT CODE_TEXT E_STATUS caShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -194,7 +195,7 @@ EXPORT_SYMBOL(caShowMmsRegionSection);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caCreateMMRegion(LPVOID lpAddress, SIZE_T Length)
+EXPORT CODE_TEXT E_STATUS caCreateMMRegion(LPVOID lpAddress, SIZE_T Length)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
