@@ -10,11 +10,12 @@
  *    date           author          notes
  *    2014-09-07     JiangYong       new file
  */
+#include <fauser.h>
 #include <fadefs.h>
 #include <fatypes.h>
 #include <stddef.h>
 
-void * malloc(size_t length)
+EXPORT CODE_TEXT void * malloc(size_t length)
 {
     return NULL;
 }

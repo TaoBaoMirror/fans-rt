@@ -12,6 +12,7 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -23,7 +24,7 @@
 #include "request.h"
 #include "cadebug.h"
 
-EXPORT E_STATUS caIdleEntry(LPVOID lpParam)
+EXPORT CODE_TEXT E_STATUS caIdleEntry(LPVOID lpParam)
 {
     LOG_INFOR(TRUE, "System idle task working now ....");
 
@@ -44,7 +45,7 @@ EXPORT E_STATUS caIdleEntry(LPVOID lpParam)
  *     新任务入口函数需要传入三个参数，在ARCH层实现的任务堆栈填充函数需要将这
  * 三个参数放入恰当的堆栈位置。
  */
-EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
+EXPORT CODE_TEXT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
 {
     CHAR Name[OBJECT_NAME_MAX];
     
@@ -62,7 +63,7 @@ EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
     while(1) caScheduleTimeout(1000);
 }
 
-EXPORT E_STATUS caGetError(VOID)
+EXPORT CODE_TEXT E_STATUS caGetError(VOID)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -71,7 +72,7 @@ EXPORT E_STATUS caGetError(VOID)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKERROR);
 }
 
-EXPORT E_STATUS caSetError(E_STATUS emCode)
+EXPORT CODE_TEXT E_STATUS caSetError(E_STATUS emCode)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -82,7 +83,7 @@ EXPORT E_STATUS caSetError(E_STATUS emCode)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SET_TASKERROR);
 }
 
-EXPORT HANDLE caGetCurrentTask(VOID)
+EXPORT CODE_TEXT HANDLE caGetCurrentTask(VOID)
 {
     E_STATUS Result;
     LPC_REQUEST_PACKET Packet;
@@ -98,7 +99,7 @@ EXPORT HANDLE caGetCurrentTask(VOID)
     return Packet.u0.hParam;
 }
 
-EXPORT TASK_STATUS caGetTaskState(HANDLE hTask)
+EXPORT CODE_TEXT TASK_STATUS caGetTaskState(HANDLE hTask)
 {
     E_STATUS Result;
     LPC_REQUEST_PACKET Packet;
@@ -114,7 +115,7 @@ EXPORT TASK_STATUS caGetTaskState(HANDLE hTask)
     return (TASK_STATUS) Packet.u0.dParam;
 }
 
-EXPORT E_STATUS caScheduleTimeout(LONG Timeout)
+EXPORT CODE_TEXT E_STATUS caScheduleTimeout(LONG Timeout)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -125,7 +126,7 @@ EXPORT E_STATUS caScheduleTimeout(LONG Timeout)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SCHEDULE_TIMEOUT);
 }
 
-EXPORT E_STATUS caTaskWakeup(HANDLE hTask)
+EXPORT CODE_TEXT E_STATUS caTaskWakeup(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -136,7 +137,7 @@ EXPORT E_STATUS caTaskWakeup(HANDLE hTask)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_WAKE_UP);
 }
 
-EXPORT BOOL caTestCancel(VOID)
+EXPORT CODE_TEXT BOOL caTestCancel(VOID)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -149,7 +150,7 @@ EXPORT BOOL caTestCancel(VOID)
     return Packet.u0.dParam;
 }
 
-EXPORT E_STATUS caPostCancel(HANDLE hTask)
+EXPORT CODE_TEXT E_STATUS caPostCancel(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -160,7 +161,7 @@ EXPORT E_STATUS caPostCancel(HANDLE hTask)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_POST_CANCEL);
 }
 
-EXPORT E_STATUS caGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX])
+EXPORT CODE_TEXT E_STATUS caGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX])
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -172,7 +173,7 @@ EXPORT E_STATUS caGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX])
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKNAME);
 }
 
-EXPORT TICK caGetTaskStartTick(HANDLE hTask)
+EXPORT CODE_TEXT TICK caGetTaskStartTick(HANDLE hTask)
 {
     TICK Tick = (TICK) 0;
     LPC_REQUEST_PACKET Packet;
@@ -195,7 +196,7 @@ EXPORT TICK caGetTaskStartTick(HANDLE hTask)
     return Tick;
 }
 
-EXPORT TASK_PRIORITY caGetPriority(HANDLE hTask)
+EXPORT CODE_TEXT TASK_PRIORITY caGetPriority(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -212,7 +213,7 @@ EXPORT TASK_PRIORITY caGetPriority(HANDLE hTask)
     return (TASK_PRIORITY) Packet.u1.dParam;
 }
 
-EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
+EXPORT CODE_TEXT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -223,9 +224,9 @@ EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
     
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SET_PRIORITY);
 }
-EXPORT_CORE_SYMBOL(caSetPriority);
+EXPORT_SYMBOL(caSetPriority);
 
-EXPORT E_STATUS caCloseTask(HANDLE hTask)
+EXPORT CODE_TEXT E_STATUS caCloseTask(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -236,7 +237,7 @@ EXPORT E_STATUS caCloseTask(HANDLE hTask)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_CLOSE_TASK);
 }
 
-EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam)
+EXPORT CODE_TEXT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -248,7 +249,7 @@ EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_STACK_MALLOC);
 }
 
-EXPORT SMLT_KEY_T caGetSmltKey(VOID)
+EXPORT CODE_TEXT SMLT_KEY_T caGetSmltKey(VOID)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -262,7 +263,7 @@ EXPORT SMLT_KEY_T caGetSmltKey(VOID)
     return (SMLT_KEY_T) Packet.u0.dParam;
 }
 
-EXPORT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey)
+EXPORT CODE_TEXT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -273,7 +274,7 @@ EXPORT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_PUT_SMLTKEY);
 }
 
-EXPORT E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue)
+EXPORT CODE_TEXT E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
@@ -295,7 +296,7 @@ EXPORT E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue)
     return State;
 }
 
-EXPORT E_STATUS caSetSmltValue(SMLT_KEY_T SmltKey, DWORD Value)
+EXPORT CODE_TEXT E_STATUS caSetSmltValue(SMLT_KEY_T SmltKey, DWORD Value)
 {
     LPC_REQUEST_PACKET Packet;
 

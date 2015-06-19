@@ -53,6 +53,7 @@ typedef enum emSTATUS{
     STATE_INVALID_POOL              =       -55,
     STATE_INVALID_HASH              =       -56,
     STATE_INVALID_TIME              =       -57,
+    STATE_INVALID_MODULE            =       -58,
 
     STATE_INVALID_INTCODE           =       -60,
     STATE_INVALID_INTMAGIC          =       -61,

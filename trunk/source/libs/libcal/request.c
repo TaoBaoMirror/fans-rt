@@ -11,6 +11,7 @@
  *    2015-01-18     JiangYong       new file
  */
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -32,7 +33,7 @@
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-PUBLIC E_STATUS caSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE FunctionID)
+PUBLIC CODE_TEXT E_STATUS caSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE FunctionID)
 {
     if (NULL == lpPacket)
     {
@@ -55,7 +56,7 @@ PUBLIC E_STATUS caSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYT
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caInstallLPC(CONST LPC_SERVICE * lpService)
+EXPORT CODE_TEXT E_STATUS caInstallLPC(CONST LPC_SERVICE * lpService)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -63,7 +64,7 @@ EXPORT E_STATUS caInstallLPC(CONST LPC_SERVICE * lpService)
 
     return caSystemCall(&Packet, LPC_MAGIC, LPC_SERVICE_INSTALL);
 }
-EXPORT_CORE_SYMBOL(caInstallLPC);
+EXPORT_SYMBOL(caInstallLPC);
 
 /**
  * Unregister the specified LPC service.
@@ -73,7 +74,7 @@ EXPORT_CORE_SYMBOL(caInstallLPC);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caUnstallLPC(CONST LPC_SERVICE * lpService)
+EXPORT CODE_TEXT E_STATUS caUnstallLPC(CONST LPC_SERVICE * lpService)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -81,7 +82,7 @@ EXPORT E_STATUS caUnstallLPC(CONST LPC_SERVICE * lpService)
 
     return caSystemCall(&Packet, LPC_MAGIC, LPC_SERVICE_UNSTALL);
 }
-EXPORT_CORE_SYMBOL(caUnstallLPC);
+EXPORT_SYMBOL(caUnstallLPC);
 
 
 /**
@@ -92,7 +93,7 @@ EXPORT_CORE_SYMBOL(caUnstallLPC);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caInstallIRQ(LPIRQ_SERVICE lpHandler)
+EXPORT CODE_TEXT E_STATUS caInstallIRQ(LPIRQ_SERVICE lpHandler)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -100,7 +101,7 @@ EXPORT E_STATUS caInstallIRQ(LPIRQ_SERVICE lpHandler)
 
     return caSystemCall(&Packet, IRQ_MAGIC, LPC_SERVICE_INSTALL);
 }
-EXPORT_CORE_SYMBOL(caInstallIRQ);
+EXPORT_SYMBOL(caInstallIRQ);
 
 /**
  * Unregister the specified IRQ handler object.
@@ -110,7 +111,7 @@ EXPORT_CORE_SYMBOL(caInstallIRQ);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT E_STATUS caUnstallIRQ(LPIRQ_SERVICE lpHandler)
+EXPORT CODE_TEXT E_STATUS caUnstallIRQ(LPIRQ_SERVICE lpHandler)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -118,4 +119,4 @@ EXPORT E_STATUS caUnstallIRQ(LPIRQ_SERVICE lpHandler)
 
     return caSystemCall(&Packet, IRQ_MAGIC, LPC_SERVICE_UNSTALL);
 }
-EXPORT_CORE_SYMBOL(caUnstallIRQ);
+EXPORT_SYMBOL(caUnstallIRQ);

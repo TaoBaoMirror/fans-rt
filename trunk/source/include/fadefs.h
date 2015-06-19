@@ -35,30 +35,28 @@
 #define NEAR
 #endif
 
-#if (defined (__GUNC__) && (__GNUC__ >= 4))
-#define EXCORE __attribute__ ((visibility("default")))
-#define EXPORT __attribute__ ((visibility("default")))
-#define PUBLIC __attribute__ ((visibility("hidden")))
-#else
-#define EXCORE
+#define EXPORT_SYMBOL(sym)
+
+
+#ifndef EXPORT
 #define EXPORT
+#endif
+
+#ifndef PUBLIC
 #define PUBLIC
 #endif
 
-#define EXPORT_SYMBOL(sym)
-#define EXPORT_CORE_SYMBOL(sym)
-
-#ifndef FANSAPI
-#define FANSAPI EXPORT
-#endif
-
-
 #ifndef STATIC
-#define STATIC  static
+#define STATIC static
 #endif
 
 #ifndef CONST
-#define CONST   const
+#define CONST const
+#endif
+
+
+#ifndef FANSAPI
+#define FANSAPI EXPORT
 #endif
 
 #ifndef EXTERN
@@ -160,6 +158,38 @@
   #error "Unknow compiler !"
 #endif
 
+#if (ARCH == 0x8086)
+#define	BUILD_CODE_TYPE_SET_FOR_8086	__asm__(".code16gcc\n");
+#else
+#define	BUILD_CODE_TYPE_SET_FOR_8086
+#endif
+
+#define SECTION(x)		        __attribute__ ((section(x)))
+#define	SECTION_CODE16	        __attribute__ ((section(".code16")))
+#define	SECTION_CODE32	        __attribute__ ((section(".code32")))
+#define	SECTION_TEXT	        __attribute__ ((section(".text")))
+#define SECTION_CORE_TEXT       __attribute__ ((section(".CoreText")))
+#define SECTION_CORE_RW_DATA    __attribute__ ((section(".CoreRWdata")))
+#define SECTION_CORE_RO_DATA    __attribute__ ((section(".CoreROdata")))
+#define SECTION_USER_TEXT       __attribute__ ((section(".UserText")))
+#define SECTION_USER_RW_DATA    __attribute__ ((section(".UserRWdata")))
+#define SECTION_USER_RO_DATA    __attribute__ ((section(".UserROdata")))
+
+#ifndef BUILD_SECTION_MODE
+#include <facore.h>
+#endif
+
+#ifdef BUILD_CORE_SECTION
+#define RW_DATA                 SECTION_CORE_RW_DATA
+#define RO_DATA                 SECTION_CORE_RO_DATA
+#define CODE_TEXT               SECTION_CORE_TEXT
+#else
+#define RW_DATA                 SECTION_USER_RW_DATA
+#define RO_DATA                 SECTION_USER_RO_DATA
+#define CODE_TEXT               SECTION_USER_TEXT
+#endif
+
+BUILD_CODE_TYPE_SET_FOR_8086
 
 
 #endif

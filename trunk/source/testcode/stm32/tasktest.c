@@ -1,12 +1,12 @@
-#ifndef BUILD_TESTCODE_THREAD
+#if 0
 #include "stdio.h"
 #include "string.h"
 #include "limits.h"
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
 #include <fapi.h>
-#include <fapp.h>
 
 #include "karch.h"
 #include "libfw.h"
@@ -75,8 +75,6 @@ STATIC E_STATUS TestTask02(LPVOID lpArgment)
     return STATE_SUCCESS;
 }
 
-PUBLIC VOID SetLogFlag(VOID);
-
 STATIC E_STATUS TestCase02(VOID)
 {
     HANDLE hTask;
@@ -96,8 +94,6 @@ STATIC E_STATUS TestCase02(VOID)
     TEST_CASE_ASSERT(STATE_SUCCESS == State, return State, "Get task name failed.", Name);
 
     TEST_CASE_ASSERT (0 == strcmp(Name, TEST02_TASK_NAME), return STATE_NOT_MATCH, "Task name '%s' not expect '%s'", Name, TEST02_TASK_NAME);
-
-    //SetLogFlag();
 
     while(0==g_TaskCount);
     Sleep(100);
@@ -397,7 +393,7 @@ STATIC E_STATUS TestCase09(VOID)
 
     g_TaskCount = 0;
 
-    hMutex = CreateMutex(MUTEX_OBJECT_NAME, TRUE);
+    hMutex = CreateMutex(MUTEX_OBJECT_NAME, FALSE);
 
     LOG_INFOR(TRUE, "hMutex is 0x%08x.", hMutex);
 
@@ -445,7 +441,7 @@ STATIC E_STATUS TestCase17(VOID)
 }
 
 
-E_STATUS FansMain(VOID)
+STATIC E_STATUS FansMain(VOID)
 {
     TEST_CASE_CALL(TestCase00, return STATE_SYSTEM_FAULT);
     TEST_CASE_CALL(TestCase01, return STATE_SYSTEM_FAULT);
@@ -463,5 +459,7 @@ E_STATUS FansMain(VOID)
     }while(STATE_SUCCESS == TestCancel());
     return STATE_SUCCESS;
 }
+
+DEFINE_MODULE(Application, NULL, FansMain, NULL);
 #endif
 

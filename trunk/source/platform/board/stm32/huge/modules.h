@@ -9,7 +9,7 @@
 
 DECLARE_MODULE(APP);
 
-STATIC CFANSMODULE * g_SystemModules[] =
+STATIC CMODULE_HEADER * g_SystemModules[] =
 {
     EXCERPT_MODULE(APP),
 };

@@ -10,7 +10,7 @@
 EXTERN FNREGISTERMODULE fnRegisterModule;
 
 #define     DECLARE_SYSTEMMODULE(name)                                      \
-            EXTERN FANSMODULE name##_Module
+            EXTERN MODULE_HEADER name##_Module
 #define     EXCERPT_SYSTEMMODULE(file, name)                                \
             { file, &name##_Module }
 #define     EXCERPT_SYSTEMSYMBOL(name)                                      \
@@ -26,7 +26,7 @@ DECLARE_SYSTEMMODULE(IDL);
 
 typedef struct tagMODULEFILE{
     LPSTR               lpFileName;
-    LPFANSMODULE        lpFansModule;
+    LPMODULE_HEADER        lpFansModule;
 }MOLDULEFILE, * PMODULEFILE, FAR * LPMODULEFILE;
 
 STATIC CONST MOLDULEFILE SystemModules[]= 
@@ -45,7 +45,7 @@ STATIC CONST MOLDULEFILE SystemModules[]=
 //  EXCERPT_SYSTEMMODULE("dml.sys", DML),
 };
 
-STATIC LPFANSMODULE Find_Module(LPSTR lpFileName)
+STATIC LPMODULE_HEADER Find_Module(LPSTR lpFileName)
 {
     INT i = 0;
     
@@ -69,7 +69,7 @@ STATIC LPFANSMODULE Find_Module(LPSTR lpFileName)
 
 PUBLIC E_STATUS LDR_LoadModule(LPSTR lpFileName)
 {
-    LPFANSMODULE lpFansModule = NULL;
+    LPMODULE_HEADER lpFansModule = NULL;
     
     lpFansModule = Find_Module(lpFileName);
     

@@ -17,7 +17,9 @@
 #include "kcore.h"
 #include "ktask.h"
 #include "kdebug.h"
-#include "libcal.h"
+
+EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask);
+
 
 #if (defined(__CC_ARM))
 #ifdef __MICROLIB

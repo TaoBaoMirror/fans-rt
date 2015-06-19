@@ -22,13 +22,13 @@
 
 E_STATUS FansMain(VOID);
 
-STATIC E_STATUS ModuleEntry(LPCFANSMODULE lpcFansModule)
+STATIC E_STATUS ModuleEntry(LPCMODULE_HEADER lpcFansModule)
 {
     LOG_INFOR(TRUE, "APP Starting ...");
     return FansMain();
 }
 
-STATIC VOID ModuleLeave(LPCFANSMODULE lpcFansModule)
+STATIC VOID ModuleLeave(LPCMODULE_HEADER lpcFansModule)
 {
 }
 

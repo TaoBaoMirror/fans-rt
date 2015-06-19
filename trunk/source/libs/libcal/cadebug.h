@@ -10,9 +10,10 @@
  *    date           author          notes
  *    2014-09-07     JiangYong       new file
  */
-#ifndef __NT_DEBUG_H
-#define __NT_DEBUG_H
+#ifndef __CA_DEBUG_H
+#define __CA_DEBUG_H
 
+#include <fauser.h>
 #include <fadefs.h>
 #include <fatypes.h>
 #include <faerror.h>

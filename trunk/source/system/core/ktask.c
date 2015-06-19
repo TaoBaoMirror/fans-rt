@@ -22,7 +22,8 @@
 #include "kcore.h"
 #include "kdebug.h"
 #include "schedule.h"
-#include "libcal.h"
+
+EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
 
 STATIC TASK_CONTEXT g_SystemCoreContext[CORE_TASK_MAX];
 STATIC CHAR * g_SystemIdleTaskStack[CONFIG_BOOT_STACK_SIZE];
@@ -244,6 +245,73 @@ STATIC E_STATUS CloseTaskContext(LPTASK_CONTEXT lpTaskContext)
     }
     
     return CORE_FreeObject(GetContextHeader(lpTaskContext));
+}
+
+
+
+
+STATIC SMLT_KEY_T MallocSmltKey(LPTASK_CONTEXT lpTaskContext)
+{
+    DWORD MarkBits = GetContextSmltMarkBits(lpTaskContext);
+    SMLT_KEY_T SmltKey = (SMLT_KEY_T) GetDwordLowestBit(MarkBits);
+    
+    if (SmltKey >= SMLT_ARRAY_SIZE)
+    {
+        return TASK_SMLTKEY_INVALID;
+    }
+
+    return SmltKey;
+}
+
+STATIC E_STATUS FreeSmltKey(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey)
+{
+    if (SmltKey >= SMLT_ARRAY_SIZE)
+    {
+        return STATE_OVER_RANGE;
+    }
+    
+    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
+    {
+        return STATE_MEMORY_OVERFLOW;
+    }
+    
+    SetContextSmltKeyToFree(lpTaskContext, SmltKey);
+    
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS SetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, DWORD Value)
+{
+    if (SmltKey >= SMLT_ARRAY_SIZE)
+    {
+        return STATE_OVER_RANGE;
+    }
+
+    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
+    {
+        return STATE_MEMORY_OVERFLOW;
+    }
+
+    SetContextSmltValue(lpTaskContext, SmltKey, Value);
+
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, LPDWORD lpValue)
+{
+    if (SmltKey >= SMLT_ARRAY_SIZE)
+    {
+        return STATE_OVER_RANGE;
+    }
+
+    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
+    {
+        return STATE_MEMORY_OVERFLOW;
+    }
+
+    *lpValue = GetContextSmltValue(lpTaskContext, SmltKey);
+
+    return STATE_SUCCESS;
 }
 
 /************************************************************************************************
@@ -581,79 +649,6 @@ STATIC E_STATUS SVC_SetTaskPriority(LPVOID lpPrivate, LPVOID lpParam)
     return State;
 }
 
-STATIC E_STATUS SVC_CloseTask(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPTASK_CONTEXT lpTaskContext;
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    
-    lpTaskContext = TASK_SELF_HANDLE == lpPacket->u0.hParam
-                  ? GetCurrentTaskContext()
-                  : Handle2TaskContext(lpPacket->u0.hParam);
-    
-    if (NULL == lpTaskContext)
-    {
-        return STATE_INVALID_PARAMETER;
-    }
-
-    return CloseTaskContext(lpTaskContext);
-}
-
-
-STATIC SMLT_KEY_T MallocSmltKey(LPTASK_CONTEXT lpTaskContext)
-{
-    return 0;
-}
-
-STATIC E_STATUS FreeSmltKey(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey)
-{
-    if (SmltKey >= SMLT_ARRAY_SIZE)
-    {
-        return STATE_OVER_RANGE;
-    }
-    
-    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
-    {
-        return STATE_MEMORY_OVERFLOW;
-    }
-    
-    SetContextSmltKeyToFree(lpTaskContext, SmltKey);
-    
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS SetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, DWORD Value)
-{
-    if (SmltKey >= SMLT_ARRAY_SIZE)
-    {
-        return STATE_OVER_RANGE;
-    }
-
-    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
-    {
-        return STATE_MEMORY_OVERFLOW;
-    }
-
-    SetContextSmltValue(lpTaskContext, SmltKey, Value);
-
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, LPDWORD lpValue)
-{
-    if (SmltKey >= SMLT_ARRAY_SIZE)
-    {
-        return STATE_OVER_RANGE;
-    }
-
-    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
-    {
-        return STATE_MEMORY_OVERFLOW;
-    }
-
-    *lpValue = GetContextSmltValue(lpTaskContext, SmltKey);
-
-    return STATE_SUCCESS;
-}
 
 STATIC E_STATUS SVC_GetSmltKey(LPVOID lpPrivate, LPVOID lpParam)
 {
@@ -679,7 +674,7 @@ STATIC E_STATUS SVC_PutSmltKey(LPVOID lpPrivate, LPVOID lpParam)
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
     
     CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-    
+
     return FreeSmltKey(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam);
 }
 
@@ -703,24 +698,74 @@ STATIC E_STATUS SVC_SetSmltValue(LPVOID lpPrivate, LPVOID lpParam)
     return SetSmltKeyValue(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam, lpPacket->u1.dParam);
 }
 
+STATIC E_STATUS SVC_CloseTask(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPTASK_CONTEXT lpTaskContext;
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    
+    lpTaskContext = TASK_SELF_HANDLE == lpPacket->u0.hParam
+                  ? GetCurrentTaskContext()
+                  : Handle2TaskContext(lpPacket->u0.hParam);
+    
+    if (NULL == lpTaskContext)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+
+    return CloseTaskContext(lpTaskContext);
+}
+
+STATIC E_STATUS SVC_GetTaskInfo(LPVOID lpPrivate, LPVOID lpParam)
+{
+    return STATE_NOT_IMPLEMENTED;
+}
+
+STATIC E_STATUS SVC_EnumTask(LPVOID lpPrivate, LPVOID lpParam)
+{
+    return STATE_NOT_IMPLEMENTED;
+}
+
+
+STATIC E_STATUS SVC_SystemPerformance(LPVOID lpPrivate, LPVOID lpParam)
+{
+    return STATE_NOT_IMPLEMENTED;
+}
+
+STATIC E_STATUS SVC_MallocStack(LPVOID lpPrivate, LPVOID lpParam)
+{
+    return STATE_NOT_IMPLEMENTED;
+}
+
+STATIC E_STATUS SVC_FreeStack(LPVOID lpPrivate, LPVOID lpParam)
+{
+    return STATE_NOT_IMPLEMENTED;
+}
+
+
 STATIC CONST REQUEST_HANDLER fnHandlers[] = {
-    SVC_GetTaskError,
-    SVC_SetTaskError,
-    SVC_GetCurrentTask,
-    SVC_GetTaskState,
-    SVC_GetTaskName,
-    SVC_GetTaskStartTick,
-    SVC_GetTaskPriority,
-    SVC_SetTaskPriority,
-    SVC_GetSmltKey,
-    SVC_PutSmltKey,
-    SVC_GetSmltValue,
-    SVC_SetSmltValue,
-    SVC_TaskSchedule,
-    SVC_TaskWakeup,
-    SVC_TestCancel,
-    SVC_PostCancel,
-    SVC_CloseTask,
+    SVC_GetTaskError,               /* 00.LPC_TSS_GET_TASKERROR */
+    SVC_SetTaskError,               /* 01.LPC_TSS_SET_TASKERROR */
+    SVC_GetCurrentTask,             /* 02.LPC_TSS_GET_CURRENT */
+    SVC_GetTaskState,               /* 03.LPC_TSS_GET_TASKSTATE */
+    SVC_GetTaskName,                /* 04.LPC_TSS_GET_TASKNAME */
+    SVC_GetTaskStartTick,           /* 05.LPC_TSS_GET_TASKTICK */
+    SVC_GetTaskPriority,            /* 06.LPC_TSS_GET_PRIORITY */
+    SVC_SetTaskPriority,            /* 07.LPC_TSS_SET_PRIORITY */
+    SVC_GetSmltKey,                 /* 08.LPC_TSS_GET_SMLTKEY */
+    SVC_PutSmltKey,                 /* 09.LPC_TSS_PUT_SMLTKEY */
+    SVC_GetSmltValue,               /* 10.LPC_TSS_GET_SMLTVALUE */
+    SVC_SetSmltValue,               /* 11.LPC_TSS_SET_SMLTVALUE */
+    SVC_TaskSchedule,               /* 12.LPC_TSS_SCHEDULE_TIMEOUT */
+    SVC_TaskWakeup,                 /* 13.LPC_TSS_WAKE_UP */
+    SVC_TestCancel,                 /* 14.LPC_TSS_TEST_CANCEL */
+    SVC_PostCancel,                 /* 15.LPC_TSS_POST_CANCEL */
+    SVC_CloseTask,                  /* 16.LPC_TSS_CLOSE_TASK */
+    SVC_GetTaskInfo,                /* 17.LPC_TSS_GET_TASKINFO */
+    SVC_EnumTask,                   /* 18.LPC_TSS_SYS_ENUMTASK */
+    SVC_SystemPerformance,          /* 19.LPC_TSS_PERFORMANCE */
+    SVC_MallocStack,                /* 20.LPC_TSS_STACK_MALLOC */
+    SVC_FreeStack,                  /* 21.LPC_TSS_STACK_FREE */
+    
 };
 
 DEFINE_LPC_SERVICE(LPCService, STM_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHandlers);
@@ -939,7 +984,7 @@ EXPORT E_STATUS CORE_SetError(E_STATUS emCode)
     
     return State;
 }
-EXPORT_CORE_SYMBOL(CORE_SetError);
+EXPORT_SYMBOL(CORE_SetError);
 
 EXPORT E_STATUS CORE_GetError(VOID)
 {
@@ -951,7 +996,7 @@ EXPORT E_STATUS CORE_GetError(VOID)
     
     return State;
 }
-EXPORT_CORE_SYMBOL(CORE_GetError);
+EXPORT_SYMBOL(CORE_GetError);
 
 
 EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID)
@@ -965,7 +1010,7 @@ EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID)
     
     return lpCurrentTask;
 }
-EXPORT_CORE_SYMBOL(CORE_GetCurrentTask);
+EXPORT_SYMBOL(CORE_GetCurrentTask);
 
 EXPORT VOID CORE_SetCurrentTaskLPCPacket(LPVOID lpPacket)
 {

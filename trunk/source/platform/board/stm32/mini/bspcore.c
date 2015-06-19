@@ -5,7 +5,6 @@
 #include <faerror.h>
 #include <fatypes.h>
 
-#include "libcal.h"
 #include "birq.h"
 
 PUBLIC LPSTR BSP_GetBoardName(VOID)

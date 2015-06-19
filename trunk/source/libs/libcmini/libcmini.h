@@ -15,6 +15,8 @@
 
 #include <stddef.h>
 #include <stdarg.h>
+#include <fauser.h>
+#include <fadefs.h>
 #include <fatypes.h>
 
 #ifdef __cplusplus
