@@ -5,14 +5,14 @@
 
 DECLARE_MODULE(Application);
 
-STATIC RO_DATA LPCMODULE_HEADER g_SystemModuleArray[] =
+STATIC CONST RO_DATA MODULE_HEADER * g_SystemModuleArray[] =
 {
     EXCERPT_MODULE(Application),
 };
 
-EXPORT CODE_TEXT LPCMODULE_HEADER * GetModuleArray(VOID)
+EXPORT CODE_TEXT LPMODULE_HEADER CONST * GetModuleArray(VOID)
 {
-    return g_SystemModuleArray;
+    return (LPMODULE_HEADER CONST * ) g_SystemModuleArray;
 }
 
 EXPORT CODE_TEXT DWORD GetNumberOfSystemModules(VOID)

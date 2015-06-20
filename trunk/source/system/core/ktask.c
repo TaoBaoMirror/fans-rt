@@ -26,7 +26,7 @@
 EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
 
 STATIC TASK_CONTEXT g_SystemCoreContext[CORE_TASK_MAX];
-STATIC CHAR * g_SystemIdleTaskStack[CONFIG_BOOT_STACK_SIZE];
+STATIC CHAR g_SystemIdleTaskStack[CONFIG_BOOT_STACK_SIZE];
 
 #define Handle2TaskContext(hTask)       CORE_Handle2TaskContextCheck(hTask, TRUE)
 
@@ -847,6 +847,7 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
 {
     E_STATUS State;
     
+    CORE_INFOR(TRUE, "Idle stack size is %u bytes.", sizeof(g_SystemIdleTaskStack));
     CORE_INFOR(TRUE, "Max priority is %d, Show the size of tss type for debug:", CONFIG_TASK_PRIORITY_MAX);
     CORE_INFOR(TRUE, "POOL_MAP_T: %d  MANA_MAP_T: %d  TASK_CONTEXT: %d   KOBJECT_HEADER: %d",
         sizeof(POOL_MAP_T), sizeof(MANA_MAP_T), sizeof(TASK_CONTEXT), sizeof(KOBJECT_HEADER));

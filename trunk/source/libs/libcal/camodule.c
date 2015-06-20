@@ -111,7 +111,7 @@ EXPORT CODE_TEXT E_STATUS initSystemApplicationModulesStartup(VOID)
 
     for (Id = 0; Id < GetNumberOfSystemModules(); Id ++)
     {
-        LPCMODULE_HEADER lpModule = GetModuleArray()[Id];
+        LPMODULE_HEADER CONST lpModule = GetModuleArray()[Id];
         
         if (NULL == lpModule)
         {
