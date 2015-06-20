@@ -29,21 +29,23 @@ typedef CONST struct tagMODULE_HEADER FAR * LPCMODULE_HEADER;
 #if (CONFIG_BUILD_DYNAMIC_SYMBOL == FALSE)
 
 #define     DECLARE_MODULE(Name)                                                \
-            EXTERN CMODULE_HEADER g_##Name##_module_descriptor
+            EXTERN MODULE_HEADER CONST g_##Name##_module_descriptor
 #define     EXCERPT_MODULE(Name)                                                \
             &g_##Name##_module_descriptor
 
 #define     DEFINE_MODULE(Name, PrvData)                                        \
-            RO_DATA CMODULE_HEADER g_##Name##_module_descriptor = {             \
+            RO_DATA MODULE_HEADER CONST g_##Name##_module_descriptor = {        \
                 #Name,                                                          \
                 PrvData,                                                        \
                 FansMain,                                                       \
             };
 
+typedef E_STATUS (* FNMODULEENTRY)(LPMODULE_HEADER CONST lpModule);
+
 struct tagMODULE_HEADER{
     LPCSTR              lpName;
     LPVOID              lpPrivate;
-    E_STATUS            (*fnEntry)(LPCMODULE_HEADER lpModule);
+    FNMODULEENTRY       fnEntry;
 };
 
 #else
@@ -75,8 +77,8 @@ struct tagMODULE_HEADER{
 extern "C" {
 #endif
     typedef E_STATUS (FAR * FNREGISTERMODULE)(LPMODULE_HEADER lpModule);
-    STATIC E_STATUS FansMain(LPCMODULE_HEADER lpModule);
-    EXPORT LPCMODULE_HEADER * GetModuleArray(VOID);
+    STATIC E_STATUS FansMain(LPMODULE_HEADER CONST lpModule);
+    EXPORT LPMODULE_HEADER CONST * GetModuleArray(VOID);
     EXPORT DWORD GetNumberOfSystemModules(VOID);
 #if (CONFIG_BUILD_DYNAMIC_SYMBOL == TRUE)
     PUBLIC E_STATUS ProbeModule(LPCSTR lpModuleName);
