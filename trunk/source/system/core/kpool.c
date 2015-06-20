@@ -10,13 +10,12 @@
  *    date           author          notes
  *    2014-09-07     JiangYong       new file
  */
+#include <string.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
 
 #include "kmem.h"
-#include "khash.h"
-#include "ktask.h"
 #include "kcore.h"
 #include "kpool.h"
 #include "kdebug.h"

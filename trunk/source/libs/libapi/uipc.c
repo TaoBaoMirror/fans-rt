@@ -63,7 +63,7 @@ FANSAPI CODE_TEXT HANDLE TakeObject(LPCTSTR lpCTName)
 FANSAPI CODE_TEXT HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
 {
     HANDLE hEvent;
-    IPC_EVENT_CREATE_PARAM Param;
+    EVENT_ATTRIBUTE Attribute;
     CHAR caName[OBJECT_NAME_MAX];
     
     memset(caName, 0, sizeof(caName));
@@ -81,14 +81,14 @@ FANSAPI CODE_TEXT HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Sign
 #endif
     }
 
-    Param.Marks.Value = ((!!Automatic) << MARK_EVENT_AUTO_SHIFT)
+    Attribute.Value   = ((!!Automatic) << MARK_EVENT_AUTO_SHIFT)
                       + ((!!Signal) << MARK_EVENT_SIGNAL_SHIFT);
 
-    hEvent = caMallocObject(caName, EVT_MAGIC, &Param);
+    hEvent = caMallocObject(caName, EVT_MAGIC, &Attribute);
 
     if (INVALID_HANDLE_VALUE != hEvent)
     {
-        if (STATE_SUCCESS != caActiveObject(hEvent, &Param))
+        if (STATE_SUCCESS != caActiveObject(hEvent, &Attribute))
         {
             caFreeObject(hEvent);
             hEvent = INVALID_HANDLE_VALUE;
@@ -160,7 +160,7 @@ FANSAPI CODE_TEXT E_STATUS ResetEvent(HANDLE handle)
 FANSAPI CODE_TEXT HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 {
     HANDLE hMutex;
-    IPC_MUTEX_CREATE_PARAM Param;
+    MUTEX_ATTRIBUTE Attribute;
     CHAR caName[OBJECT_NAME_MAX];
     
     memset(caName, 0, sizeof(caName));
@@ -178,13 +178,13 @@ FANSAPI CODE_TEXT HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 #endif
     }
 
-    Param.Marks.Value = ((!Owner) << MARK_MUTEX_SIGNAL_SHIFT);
+    Attribute.MutexValue = Owner ? 0 : 1;
 
-    hMutex = caMallocObject(caName, MTX_MAGIC, &Param);
+    hMutex = caMallocObject(caName, MTX_MAGIC, &Attribute);
 
     if (INVALID_HANDLE_VALUE != hMutex)
     {
-        if (STATE_SUCCESS != caActiveObject(hMutex, &Param))
+        if (STATE_SUCCESS != caActiveObject(hMutex, &Attribute))
         {
             caFreeObject(hMutex);
             hMutex = INVALID_HANDLE_VALUE;

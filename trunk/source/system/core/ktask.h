@@ -56,16 +56,7 @@ enum{
 
 #define     TASK_ENTRY(Ptr, Member)     ((LPTASK_CONTEXT)CONTAINER_OF(Ptr, TASK_CONTEXT, Member))
 
-#define     CORE_TASK_MAX               2
-#define     BOOT_TASK_ID                0
-#define     IDLE_TASK_ID                1
 #define     SMLT_ARRAY_SIZE             4                       /* 任务局部变量数组大小 */
-#define     MakeCoreStackHandle(id)                                                             \
-            MakeCoreHandle(Magic2ClassID(STK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
-#define     MakeCoreTaskHandle(id)                                                              \
-            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
-#define     IDLE_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, IDLE_TASK_ID, 0)
-#define     BOOT_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, BOOT_TASK_ID, 0)                       \
 
 typedef struct tagTASK_CONTEXT TASK_CONTEXT;
 typedef struct tagTASK_CONTEXT * PTASK_CONTEXT;

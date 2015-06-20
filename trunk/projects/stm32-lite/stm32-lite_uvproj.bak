@@ -378,7 +378,7 @@
             <useFile>0</useFile>
             <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
-            <ScatterFile>..\..\source\platform\board\stm32\mini\armcc\stm32-mini.sct</ScatterFile>
+            <ScatterFile>..\..\source\platform\board\stm32\lite\armcc\stm32-lite.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc>--userlibpath "..\..\libs\thumb" libfw.a</Misc>
@@ -611,25 +611,50 @@
               <FileType>5</FileType>
               <FilePath>..\..\source\system\core\schedule.h</FilePath>
             </File>
+            <File>
+              <FileName>khash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\system\core\khash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>testcode</GroupName>
           <Files>
             <File>
+              <FileName>amodule.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\stm32\amodule.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\stm32\main.c</FilePath>
+            </File>
+            <File>
               <FileName>tasktest.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\lite\tasktest.c</FilePath>
+              <FilePath>..\..\source\testcode\stm32\tasktest.c</FilePath>
             </File>
             <File>
-              <FileName>mmstest.c</FileName>
+              <FileName>testbase.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\lite\mmstest.c</FilePath>
+              <FilePath>..\..\source\testcode\stm32\testbase.c</FilePath>
             </File>
             <File>
-              <FileName>modules.h</FileName>
+              <FileName>testcode.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\source\testcode\lite\modules.h</FilePath>
+              <FilePath>..\..\source\testcode\stm32\testcode.h</FilePath>
+            </File>
+            <File>
+              <FileName>testipc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\stm32\testipc.c</FilePath>
+            </File>
+            <File>
+              <FileName>testtask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\stm32\testtask.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -802,11 +827,6 @@
               <FilePath>..\..\source\libs\libcmini\tsprintf.h</FilePath>
             </File>
             <File>
-              <FileName>vprintf.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\libs\libcmini\vprintf.c</FilePath>
-            </File>
-            <File>
               <FileName>wsprintf.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libcmini\wsprintf.c</FilePath>
@@ -882,9 +902,9 @@
               <FilePath>..\..\source\libs\libcal\request.h</FilePath>
             </File>
             <File>
-              <FileName>module.c</FileName>
+              <FileName>camodule.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\libs\libcal\module.c</FilePath>
+              <FilePath>..\..\source\libs\libcal\camodule.c</FilePath>
             </File>
           </Files>
         </Group>

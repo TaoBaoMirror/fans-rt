@@ -19,7 +19,6 @@
 #include <fatypes.h>
 
 #include "klist.h"
-#include "khash.h"
 #include "kpool.h"
 
 enum{
@@ -43,6 +42,7 @@ typedef struct tagKCLASS_DESCRIPTOR FAR * LPKCLASS_DESCRIPTOR;
 
 struct tagKCLASS_DESCRIPTOR{
     DWORD               Magic;
+    BYTE                Reserved[2];
     LPCSTR              ClassName;
     SIZE_T              ObjectSize;
     E_STATUS            (* fnMallocObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
@@ -227,7 +227,7 @@ struct tagKOBJECT_HEADER{
             (((tid) << HANDLE_OBJECT_TID_SHIFT) & HANDLE_OBJECT_TID_MASK) |                         \
             (((state) << HANDLE_OBJECT_STATE_SHIFT) & HANDLE_OBJECT_STATE_MASK)))
 
-#define     Magic2ClassID(Magic)                    CONFIG_CLASS_HASH_FUNCTION(Magic, CONFIG_SYSTEM_CLASS_MASK)
+
 #define     IsCoreHandle(handle)                    (0 == (handle & HANDLE_OBJECT_USER_MASK))
 
 #define     GetObjectHandle(lpHeader)                                                               \
@@ -287,8 +287,8 @@ extern "C" {
     EXPORT E_STATUS CORE_FreeObjectByID(LPKOBJECT_HEADER lpHeader, DWORD Magic, KOBJTABLE_ID_T Tid, KCONTAINER_ID_T Pid);
     EXPORT E_STATUS CORE_CloseObject(LPKOBJECT_HEADER lpHeader);
 
- #ifdef __cplusplus
+#ifdef __cplusplus
 }
-#endif           
+#endif
 #endif
 

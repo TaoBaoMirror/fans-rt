@@ -29,9 +29,8 @@
 #define     CONFIG_POOL_BLOCK_MAX               8           /**< 每个POOL的块数量 */
 #define     CONFIG_TASK_PRIORITY_MAX            3           /**< 任务管理器支持的任务优先级数量 */
 
-#define     CONFIG_CLASS_HASH_FUNCTION          Magic2Hash09
-#define     CONFIG_SYSTEM_CLASS_MAX             8           /**< 内核对象类数量，最大为32 */
-#define     CONFIG_SYSTEM_CLASS_MASK            0x7
+#define     CONFIG_SYSTEM_CLASS_MAX             14           /**< 内核对象类数量，最大为32 */
+#define     CONFIG_SYSTEM_CLASS_MASK            0xf
 
 #define     CONFIG_OBJECT_HASH_TABLE_MAX        1			/**< The number of hash table */
 #define     CONFIG_OBJECT_POOL_TABLE_MAX        8           /**< Max number is 8,  see @HANDLE_OBJECT_TID_MASK */
@@ -67,7 +66,7 @@
 #define     CONFIG_BUILD_MINI_MEMORY            TRUE
 #define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1024        /**< 引导任务的堆栈长度 */
-#define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */
+#define     CONFIG_IDLE_STACK_SIZE              768         /**< 空闲任务的堆栈长度 */
 #define     CONFIG_KERNEL_STACK_SIZE            0           /**< 内核堆栈长度 */
 #ifndef     CONFIG_ARCH_SUPPORT_KSTACK
 #define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU 是否支持内核堆栈 */
@@ -82,7 +81,6 @@
 #define     CONFIG_TIME_SLICE_NORMAL            10          /**< 默认任务时间片 */
 #define     MILLI_SECOND_TO_TICK(Ms)            ((Ms) * (CONFIG_SYSTICK_FREQUENCY / 1000))
 #define     CONFIG_ENABLE_FAST_SCHEDULE         TRUE
-#define     CONFIG_LPC_HASH_FUNCTION            Magic2Hash01
 #define     CONFIG_LPC_SERVICE_MAX              16
 #define     CONFIG_SYSTEM_MODULES               8           /**< 系统模块数量 */
 

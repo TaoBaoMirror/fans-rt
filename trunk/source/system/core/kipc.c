@@ -36,6 +36,27 @@ struct tagIPC_BASE_OBJECT{
 #define     GetFirstWaitNode(lpObject)              LIST_NEXT_NODE(GetIPCWaitQueue(lpObject))
 #define     GetFirstWaitTask(lpObject)              GetContextByIPCNode(GetFirstWaitNode(lpObject))
 
+
+#define     IPC_MallocEvent                         IPC_DummyOperation
+#define     IPC_TakeEvent                           IPC_DummyOperation
+
+#define     IPC_MallocMutex                         IPC_DummyOperation
+#define     IPC_TakeMutex                           IPC_DummyOperation
+#define     IPC_ResetMutex                          IPC_DummyOperation
+
+#define     IPC_MallocSemaphore                     IPC_DummyOperation
+#define     IPC_TakeSemaphore                       IPC_DummyOperation
+#define     IPC_ResetSemaphore                      IPC_DummyOperation
+
+#define     IPC_MallocSemset                        IPC_DummyOperation
+#define     IPC_TakeSemset                          IPC_DummyOperation
+#define     IPC_ResetSemset                         IPC_DummyOperation
+
+STATIC E_STATUS IPC_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_SUCCESS;
+}
+
 /************************************************************************************
                                     Event Class
 ************************************************************************************/
@@ -46,7 +67,7 @@ typedef struct tagIPC_EVENT_OBJECT * LPIPC_EVENT_OBJECT;
 
 struct tagIPC_EVENT_OBJECT{
     IPC_BASE_OBJECT                 Base;
-    VOLATILE IPC_EVENT_MARKS        Marks;
+    VOLATILE EVENT_ATTRIBUTE        Marks;
     BYTE                            cbReserved[3];
 };
 
@@ -66,31 +87,23 @@ struct tagIPC_EVENT_OBJECT{
             do { ((LPIPC_EVENT_OBJECT)(lpObject))->Marks.Bits.Signal = value; } while(0)
 
 
-STATIC E_STATUS IPC_MallocEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_SUCCESS;
-}
 
 STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    LPIPC_EVENT_CREATE_PARAM lpPacket = lpParam;
+    LPEVENT_ATTRIBUTE lpAttribute = lpParam;
     
-    if (0 != (lpPacket->Marks.Value & (~MARK_EVENT_BITS_MASK)))
+    if (0 != (lpAttribute->Value & (~MARK_EVENT_BITS_MASK)))
     {
         CORE_ERROR(TRUE, "Invalid value to create event '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_VALUE;
     }
     
     LIST_HEAD_INIT(GetIPCWaitQueue(lpHeader));
-    SetEventMarks(lpHeader, lpPacket->Marks.Value);
+    SetEventMarks(lpHeader, lpAttribute->Value);
 
     return STATE_SUCCESS;
 }
 
-STATIC E_STATUS IPC_TakeEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_SUCCESS;
-}
 
 STATIC E_STATUS IPC_WaitEvent(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
 {
@@ -166,7 +179,6 @@ STATIC E_STATUS IPC_FreeEvent(LPKOBJECT_HEADER lpHeader)
     return STATE_SUCCESS;
 }
 
-
 DEFINE_CLASS(EVT_MAGIC, EventClass, sizeof(IPC_EVENT_OBJECT),
             IPC_MallocEvent,
             IPC_ActiveEvent,
@@ -185,16 +197,9 @@ typedef struct tagIPC_MUTEX_OBJECT IPC_MUTEX_OBJECT;
 typedef struct tagIPC_MUTEX_OBJECT * PIPC_MUTEX_OBJECT;
 typedef struct tagIPC_MUTEX_OBJECT * LPIPC_MUTEX_OBJECT;
 
-#define     MUTEX_VALUE_BITS        OBJECT_SID_BITS
-
-typedef struct tagMUTEX_ATTRIBUTE{
-    S32                 MutexValue: MUTEX_VALUE_BITS;              /**< 唯一识别码 */
-    HANDLE              hOnwerTask: 32 - MUTEX_VALUE_BITS;
-}MUTEX_ATTRIBUTE;
-
 struct tagIPC_MUTEX_OBJECT{
     IPC_BASE_OBJECT                 Base;
-    union{
+    VOLATILE union{
         MUTEX_ATTRIBUTE                 Bits;
         HANDLE                          Handle;
         DWORD                           Attribute;
@@ -224,14 +229,9 @@ struct tagIPC_MUTEX_OBJECT{
                     ((Handle & (~HANDLE_OBJECT_SID_MASK)) | (Value & HANDLE_OBJECT_SID_MASK));      \
             } while(0)
 
-STATIC E_STATUS IPC_MallocMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_SUCCESS;
-}
-
 STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    LPIPC_MUTEX_CREATE_PARAM lpPacket = lpParam;
+    LPMUTEX_ATTRIBUTE lpAttribute = lpParam;
     
     if (NULL == lpParam)
     {
@@ -239,7 +239,7 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
         
-    if (0 != (lpPacket->Marks.Value & (~MARK_MUTEX_BITS_MASK)))
+    if ((0 != (lpAttribute->MutexValue)) && (1 != (lpAttribute->MutexValue)))
     {
         CORE_ERROR(TRUE, "Invalid value to create mutex '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_VALUE;
@@ -247,7 +247,7 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     
     LIST_HEAD_INIT(GetIPCWaitQueue(lpHeader));
     
-    if (lpPacket->Marks.Bits.Signal)
+    if (lpAttribute->MutexValue)
     {
         SetMutexValue(lpHeader, 1);
     }
@@ -257,11 +257,6 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         SetContextLockedMutex(CORE_GetCurrentTask(), GetObjectHandle(lpHeader));
     }
 
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS IPC_TakeMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
     return STATE_SUCCESS;
 }
 
@@ -336,12 +331,6 @@ STATIC E_STATUS IPC_UnlockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_SUCCESS;
 }
 
-STATIC E_STATUS IPC_ResetMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_NOT_SUPPORT;
-}
-
-
 STATIC E_STATUS IPC_FreeMutex(LPKOBJECT_HEADER lpHeader)
 {
     S16 Value = GetMutexValue(lpHeader);
@@ -390,10 +379,88 @@ DEFINE_CLASS(MTX_MAGIC, MutexClass, sizeof(IPC_MUTEX_OBJECT),
             IPC_ResetMutex,
             IPC_FreeMutex);
 
+typedef struct tagIPC_SEMAPHORE_OBJECT IPC_SEMAPHORE_OBJECT;
+typedef struct tagIPC_SEMAPHORE_OBJECT * PIPC_SEMAPHORE_OBJECT;
+typedef struct tagIPC_SEMAPHORE_OBJECT * LPIPC_SEMAPHORE_OBJECT;
+
+struct tagIPC_SEMAPHORE_OBJECT{
+    IPC_BASE_OBJECT                 Base;
+    VOLATILE SEMAPHORE_ATTRIBUTE    Attribute;
+};
+
+STATIC E_STATUS IPC_ActiveSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_NOT_SUPPORT;
+}
+
+STATIC E_STATUS IPC_WaitSemaphore(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
+{
+    return STATE_NOT_SUPPORT;
+}
+
+STATIC E_STATUS IPC_PostSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_NOT_SUPPORT;
+}
+
+STATIC E_STATUS IPC_FreeSemaphore(LPKOBJECT_HEADER lpHeader)
+{
+    return STATE_NOT_SUPPORT;
+}
+
+DEFINE_CLASS(SEM_MAGIC, SemaphoreClass, sizeof(IPC_SEMAPHORE_OBJECT),
+            IPC_MallocSemaphore,
+            IPC_ActiveSemaphore,
+            IPC_TakeSemaphore,
+            IPC_WaitSemaphore,
+            IPC_PostSemaphore,
+            IPC_ResetSemaphore,
+            IPC_FreeSemaphore);
+
+typedef struct tagIPC_SEMSET_OBJECT IPC_SEMSET_OBJECT;
+typedef struct tagIPC_SEMSET_OBJECT * PIPC_SEMSET_OBJECT;
+typedef struct tagIPC_SEMSET_OBJECT * LPIPC_SEMSET_OBJECT;
+
+struct tagIPC_SEMSET_OBJECT{
+    IPC_BASE_OBJECT                 Base;
+    VOLATILE SEMSET_ATTRIBUTE    Attribute;
+};
+
+STATIC E_STATUS IPC_ActiveSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_NOT_SUPPORT;
+}
+
+STATIC E_STATUS IPC_WaitSemset(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
+{
+    return STATE_NOT_SUPPORT;
+}
+
+STATIC E_STATUS IPC_PostSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_NOT_SUPPORT;
+}
+
+STATIC E_STATUS IPC_FreeSemset(LPKOBJECT_HEADER lpHeader)
+{
+    return STATE_NOT_SUPPORT;
+}
+
+DEFINE_CLASS(SET_MAGIC, SemsetClass, sizeof(IPC_SEMSET_OBJECT),
+            IPC_MallocSemset,
+            IPC_ActiveSemset,
+            IPC_TakeSemset,
+            IPC_WaitSemset,
+            IPC_PostSemset,
+            IPC_ResetSemset,
+            IPC_FreeSemset);
+
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
 {
-    CORE_INFOR(TRUE, "IPC_BASE_OBJECT: %d,   IPC_EVENT_OBJECT: %d",
-        sizeof(IPC_BASE_OBJECT), sizeof(IPC_EVENT_OBJECT));
+    CORE_INFOR(TRUE, "IPC_BASE_OBJECT:   %d,   IPC_EVENT_OBJECT:     %d"
+                     "IPC_MUTEX_OBJECT:  %d,   IPC_SEMAPHORE_OBJECT: %d",
+        sizeof(IPC_BASE_OBJECT), sizeof(IPC_EVENT_OBJECT),
+        sizeof(IPC_MUTEX_OBJECT), sizeof(IPC_SEMAPHORE_OBJECT));
 
     /* 注册EVENT对象类 */
     if (STATE_SUCCESS != CORE_RegisterClass(&EventClass))
@@ -408,7 +475,20 @@ PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
         CORE_ERROR(TRUE, "Register mutex class failed !");
         SYSTEM_CALL_OOPS();
     }
-    
+
+    /* 注册SEMAPHORE对象类 */
+    if (STATE_SUCCESS != CORE_RegisterClass(&SemaphoreClass))
+    {
+        CORE_ERROR(TRUE, "Register semaphore class failed !");
+        SYSTEM_CALL_OOPS();
+    }
+
+    /* 注册SEMSET对象类 */
+    if (STATE_SUCCESS != CORE_RegisterClass(&SemsetClass))
+    {
+        CORE_ERROR(TRUE, "Register semset class failed !");
+        SYSTEM_CALL_OOPS();
+    }    
     //LPC_INSTALL(&LPCService, "inter process communication(IPC) manager starting");
 
     return STATE_SUCCESS;

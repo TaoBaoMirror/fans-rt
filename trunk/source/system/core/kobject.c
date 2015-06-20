@@ -417,6 +417,25 @@ STATIC DWORD GetSystemObjectSid(VOID)
     return g_SystemIDValue ++;
 }
 
+#ifdef __DEBUG__
+STATIC DWORD ClassHashKey(DWORD Magic)
+{
+    return Magic2ClassIDKey(Magic);
+}
+
+STATIC DWORD LoadMagic(LPVOID lpPrivate, DWORD Id)
+{
+    LPKCLASS_DESCRIPTOR * lpClassArray = lpPrivate;
+    
+    if (lpClassArray[Id])
+    {
+        return lpClassArray[Id]->Magic;
+    }
+    
+    return 0;
+}
+#endif
+
 PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * lpClass)
 {
     DWORD dwFlags;
@@ -456,15 +475,32 @@ PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * lpClass)
     
     ClassID = Magic2ClassID(lpClass->Magic);
     
-    CORE_INFOR(TRUE, "Table(0x%P) Class(%s) register to %d ...",
-            g_GlobalClassTable[ClassID], lpClass->ClassName, ClassID);
+    CORE_INFOR(TRUE, "Class(%s-%d) register to %d ...",
+            lpClass->ClassName, Magic2ClassIDKey(lpClass->Magic), ClassID);
     
     dwFlags = CORE_DisableIRQ();
     
     if (NULL != g_GlobalClassTable[ClassID])
     {
+#ifdef __DEBUG__
+        DWORD Count = 0;
+        DWORD MagicArray[CONFIG_SYSTEM_CLASS_MAX];
+#endif
+
+#ifdef __DEBUG__
+        Count = CORE_HashSetArray(LoadMagic, g_GlobalClassTable,
+                MagicArray, lpClass->Magic, CONFIG_SYSTEM_CLASS_MAX);
+
+        CORE_HashDebug(ClassHashKey, MagicArray, Count, 8, 32,
+                "CONFIG_SYSTEM_CLASS_MAX", "Magic2ClassID");
+#endif
         CORE_RestoreIRQ(dwFlags);
         CORE_ERROR(TRUE, "Class(%s) register to %d failed.", lpClass->ClassName, ClassID);
+        CORE_ERROR(TRUE, "New class(%s) key is (%d), old class(%s) key is %d.",
+            lpClass->ClassName, Magic2ClassIDKey(lpClass->Magic),
+            g_GlobalClassTable[ClassID]->ClassName,
+            Magic2ClassIDKey(g_GlobalClassTable[ClassID]->Magic));
+
         return STATE_EXISTING;
     }
 

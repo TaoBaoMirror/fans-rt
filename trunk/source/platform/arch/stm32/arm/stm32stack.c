@@ -27,7 +27,7 @@ extern BYTE __initial_sp;
 
 PUBLIC LPVOID CORE_GetBootStackBuffer(VOID)
 {
-    return (&__initial_sp) - CONFIG_IDLE_STACK_SIZE;
+    return (&__initial_sp) - CONFIG_BOOT_STACK_SIZE;
 }
 #else           //__MICROLIB
 

@@ -17,16 +17,27 @@
 
 #include "klpc.h"
 #include "ktask.h"
+#include "khash.h"
 #include "kpool.h"
 #include "klist.h"
 #include "kcore.h"
 #include "kdebug.h"
 #include "schedule.h"
 
+#define     CORE_TASK_MAX               2
+#define     BOOT_TASK_ID                0
+#define     IDLE_TASK_ID                1
+#define     MakeCoreStackHandle(id)                                                             \
+            MakeCoreHandle(Magic2ClassID(STK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
+#define     MakeCoreTaskHandle(id)                                                              \
+            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
+#define     IDLE_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, IDLE_TASK_ID, 0)
+#define     BOOT_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, BOOT_TASK_ID, 0)
+
 EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
 
 STATIC TASK_CONTEXT g_SystemCoreContext[CORE_TASK_MAX];
-STATIC CHAR g_SystemIdleTaskStack[CONFIG_BOOT_STACK_SIZE];
+STATIC CHAR g_SystemIdleTaskStack[CONFIG_IDLE_STACK_SIZE];
 
 #define Handle2TaskContext(hTask)       CORE_Handle2TaskContextCheck(hTask, TRUE)
 

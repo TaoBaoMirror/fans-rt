@@ -4,9 +4,7 @@
 #include <fadefs.h>
 #include <fatypes.h>
 
-typedef struct tagIPC_EVENT_CREATE_PARAM IPC_EVENT_CREATE_PARAM;
-typedef struct tagIPC_EVENT_CREATE_PARAM * PIPC_EVENT_CREATE_PARAM;
-typedef struct tagIPC_EVENT_CREATE_PARAM FAR * LPIPC_EVENT_CREATE_PARAM;
+#include "kobject.h"
 
 #define         MARK_EVENT_SIGNAL_SHIFT         0x0
 #define         MARK_EVENT_SIGNAL_MASK          (1 << MARK_EVENT_SIGNAL_SHIFT)
@@ -14,36 +12,44 @@ typedef struct tagIPC_EVENT_CREATE_PARAM FAR * LPIPC_EVENT_CREATE_PARAM;
 #define         MARK_EVENT_AUTO_MASK            (1 << MARK_EVENT_AUTO_SHIFT)
 #define         MARK_EVENT_BITS_MASK            (MARK_EVENT_SIGNAL_MASK | MARK_EVENT_AUTO_MASK)
 
-typedef union tagIPC_EVENT_MARKS{
+typedef union tagEVENT_ATTRIBUTE EVENT_ATTRIBUTE;
+typedef union tagEVENT_ATTRIBUTE * PEVENT_ATTRIBUTE;
+typedef union tagEVENT_ATTRIBUTE FAR * LPEVENT_ATTRIBUTE;
+
+union tagEVENT_ATTRIBUTE{
     struct{
         BOOL           Signal:1;
-        BOOL           Automatic:1;
+        BOOL           Automatic:1;                 
     }Bits;
     BYTE               Value;
-}IPC_EVENT_MARKS;
-
-struct tagIPC_EVENT_CREATE_PARAM{
-    IPC_EVENT_MARKS     Marks;
 };
 
-typedef struct tagIPC_MUTEX_CREATE_PARAM IPC_MUTEX_CREATE_PARAM;
-typedef struct tagIPC_MUTEX_CREATE_PARAM * PIPC_MUTEX_CREATE_PARAM;
-typedef struct tagIPC_MUTEX_CREATE_PARAM FAR * LPIPC_MUTEX_CREATE_PARAM;
+#define     MUTEX_VALUE_BITS        OBJECT_SID_BITS
 
-#define         MARK_MUTEX_SIGNAL_SHIFT         0x0
-#define         MARK_MUTEX_SIGNAL_MASK          (1 << MARK_MUTEX_SIGNAL_SHIFT)
-#define         MARK_MUTEX_BITS_MASK            (MARK_MUTEX_SIGNAL_MASK)
+typedef struct tagMUTEX_ATTRIBUTE MUTEX_ATTRIBUTE;
+typedef struct tagMUTEX_ATTRIBUTE * PMUTEX_ATTRIBUTE;
+typedef struct tagMUTEX_ATTRIBUTE FAR * LPMUTEX_ATTRIBUTE;
 
-typedef union tagIPC_MUTEX_MARKS{
-    struct{
-        BOOL            Signal:1;           /* 信号 */
-    }Bits;
-    BYTE                Value;
-}IPC_MUTEX_MARKS;
+struct tagMUTEX_ATTRIBUTE{
+    S32                 MutexValue: MUTEX_VALUE_BITS;              /**< 唯一识别码 */
+    HANDLE              hOnwerTask: 32 - MUTEX_VALUE_BITS;
+};
 
+typedef struct tagSEMAPHORE_ATTRIBUTE SEMAPHORE_ATTRIBUTE;
+typedef struct tagSEMAPHORE_ATTRIBUTE * PSEMAPHORE_ATTRIBUTE;
+typedef struct tagSEMAPHORE_ATTRIBUTE FAR * LPSEMAPHORE_ATTRIBUTE;
 
-struct tagIPC_MUTEX_CREATE_PARAM{
-    IPC_MUTEX_MARKS     Marks;
+struct tagSEMAPHORE_ATTRIBUTE{
+    SHORT               Signal;
+    SHORT               MaxCount;
+};
+
+typedef struct tagSEMSET_ATTRIBUTE SEMSET_ATTRIBUTE;
+typedef struct tagSEMSET_ATTRIBUTE * PSEMSET_ATTRIBUTE;
+typedef struct tagSEMSET_ATTRIBUTE FAR * LPSEMSET_ATTRIBUTE;
+
+struct tagSEMSET_ATTRIBUTE{
+    DWORD               Mask:32;
 };
 
 #endif
