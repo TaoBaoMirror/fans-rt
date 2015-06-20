@@ -29,9 +29,8 @@
 #define     CONFIG_POOL_BLOCK_MAX               8           /**< 每个POOL的块数量 */
 #define     CONFIG_TASK_PRIORITY_MAX            8           /**< 任务管理器支持的任务优先级数量 */
 
-#define     CONFIG_CLASS_HASH_FUNCTION          Magic2Hash09
-#define     CONFIG_SYSTEM_CLASS_MAX             8           /**< 内核对象类数量，最大为32 */
-#define     CONFIG_SYSTEM_CLASS_MASK            0x7UL
+#define     CONFIG_SYSTEM_CLASS_MAX             14          /**< 内核对象类数量，最大为32 */
+#define     CONFIG_SYSTEM_CLASS_MASK            0xf
 
 #define     CONFIG_OBJECT_HASH_TABLE_MAX        8			/**< The number of hash table */
 #define     CONFIG_OBJECT_POOL_TABLE_MAX        8           /**< Max number is 8,  see @HANDLE_OBJECT_TID_MASK */
@@ -81,7 +80,7 @@
 #define     CONFIG_PROFILER_CYCLE               1000        /**< 系统性能统计刷新周期 */
 #define     CONFIG_TIME_SLICE_NORMAL            10          /**< 默认任务时间片 */
 #define     MILLI_SECOND_TO_TICK(Ms)            ((Ms) * (CONFIG_SYSTICK_FREQUENCY / 1000))
-#define     CONFIG_LPC_HASH_FUNCTION            Magic2Hash01
+#define     CONFIG_ENABLE_FAST_SCHEDULE         TRUE
 #define     CONFIG_LPC_SERVICE_MAX              32
 #define     CONFIG_SYSTEM_MODULES               8           /**< 系统模块数量 */
 

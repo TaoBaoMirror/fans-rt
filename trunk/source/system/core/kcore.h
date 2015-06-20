@@ -24,6 +24,8 @@
 #define     TSK_MAGIC                   MAKE_DWORD('T', 'S', 'K')               /**< The task object */
 #define     EVT_MAGIC                   MAKE_DWORD('E', 'V', 'T')
 #define     MTX_MAGIC                   MAKE_DWORD('M', 'T', 'X')
+#define     SEM_MAGIC                   MAKE_DWORD('S', 'E', 'M')
+#define     SET_MAGIC                   MAKE_DWORD('S', 'E', 'T')
 
 
 /* The some system modules magic */

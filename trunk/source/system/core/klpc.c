@@ -22,8 +22,6 @@
 #include "kdebug.h"
 #include "libfw.h"
 
-#define     Magic2RequestID(Magic)      CONFIG_LPC_HASH_FUNCTION(Magic, CONFIG_LPC_SERVICE_MAX)
-
 STATIC CONST LPC_SERVICE * g_ServiceHashTable[CONFIG_LPC_SERVICE_MAX] = {NULL};
 
 EXPORT E_STATUS CORE_InstallLPC(CONST LPC_SERVICE * lpService)
