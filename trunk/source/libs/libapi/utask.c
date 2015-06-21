@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <fauser.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>

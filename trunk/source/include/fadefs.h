@@ -79,6 +79,11 @@
 #define HIBYTE(x)                   (BYTE)(((x) >> 8) & 0xff)
 #define HIWORD(x)                   (WORD)(((x) >> 16) & 0xffff)
 
+#define BOOT_TASK_NAME              "Boot"
+#define IDLE_TASK_NAME              "Idle"
+#define OBJECT_NAME_MAX             8
+#define MAX_PATH                    128
+#define MAX_NAME                    128
 
 #define SET_BIT_VALUE(x, shift, boolean)                                        \
         do{                                                                     \

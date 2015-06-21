@@ -160,11 +160,11 @@ STATIC E_STATUS AttachQueue(LPTASK_CONTEXT lpTaskContext, TASK_STATUS TaskState)
     switch(TaskState)
     {
     case TASK_STATE_SLEEP:
-        CORE_INFOR(TRUE, "Task '%s' attach to suspend queue.", GetContextTaskName(lpTaskContext));
+        CORE_DEBUG(TRUE, "Task '%s' attach to suspend queue.", GetContextTaskName(lpTaskContext));
         Attach2SuspendQueue(lpTaskContext, TICK_INFINITE);
         break;
     case TASK_STATE_READY:
-        CORE_INFOR(TRUE, "Task '%s' attach to ready queue.", GetContextTaskName(lpTaskContext));
+        CORE_DEBUG(TRUE, "Task '%s' attach to ready queue.", GetContextTaskName(lpTaskContext));
         Attach2ReadyQueue(lpTaskContext);
         break;
     default:
@@ -373,7 +373,7 @@ STATIC E_STATUS STM_MallocStack(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         return STATE_INVALID_TASK;
     }
     
-    CORE_INFOR(TRUE, "Malloc stack '%s' for task 0x%P handle 0x%08X ...",
+    CORE_DEBUG(TRUE, "Malloc stack '%s' for task 0x%P handle 0x%08X ...",
             GetObjectName(lpHeader), lpTaskContext, lpPacket->hTask);
     
     AttachStack2Context(lpTaskContext, lpHeader, lpPacket);
@@ -436,7 +436,7 @@ STATIC E_STATUS STM_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         return STATE_INVALID_PRIORITY;
     }
  
-    CORE_INFOR(TRUE, "Malloc 0x%P task '%s' ...", lpHeader, GetObjectName(lpHeader));
+    CORE_DEBUG(TRUE, "Malloc 0x%P task '%s' ...", lpHeader, GetObjectName(lpHeader));
 
     return SetContextParam(lpTaskContext,  lpTaskParam);
 }
@@ -446,7 +446,7 @@ STATIC E_STATUS STM_ActiveContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     LPKTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
     
-    CORE_INFOR(TRUE, "Active task '%s' ...", GetObjectName(lpHeader));
+    CORE_DEBUG(TRUE, "Active task '%s' ...", GetObjectName(lpHeader));
 
     return AttachContext2System(lpTaskContext, lpTaskParam);
 }
@@ -455,7 +455,7 @@ STATIC E_STATUS STM_FreeContext(LPKOBJECT_HEADER lpHeader)
 {
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
 
-    CORE_INFOR(TRUE, "Free 0x%P task '%s' ...", lpHeader, GetObjectName(lpHeader));
+    CORE_DEBUG(TRUE, "Free 0x%P task '%s' ...", lpHeader, GetObjectName(lpHeader));
     
     return DetachContextFromSystem(lpTaskContext);
 }
@@ -881,12 +881,12 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
 
     LPC_INSTALL(&LPCService, "Task Schedule(TSK) service starting");
 
-    State = CreateCoreTask("Boot", NULL, NULL, BOOT_TASK_ID);
+    State = CreateCoreTask(BOOT_TASK_NAME, NULL, NULL, BOOT_TASK_ID);
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Create boot task failed, result = %d !", State);
 
-    State = CreateCoreTask("Idle", caIdleEntry, NULL, IDLE_TASK_ID);
+    State = CreateCoreTask(IDLE_TASK_NAME, caIdleEntry, NULL, IDLE_TASK_ID);
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Create idle task failed, result %d.", State);

@@ -28,15 +28,57 @@ STATIC CODE_TEXT E_STATUS TestSetCount(DWORD Value)
     return State;
 }
 
-STATIC E_STATUS TestCase00(VOID)
+STATIC E_STATUS TASK_TEST_CASE00(VOID)
 {
+    E_STATUS State;
+    TICK TickStart = (TICK) 0;
+    TICK TickFinish = (TICK) 0;
+    TASK_STATUS TaskState;
+    TCHAR TaskName[OBJECT_NAME_MAX];
+    HANDLE hCurrent = INVALID_HANDLE_VALUE;
+    TASK_PRIORITY Priority = TASK_PRIORITY_INVALID;
+
     SetError(STATE_INVALID_PRIORITY);
     TEST_CASE_ASSERT(STATE_INVALID_PRIORITY == GetError(), return STATE_NOT_MATCH,
         "The error code(%d) not expect(%d).", GetError(), STATE_INVALID_PRIORITY);
+
+    hCurrent = GetCurrentTask();
+
+    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hCurrent, return STATE_INVALID_NAME,
+        "The task handle value invalid.");
+
+    State = GetTaskName(hCurrent, TaskName, sizeof(TaskName));
+
+    TEST_CASE_ASSERT(STATE_SUCCESS == State, return State,
+        "Get task name failed, result %d.", TaskName, BOOT_TASK_NAME);
+
+    TEST_CASE_ASSERT(0 == strcmp(TaskName, BOOT_TASK_NAME), return STATE_INVALID_NAME,
+        "Task name '%s' not expect '%s'", TaskName, BOOT_TASK_NAME);
+
+    Priority = GetPriority(hCurrent);
+
+    TEST_CASE_ASSERT(TASK_PRIORITY_NORMAL == Priority, return STATE_INVALID_STATE,
+        "Task name '%s' not expect '%s'", TaskName, BOOT_TASK_NAME);
+
+    TaskState = GetTaskState(hCurrent);
+
+    TEST_CASE_ASSERT(TASK_STATE_WORKING == TaskState, return STATE_INVALID_STATE,
+        "Task name '%s' state %d invalid.", TaskName, TaskState);
+
+    TickStart = GetSystemTick();
+
+    Sleep(1001);
+
+    TickFinish = GetSystemTick();
+
+    TEST_CASE_ASSERT(TickStart + MILLI_SECOND_TO_TICK(1000) <= TickFinish,
+        return STATE_INVALID_STATE, "Task name '%s' befor sleep tick is %lld"
+        ", after tick is %lld.", TaskName, TickStart, TickFinish);
+
     return STATE_SUCCESS;
 }
 
-STATIC E_STATUS TestTask01(LPVOID lpArgment)
+STATIC E_STATUS TASK_TEST_THREAD01(LPVOID lpArgment)
 {
     DWORD i;
     E_STATUS State;
@@ -55,20 +97,20 @@ STATIC E_STATUS TestTask01(LPVOID lpArgment)
     return STATE_SUCCESS;
 }
 
-#define TEST02_TASK_NAME    "Task02"
+#define TASK_NAME_THREAD01    "Task01"
 
-STATIC E_STATUS TestCase01(VOID)
+STATIC E_STATUS TASK_TEST_CASE01(VOID)
 {
-    DWORD i = 0x10000000;
     HANDLE hTask;
     E_STATUS State;
+    DWORD i = 0x10000000;
     TICK StartTick = GetSystemTick();
-    CHAR Name[OBJECT_NAME_MAX] = {TEST02_TASK_NAME};
+    CHAR Name[OBJECT_NAME_MAX] = {TASK_NAME_THREAD01};
 
     TEST_CASE_ASSERT((STATE_SUCCESS == (State = TestSetCount(0))),
         return State, "Set count failed, result %d.", State);
 
-    hTask = CreateTask(Name, TestTask01, NULL);
+    hTask = CreateTask(Name, TASK_TEST_THREAD01, NULL);
     
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hTask,
         return STATE_NOT_MATCH, "Create task %s failed !", Name);
@@ -80,9 +122,9 @@ STATIC E_STATUS TestCase01(VOID)
     TEST_CASE_ASSERT(STATE_SUCCESS == State,
         return State, "Get task name failed.", Name);
 
-    TEST_CASE_ASSERT (0 == strcmp(Name, TEST02_TASK_NAME),
+    TEST_CASE_ASSERT (0 == strcmp(Name, TASK_NAME_THREAD01),
         return STATE_NOT_MATCH, "Task name '%s' not expect '%s'",
-        Name, TEST02_TASK_NAME);
+        Name, TASK_NAME_THREAD01);
 
     while(0==g_TaskCount)
     {
@@ -101,7 +143,7 @@ STATIC E_STATUS TestCase01(VOID)
 
 
 
-PUBLIC CODE_TEXT E_STATUS TASK_TESTCASE(VOID)
+PUBLIC CODE_TEXT E_STATUS TASK_TEST_CASE(VOID)
 {
     E_STATUS Result = STATE_SUCCESS;
     
@@ -115,8 +157,8 @@ PUBLIC CODE_TEXT E_STATUS TASK_TESTCASE(VOID)
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != g_TestHandles[TEST_EVENT_ID],
             return GetError();, "Create mutex failed, result %d !", GetError());
     
-    TEST_CASE_SET_RESULT(Result, TestCase00,);
-    TEST_CASE_SET_RESULT(Result, TestCase01,);
+    TEST_CASE_SET_RESULT(Result, TASK_TEST_CASE00,);
+    TEST_CASE_SET_RESULT(Result, TASK_TEST_CASE01,);
     
     CloseHandle(g_TestHandles[TEST_MUTEX_ID]);
     CloseHandle(g_TestHandles[TEST_EVENT_ID]);

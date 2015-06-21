@@ -457,9 +457,9 @@ DEFINE_CLASS(SET_MAGIC, SemsetClass, sizeof(IPC_SEMSET_OBJECT),
 
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
 {
-    CORE_INFOR(TRUE, "IPC_BASE_OBJECT:   %d,   IPC_EVENT_OBJECT:     %d"
-                     "IPC_MUTEX_OBJECT:  %d,   IPC_SEMAPHORE_OBJECT: %d",
-        sizeof(IPC_BASE_OBJECT), sizeof(IPC_EVENT_OBJECT),
+    CORE_INFOR(TRUE, "IPC_BASE_OBJECT:   %d,   IPC_EVENT_OBJECT:     %d",
+                sizeof(IPC_BASE_OBJECT), sizeof(IPC_EVENT_OBJECT));
+    CORE_INFOR(TRUE, "IPC_MUTEX_OBJECT:  %d,   IPC_SEMAPHORE_OBJECT: %d",
         sizeof(IPC_MUTEX_OBJECT), sizeof(IPC_SEMAPHORE_OBJECT));
 
     /* ◊¢≤·EVENT∂‘œÛ¿‡ */
