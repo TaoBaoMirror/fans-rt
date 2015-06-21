@@ -26,7 +26,7 @@
 
 EXPORT CODE_TEXT E_STATUS caIdleEntry(LPVOID lpParam)
 {
-    LOG_INFOR(TRUE, "System idle task working now ....");
+    LOG_DEBUG(TRUE, "System idle task working now ....");
 
     do{
         FW_SystemIdle();

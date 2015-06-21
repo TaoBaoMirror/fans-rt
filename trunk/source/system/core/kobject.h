@@ -42,7 +42,6 @@ typedef struct tagKCLASS_DESCRIPTOR FAR * LPKCLASS_DESCRIPTOR;
 
 struct tagKCLASS_DESCRIPTOR{
     DWORD               Magic;
-    BYTE                Reserved[2];
     LPCSTR              ClassName;
     SIZE_T              ObjectSize;
     E_STATUS            (* fnMallocObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);

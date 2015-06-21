@@ -168,10 +168,6 @@ typedef void * VA_LIST;
 #define FALSE   0
 #define TRUE    1
 
-#define OBJECT_NAME_MAX         8
-#define MAX_PATH                128
-#define MAX_NAME                128
-
 typedef unsigned char BOOL;
 typedef unsigned char * PBOOL;
 typedef unsigned char FAR * LPBOOL;

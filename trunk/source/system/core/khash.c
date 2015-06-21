@@ -7,6 +7,8 @@
 #include "kcore.h"
 #include "kdebug.h"
 
+#ifdef __DEBUG__
+
 STATIC LONG CheckRepeat(BYTE * Array,LONG Count, LONG * Result)
 {
     LONG i = 0, j = 0;
@@ -104,3 +106,4 @@ PUBLIC VOID CORE_HashDebug(FNHASHKEY fnHashKey, LPDWORD MagicArray, DWORD Count,
     SYSTEM_CALL_OOPS();
 }
 
+#endif
