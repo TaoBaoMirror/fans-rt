@@ -15,7 +15,6 @@
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
-#include <fapi.h>
 
 #include "klpc.h"
 #include "karch.h"
@@ -594,7 +593,7 @@ STATIC E_STATUS FreeObjectToPool(LPKOBJECT_HEADER lpHeader)
         GetObjectName(lpHeader), GetContainerName(lpManager), Pid, Eid);
 
     DetachHashList(lpHeader);
-    SetObjectState(lpHeader, KOBJECT_STATE_FREE);
+    SetObjectHandle(lpHeader, 0);
 
     CORE_RestoreIRQ(dwFlags);
 
@@ -630,13 +629,26 @@ EXPORT LPKOBJECT_HEADER CORE_Handle2HeaderCheck(HANDLE handle, BOOL Check)
         return NULL;
     }
 
-    if (TRUE == Check && handle != GetObjectHandle(lpHeader))
+    if (TRUE == Check)
     {
-        CORE_DEBUG(TRUE, "handle 0x%08x not 0x%08x.", handle, GetObjectHandle(lpHeader));
-        CORE_SetError(STATE_INVALID_HANDLER);
-        return NULL;
+        KOBJECT_STATE State = GetObjectState(lpHeader);
+
+        if (KOBJECT_STATE_CREATE != State && KOBJECT_STATE_ACTIVE != State)
+        {
+            CORE_DEBUG(TRUE, "handle 0x%08x object %p state %d is invalid.",4
+                handle, lpHeader, State);
+            CORE_SetError(STATE_INVALID_OBJECT);
+            return NULL;
+        }
+
+        if (handle != GetObjectHandle(lpHeader))
+        {
+            CORE_DEBUG(TRUE, "handle 0x%08x not 0x%08x.", handle, GetObjectHandle(lpHeader));
+            CORE_SetError(STATE_INVALID_OBJECT);
+            return NULL;
+        }
     }
-    
+
     return lpHeader;
 }
 
@@ -1017,8 +1029,10 @@ EXPORT E_STATUS CORE_FreeObjectByID(LPKOBJECT_HEADER lpHeader, DWORD Magic,
     
     if (Class2Tid(lpClass->ObjectSize) != Tid)
     {
-        CORE_ERROR(TRUE, "Tid(0x%x) not match for class(0x%08x: %u bytes) to free object(0x%P).",
-            Tid, lpClass->Magic, lpClass->ObjectSize, lpHeader);
+        CORE_ERROR(TRUE, "Tid(0x%x) not match for class(0x%08x:"
+            " %u bytes) to free object(0x%P), name(%s).",
+            Tid, lpClass->Magic, lpClass->ObjectSize, lpHeader,
+            GetObjectName(lpHeader));
         return STATE_INVALID_PARAMETER;
     }
     
@@ -1114,6 +1128,36 @@ STATIC E_STATUS SVC_FreeObject(LPVOID lpPrivate, LPVOID lpParam)
     return State; 
 }
 
+STATIC E_STATUS SVC_GetObjectName(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPKOBJECT_HEADER lpHeader;
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    LPDWORD lpOutputName = lpPacket->u1.pParam;
+    SIZE_T BufferLength = lpPacket->u2.dParam;
+
+    lpHeader = TASK_SELF_HANDLE == lpPacket->u0.hParam
+             ? (LPVOID) CORE_GetCurrentTask()
+             : CORE_Handle2Header(lpPacket->u0.hParam);
+    
+    if (NULL == lpHeader)
+    {
+        CORE_SetError(STATE_INVALID_OBJECT);
+        return STATE_INVALID_OBJECT;
+    }
+    
+    if (NULL == lpOutputName || BufferLength < OBJECT_NAME_MAX)
+    {
+        CORE_SetError(STATE_INVALID_PARAMETER);
+        return STATE_INVALID_PARAMETER;
+    }
+
+    DumpObjectName(lpHeader, lpOutputName);
+
+    CORE_SetError(STATE_SUCCESS);
+
+    return STATE_SUCCESS;
+}
+
 STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_MallocObject,                   /**< 0.LPC_SOM_OBJECT_MALLOC */
     SVC_ActiveObject,                   /**< 1.LPC_SOM_OBJECT_ACTIVE */
@@ -1122,6 +1166,7 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_PostObject,                     /**< 4.LPC_SOM_OBJECT_POST */
     SVC_ResetObject,                    /**< 5.LPC_SOM_OBJECT_RESET */
     SVC_FreeObject,                     /**< 6.LPC_SOM_OBJECT_FREE */
+    SVC_GetObjectName,                  /**< 7.LPC_SOM_OBJECT_GETNAME */
 };
 
 

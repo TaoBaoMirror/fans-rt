@@ -45,6 +45,15 @@
                 }                                                                           \
             }while(0)
 
+typedef E_STATUS (*TEST_CASE_FUNCTION)(VOID);
+            
+typedef struct tagTEST_CASE_DESCRIPTOR{
+    TEST_CASE_FUNCTION          fnTestCase;
+    LPCSTR                      lpTestName;
+}TEST_CASE_DESCRIPTOR, * PTEST_CASE_DESCRIPTOR, FAR * LPTEST_CASE_DESCRIPTOR;
+
+#define     DEFINE_TEST_CASE(fn)                                                       \
+            {fn,    #fn}
 #ifdef __cplusplus
 extern "C" {
 #endif

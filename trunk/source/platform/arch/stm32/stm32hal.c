@@ -23,6 +23,7 @@
 
 PUBLIC VOID CORE_Starting(VOID);
 
+
 int main(VOID)
 {
     CORE_DisableIRQ();

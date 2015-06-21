@@ -43,8 +43,6 @@ extern "C" {
     EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority);
     EXPORT E_STATUS caCloseTask(HANDLE hTask);
     
-    EXPORT E_STATUS caGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX]);
-    
     EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
     EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask);
 
@@ -60,7 +58,8 @@ extern "C" {
 #if (CONFIG_PROFILER_CYCLE != 0)
     EXPORT E_STATUS ntSystemProfiler(VOID);
 #endif
-                  
+    EXPORT CODE_TEXT E_STATUS caGetObjectName(HANDLE handle,
+                                CHAR Name[OBJECT_NAME_MAX], SIZE_T Length);
     EXPORT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam);
     EXPORT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam);
     EXPORT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam);

@@ -39,6 +39,8 @@ EXPORT CODE_TEXT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpPara
 {
     LPC_REQUEST_PACKET Packet;
 
+    memset(&Packet, 0, sizeof(Packet));
+
     Packet.u0.dParam = Magic;
     Packet.u1.pParam = (LPVOID) lpName;
     Packet.u2.pParam = lpParam;
@@ -55,6 +57,8 @@ EXPORT CODE_TEXT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
+    memset(&Packet, 0, sizeof(Packet));
+
     Packet.u0.hParam = handle;
     Packet.u1.pParam = lpParam;
 
@@ -64,6 +68,8 @@ EXPORT CODE_TEXT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
 EXPORT CODE_TEXT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(Packet));
 
     Packet.u0.pParam = (LPVOID) lpName;
     Packet.u1.pParam = lpParam;
@@ -80,6 +86,8 @@ EXPORT CODE_TEXT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
 {
     LPC_REQUEST_PACKET Packet;
 
+    memset(&Packet, 0, sizeof(Packet));
+
     Packet.u0.hParam = handle;
     Packet.u1.dParam = WaitTime;
 
@@ -89,6 +97,8 @@ EXPORT CODE_TEXT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
 EXPORT CODE_TEXT E_STATUS caPostObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(Packet));
 
     Packet.u0.hParam = handle;
     Packet.u1.pParam = lpParam;
@@ -100,6 +110,8 @@ EXPORT CODE_TEXT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
+    memset(&Packet, 0, sizeof(Packet));
+
     Packet.u0.hParam = handle;
     Packet.u1.pParam = lpParam;
 
@@ -110,7 +122,22 @@ EXPORT CODE_TEXT E_STATUS caFreeObject(HANDLE handle)
 {
     LPC_REQUEST_PACKET Packet;
 
+    memset(&Packet, 0, sizeof(Packet));
+
     Packet.u0.hParam = handle;
     
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_FREE);
+}
+
+EXPORT CODE_TEXT E_STATUS caGetObjectName(HANDLE handle, CHAR Name[OBJECT_NAME_MAX], SIZE_T Length)
+{
+    LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(Packet));
+
+    Packet.u0.hParam = handle;
+    Packet.u1.pParam = Name;
+    Packet.u2.dParam = Length;
+    
+    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_GETNAME);
 }

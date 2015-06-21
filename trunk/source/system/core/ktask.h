@@ -22,6 +22,9 @@
 #include "klist.h"
 #include "kobject.h"
 
+#define     TASK_PERMISSION_CORE        0
+#define     TASK_PERMISSION_USER        1
+
 typedef struct tagKTASK_CREATE_PARAM{
     TASK_CREATE_PARAM           Param;
     HANDLE                      hTask;
@@ -32,8 +35,7 @@ enum{
     LPC_TSS_SET_TASKERROR,
     LPC_TSS_GET_CURRENT,
     LPC_TSS_GET_TASKSTATE,
-    LPC_TSS_GET_TASKNAME,
-    LPC_TSS_GET_TASKTICK,
+    LPC_TSS_GET_STARTTICK,
     LPC_TSS_GET_PRIORITY,
     LPC_TSS_SET_PRIORITY,
     LPC_TSS_GET_SMLTKEY,
@@ -95,8 +97,9 @@ struct tagTASK_CONTEXT{
             DWORD           TaskState:3;                        /* 任务当前状态: TASK_STATUS*/
             DWORD           FaultBit:1;                         /* 任务异常标记(堆栈溢出) */
             DWORD           CancelBit:1;                        /* 任务取消标志 */
+            DWORD           Permission:1;                       /**< The permission of task */
             DWORD           SmltMark:SMLT_ARRAY_SIZE;           /* The mark of smlt */
-            DWORD           Reserved0:2;                        /* Reserved bits */
+            DWORD           Reserved0:1;                        /* Reserved bits */
 #if (CONFIG_DYNAMIC_STACK_ENABLE != TRUE)
             DWORD           StackTid:3;                         /* 堆栈TID */
             DWORD           StackPid:10;                        /* 堆栈PID */
@@ -111,9 +114,11 @@ struct tagTASK_CONTEXT{
     TIME_SLICE_T            SliceRemain;                        /* W时间片剩余TICK数 */
     TIME_SLICE_T            SliceLength;                        /* W时间片最大TICK数 */
     E_STATUS                ErrorCode;                          /* 错误码 */
+    BYTE                    HostCPUID;                          /**< The identify for host cpu */
+    DWORD                   CPUBindMask;                        /**< The bind mask for all cpus */ 
     LPLPC_REQUEST_PACKET    lpLPCPacket;                        /* LPC 请求包指针 for wait object */
     DWORD                   SmltArray[SMLT_ARRAY_SIZE];         /* static memory local to a task */
-    DWORD                   Reserved[2];                        /* 保留 */
+    DWORD                   Reserved[1];                        /* 保留 */
 #if (CONFIG_BUILD_TASK_PATH == TRUE)
     CHAR                    cbTaskPath[MAX_PATH];               /* 任务当前路径 */
 #endif
@@ -125,6 +130,7 @@ struct tagTASK_CONTEXT{
 #define     TASK_BITS_STATE_MASK                (0x7UL)
 #define     TASK_BITS_FAULT_MASK                (0x1UL)
 #define     TASK_BITS_CANCEL_MASK               (0x1UL)
+#define     TASK_BITS_PERMISSION_MASK           (0x1UL)
 
 #define     MISCBITS_PERCENT_BITS_SHIFT         0
 #define     MISCBITS_PERCENT_BITS_MASK          (TASK_BITS_PERCENT_MASK << MISCBITS_PERCENT_BITS_SHIFT)
@@ -138,11 +144,14 @@ struct tagTASK_CONTEXT{
 #define     MISCBITS_CANCEL_BIT_SHIFT           12
 #define     MISCBITS_CANCEL_BIT_MASK            (TASK_BITS_CANCEL_MASK<<MISCBITS_CANCEL_BIT_SHIFT)
 
-#define     MISCBITS_STACKPID_BITS_SHIFT        22
-#define     MISCBITS_STACKPID_BITS_MASK         (TASK_BITS_STACKPID_MASK << MISCBITS_STACKPID_BITS_SHIFT)
+#define     MISCBITS_PERMISSION_SHIFT           13
+#define     MISCBITS_PERMISSION_MASK            (TASK_BITS_PERMISSION_MASK << MISCBITS_PERMISSION_SHIFT)
 
 #define     MISCBITS_STACKTID_BITS_SHIFT        19
 #define     MISCBITS_STACKTID_BITS_MASK         (TASK_BITS_STACKTID_MASK << MISCBITS_STACKTID_BITS_SHIFT)
+
+#define     MISCBITS_STACKPID_BITS_SHIFT        22
+#define     MISCBITS_STACKPID_BITS_MASK         (TASK_BITS_STACKPID_MASK << MISCBITS_STACKPID_BITS_SHIFT)
 
 #define     MISCBITS_STACKID_BITS_SHIFT         19
 #define     MISCBITS_STACKID_BITS_MASK          (MISCBITS_STACKPID_BITS_MASK + MISCBITS_STACKTID_BITS_MASK)
@@ -152,8 +161,9 @@ struct tagTASK_CONTEXT{
                 (lpTC)->ub.MiscBits = (((DWORD)(State)) << MISCBITS_STATE_BITS_SHIFT)                   \
                                     | (((DWORD)(Percent)) << MISCBITS_PERCENT_BITS_SHIFT)               \
                                     | (((DWORD)(Fault)) << MISCBITS_FAULT_BIT_SHIFT)                    \
-                                    | (((DWORD)(StackPid)) << MISCBITS_STACKPID_BITS_SHIFT)                 \
-                                    | (((DWORD)(StackTid)) << MISCBITS_STACKTID_BITS_SHIFT)                 \
+                                    | (((DWORD)(StackPid)) << MISCBITS_STACKPID_BITS_SHIFT)             \
+                                    | (((DWORD)(StackTid)) << MISCBITS_STACKTID_BITS_SHIFT)             \
+                                    | (((DWORD)(TASK_PERMISSION_USER)) << MISCBITS_PERMISSION_SHIFT)    \
                                     | (((DWORD)(FALSE)) << MISCBITS_CANCEL_BIT_SHIFT);                  \
             } while(0)
 
@@ -220,6 +230,9 @@ struct tagTASK_CONTEXT{
 
 #define     GetContextCancel(lpTC)                          ((lpTC)->ub.Bits.CancelBit)
 #define     SetContextCancel(lpTC, boolean)                 do { (lpTC)->ub.Bits.CancelBit = (boolean); } while(0)
+
+#define     GetTaskPermission(lpTC)                         ((lpTC)->ub.Bits.Permission)
+#define     SetTaskPermission(lpTC, boolean)                do { (lpTC)->ub.Bits.Permission = (boolean); } while(0)
 
 #define     GetContextSmltMarkBits(lpTC)                    ((lpTC)->ub.Bits.SmltMark)
 #define     GetContextSmltKeyIsFree(lpTC, id)               (0 == (((lpTC)->ub.Bits.SmltMark) & (1 << (id))))
@@ -290,7 +303,7 @@ struct tagTASK_CONTEXT{
 
 #define     GetContextStackTid(lpTC)                        ((lpTC)->ub.Bits.StackTid)
 #define     SetContextStackTid(lpTC, Tid)                   do {(lpTC)->ub.Bits.StackTid = (Tid);} while(0);
-
+#define     SetStackObjectName(Name, Value)                 do { Name[0] = Value; } while(0)
 #define     SetContextStackID(lpTC, Pid, Tid)                                                                   \
             do{                                                                                                 \
                 (lpTC)->ub.MiscBits &= (~MISCBITS_STACKID_BITS_MASK);                                           \
@@ -339,6 +352,12 @@ extern "C" {
     EXPORT E_STATUS CORE_PriorityUpsideCheck(LPTASK_CONTEXT lpOnwerContext);
     EXPORT E_STATUS CORE_SetTaskPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority);
     EXPORT E_STATUS CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext);    
+
+#define CORE_CreateTask(lpName, fnMain, lpArgument)                                         \
+        CORE_CreatePriorityTask(lpName, fnMain, lpArgument, TASK_PRIORITY_NORMAL)
+    EXPORT LPTASK_CONTEXT CORE_CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
+                          LPVOID lpArgument, TASK_PRIORITY Priority);
+    EXPORT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREATE_PARAM lpParam);
 #ifdef __cplusplus
 }
 #endif
