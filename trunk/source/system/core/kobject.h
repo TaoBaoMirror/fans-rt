@@ -29,6 +29,7 @@ enum{
     LPC_SOM_OBJECT_POST     =       4,
     LPC_SOM_OBJECT_RESET    =       5,
     LPC_SOM_OBJECT_FREE     =       6,
+    LPC_SOM_OBJECT_GETNAME  =       7,
     LPC_SOM_REQUEST_MAX
 };
 
@@ -245,7 +246,7 @@ struct tagKOBJECT_HEADER{
 #define     SetObjectSid(lpHeader, Sid)                                                             \
             do { (lpHeader)->uh.Bits.ObjectSid = (Sid);} while(0)
 
-#define     GetObjectState(lpHeader)                ((lpHeader)->uh.Bits.ObjectState)
+#define     GetObjectState(lpHeader)                ((KOBJECT_STATE)((lpHeader)->uh.Bits.ObjectState))
 #define     SetObjectState(lpHeader, State)                                                         \
             do { (lpHeader)->uh.Bits.ObjectState = (State);} while(0)
             

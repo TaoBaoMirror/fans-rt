@@ -24,8 +24,6 @@
 #include "libcal.h"
 #include "cadebug.h"
 
-#define     SetStackObjectName(Name, Value)            do { Name[0] = Value; } while(0)
-
 /**
  * Create new task.
  * @param The name of new task.
@@ -69,14 +67,15 @@ FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lp
     if (NULL == TaskParam.Param.fnTaskMain)
     {
         LOG_ERROR(TRUE, "Invalid entry to create task '%s' !", TaskName);
-        caSetError(STATE_INVALID_METHOD);
+        caSetError(STATE_INVALID_POINTER);
         return INVALID_HANDLE_VALUE;
     }
 
 #if (CONFIG_TASK_PRIORITY_MAX != 256)
     if (TaskParam.Param.Priority >= CONFIG_TASK_PRIORITY_MAX)
     {
-        LOG_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!", TaskParam.Param.Priority, TaskName);
+        LOG_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!",
+                        TaskParam.Param.Priority, TaskName);
         caSetError(STATE_INVALID_PRIORITY);
         return INVALID_HANDLE_VALUE;
     }
@@ -84,12 +83,13 @@ FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lp
 
     if (TASK_PRIORITY_IDLE == TaskParam.Param.Priority)
     {
-        LOG_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!", TaskParam.Param.Priority, TaskName);
+        LOG_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!",
+                        TaskParam.Param.Priority, TaskName);
         caSetError(STATE_INVALID_PRIORITY);
         return INVALID_HANDLE_VALUE;
     }
 
-    if (TASK_SLICE_INFINITE == TaskParam.Param.SliceLength)
+    if (TaskParam.Param.SliceLength < CONFIG_TIME_SLICE_NORMAL)
     {
         LOG_ERROR(TRUE, "Invalid slice time to create task '%s' !", TaskName);
         caSetError(STATE_INVALID_TIME);
@@ -102,9 +102,6 @@ FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lp
     TaskParam.Param.lpTaskPath  =   NULL == TaskParam.Param.lpTaskPath
                                 ?   CONFIG_DEFAULT_PATH
                                 :   TaskParam.Param.lpTaskPath;
-    TaskParam.Param.SliceLength =   TaskParam.Param.SliceLength < CONFIG_TIME_SLICE_NORMAL
-                                ?   CONFIG_TIME_SLICE_NORMAL
-                                :   TaskParam.Param.SliceLength;
     
     if (INVALID_HANDLE_VALUE == (TaskParam.hTask = caMallocObject(TaskName, TSK_MAGIC, &TaskParam)))
     {
@@ -328,39 +325,6 @@ FANSAPI CODE_TEXT BOOL TestCancel(VOID)
     return caTestCancel();
 }
 EXPORT_SYMBOL(TestCancel);
-
-/**
- * Get the name of the specified task.
- * @param The handle of the specified task.
- * @param The name buffer.
- * @param The size of the name buffer.
- * @return The state of current operating result.
- *
- * date           author          notes
- * 2014-11-16     JiangYong       new function
- */
-FANSAPI CODE_TEXT E_STATUS GetTaskName(HANDLE hTask, LPTSTR lpName, SIZE_T SizeofBuffer)
-{
-    E_STATUS State;
-    TCHAR Name[OBJECT_NAME_MAX];
-    
-    if (NULL == lpName || SizeofBuffer < OBJECT_NAME_MAX || INVALID_HANDLE_VALUE == hTask)
-    {
-        return STATE_INVALID_PARAMETER;
-    }
-
-    if (STATE_SUCCESS == (State = caGetTaskName(hTask, Name)))
-    {
-#ifdef _UNICODE
-#error "not support unicode charset."
-#else
-        strncpy(lpName, Name, SizeofBuffer-1);
-#endif
-    }
-
-    return State;
-}
-EXPORT_SYMBOL(GetTaskName);
 
 /**
  * Get the priority of the specified task.

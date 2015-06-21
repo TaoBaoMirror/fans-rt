@@ -7,6 +7,23 @@
 
 #include "birq.h"
 
+STATIC CHAR g_SystemIdleTaskStack[CONFIG_IDLE_STACK_SIZE];
+
+PUBLIC DWORD CORE_GetCPUNumbers(VOID)
+{
+    return 1;
+}
+
+PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID)
+{
+    if (0 != CpuID)
+    {
+        return NULL;
+    }
+    
+    return g_SystemIdleTaskStack;
+}
+
 PUBLIC LPSTR BSP_GetBoardName(VOID)
 {
     return "stm32-mini";

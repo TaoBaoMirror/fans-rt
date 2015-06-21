@@ -350,7 +350,7 @@
               <MiscControls>--c99</MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER,__LITTLE_ENDIAN__,__DEBUG__,ARCH=STM32</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Source\include;..\..\source\include\stdc;..\..\source\include\armcc;..\..\Source\include\stm32;..\..\Source\Platform\libfw\stm32f10x\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;..\..\Source\Platform\libfw\stm32f10x\Libraries\STM32F10x_StdPeriph_Driver\inc;..\..\Source\system\core;..\..\Source\Platform\libfw\stm32f10x\Libraries\CMSIS\CM3\CoreSupport;..\..\Source\Platform\board\stm32\mini;..\..\source\libs\libcmini;..\..\source\libs\libcal;..\..\source\platform\arch\stm32;..\..\source\platform\libfw\stm32f10x;..\..\source\testcode\mini</IncludePath>
+              <IncludePath>..\..\Source\include;..\..\source\include\stdc;..\..\source\include\armcc;..\..\Source\include\stm32;..\..\Source\Platform\libfw\stm32f10x\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;..\..\Source\Platform\libfw\stm32f10x\Libraries\STM32F10x_StdPeriph_Driver\inc;..\..\Source\system\core;..\..\Source\Platform\libfw\stm32f10x\Libraries\CMSIS\CM3\CoreSupport;..\..\Source\Platform\board\stm32\mini;..\..\source\libs\libcmini;..\..\source\libs\libcal;..\..\source\platform\arch\stm32;..\..\source\platform\libfw\stm32f10x;..\..\source\testcode\mini;..\..\source\testcode</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -572,39 +572,39 @@
           <GroupName>testcode</GroupName>
           <Files>
             <File>
-              <FileName>amodule.c</FileName>
+              <FileName>testtask.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\stm32\amodule.c</FilePath>
+              <FilePath>..\..\source\testcode\testtask.c</FilePath>
             </File>
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\stm32\main.c</FilePath>
+              <FilePath>..\..\source\testcode\main.c</FilePath>
             </File>
             <File>
               <FileName>tasktest.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\stm32\tasktest.c</FilePath>
+              <FilePath>..\..\source\testcode\tasktest.c</FilePath>
             </File>
             <File>
               <FileName>testbase.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\stm32\testbase.c</FilePath>
-            </File>
-            <File>
-              <FileName>testcode.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\testcode\stm32\testcode.h</FilePath>
+              <FilePath>..\..\source\testcode\testbase.c</FilePath>
             </File>
             <File>
               <FileName>testipc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\stm32\testipc.c</FilePath>
+              <FilePath>..\..\source\testcode\testipc.c</FilePath>
             </File>
             <File>
-              <FileName>testtask.c</FileName>
+              <FileName>testcode.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\testcode\testcode.h</FilePath>
+            </File>
+            <File>
+              <FileName>amodule.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\stm32\testtask.c</FilePath>
+              <FilePath>..\..\source\testcode\stm32\mini\amodule.c</FilePath>
             </File>
           </Files>
         </Group>

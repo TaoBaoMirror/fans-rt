@@ -64,8 +64,7 @@ extern "C" {
 
     FANSAPI E_STATUS GetTaskInformation(HANDLE hTask, LPTASK_INFOR lpTaskInfor);
     FANSAPI HANDLE EnumerationNextTask(HANDLE hTask);
-    
-    FANSAPI E_STATUS GetTaskName(HANDLE hTask, LPTSTR lpName, SIZE_T SizeofBuffer);
+
     FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam);
 #define     CreateTask(lpTaskName, fnMain, lpArgument)                                          \
             CreatePriorityTask(lpTaskName, fnMain, lpArgument, TASK_PRIORITY_NORMAL)
@@ -86,6 +85,7 @@ extern "C" {
     FANSAPI HANDLE CreateSemaphore(LPCTSTR lpName, SHORT InitCount, SHORT MaxCount);
     FANSAPI E_STATUS PostSemaphore(HANDLE hEvent, SHORT Count);
 
+    FANSAPI E_STATUS GetObjectName(HANDLE hObject, LPTSTR lpName, SIZE_T SizeofBuffer);
     FANSAPI E_STATUS WaitObject(HANDLE handle, LONG WaitTime);
     FANSAPI E_STATUS CloseHandle(HANDLE handle);
 #if 0

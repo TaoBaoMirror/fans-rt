@@ -48,8 +48,8 @@ EXPORT CODE_TEXT E_STATUS caIdleEntry(LPVOID lpParam)
 EXPORT CODE_TEXT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
 {
     CHAR Name[OBJECT_NAME_MAX];
-    
-    caGetTaskName(hTask, Name);
+
+    caGetObjectName(hTask, Name, OBJECT_NAME_MAX);
     
     LOG_DEBUG(TRUE, "Task 0x%08X name '%s' main 0x%P starting(%lld) now ...",
         hTask, Name, fnMain, caGetTaskStartTick(hTask));
@@ -161,18 +161,6 @@ EXPORT CODE_TEXT E_STATUS caPostCancel(HANDLE hTask)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_POST_CANCEL);
 }
 
-EXPORT CODE_TEXT E_STATUS caGetTaskName(HANDLE hTask, CHAR Name[OBJECT_NAME_MAX])
-{
-    LPC_REQUEST_PACKET Packet;
-
-    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
-
-    Packet.u0.hParam = hTask;
-    Packet.u1.pParam = Name;
-
-    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKNAME);
-}
-
 EXPORT CODE_TEXT TICK caGetTaskStartTick(HANDLE hTask)
 {
     TICK Tick = (TICK) 0;
@@ -182,7 +170,7 @@ EXPORT CODE_TEXT TICK caGetTaskStartTick(HANDLE hTask)
 
     Packet.u0.hParam = hTask;
     
-    if (STATE_SUCCESS != caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKTICK))
+    if (STATE_SUCCESS != caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_STARTTICK))
     {
         return INVALID_TICK;
     }

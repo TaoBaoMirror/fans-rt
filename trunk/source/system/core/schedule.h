@@ -69,6 +69,8 @@ STATIC  VOLATILE        BYTE            g_PriorityReadyBitmap2[32];             
 #define     GetPriorityFirstContext(Priority)           GetContextByReadyNode(LIST_FIRST_NODE(&g_TaskReadyQueue[Priority]))
 
 #define     GetIdleContext()                            GetPriorityFirstContext(TASK_PRIORITY_IDLE)
+#define     CheckAllIdleTaskCreateFinished()            (NULL != GetIdleContext())
+#define     GetFreeIdleCPUID()                          0
 
 #define     CheckPriorityIsFree(Priority)               LIST_EMPTY(&g_TaskReadyQueue[Priority])
 #define     CheckTaskPriorityIsFree(lpTC)               CheckPriorityIsFree(GetContextThisPriority(lpTC))
@@ -110,7 +112,6 @@ STATIC  VOLATILE        BYTE            g_PriorityReadyBitmap2[32];             
 #define     SetSystemScheduleCount(x)                   (g_SystemScheduleCount = (x))
 #endif
 
-
 #if (CONFIG_KERNEL_STACK_SIZE!=0)
 STATIC  BYTE            g_KernelStackBuffer[CONFIG_KERNEL_STACK_SIZE];  /**< ÄÚºË¶ÑÕ» */
 #define     GetKernelStackBuffer()                      (g_KernelStackBuffer)
@@ -129,7 +130,6 @@ STATIC  BYTE            g_KernelStackBuffer[CONFIG_KERNEL_STACK_SIZE];  /**< ÄÚº
 #else
 #define GetKernelStackButtom()      0
 #endif
-
 
 STATIC INLINE LPVOID GetKernelStackPosition(LPVOID StackPosition)
 {

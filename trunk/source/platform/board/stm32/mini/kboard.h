@@ -14,6 +14,10 @@ extern "C" {
     PUBLIC LPSTR BSP_GetBoardName(VOID);
     PUBLIC VOID BSP_DebugWriteByte(DWORD Data);
     PUBLIC LPSTR BSP_GetIRQNameString(E_IRQ_ID Id);
+    
+    PUBLIC DWORD CORE_GetCPUNumbers(VOID);
+    PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID);
+
 #if (CONFIG_MEM_REGION_MAX != 0)
     PUBLIC E_STATUS BSP_ScanMemoryRegion(VOID);
 #else

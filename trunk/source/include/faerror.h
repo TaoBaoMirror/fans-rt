@@ -54,34 +54,11 @@ typedef enum emSTATUS{
     STATE_INVALID_HASH              =       -56,
     STATE_INVALID_TIME              =       -57,
     STATE_INVALID_MODULE            =       -58,
-
-    STATE_INVALID_INTCODE           =       -60,
-    STATE_INVALID_INTMAGIC          =       -61,
-    STATE_INVALID_INTMETHOD         =       -62,
-    STATE_INVALID_INTHANDLER        =       -63,
-
-    STATE_INVALID_IRQCODE           =       -70,
-    STATE_INVALID_IRQMAGIC          =       -71,
-    STATE_INVALID_IRQMETHOD         =       -72,
-    STATE_INVALID_IRQHANDLER        =       -73,
-    STATE_INVALID_IRQPACKET         =       -74,
-    
-    STATE_INVALID_REQCODE           =       -80,
-    STATE_INVALID_REQMAGIC          =       -81,
-    STATE_INVALID_REQMETHOD         =       -82,
-    STATE_INVALID_REQHANDLER        =       -83,
-    STATE_INVALID_REQPACKET         =       -83,
-    
-    STATE_INVALID_CONTEXT           =       -90,
-    STATE_INVALID_PRIORITY          =       -91,
-    
-    STATE_OBJECT_BUSY               =       -100,
-    
-    
-    
-    STATE_INVALID_PARAMETER         =       -250,
-    /**/
-    //STATE_PIPE_ERROR              =       -80,
+    STATE_INVALID_CONTEXT           =       -59,
+    STATE_INVALID_PRIORITY          =       -60,
+    STATE_INVALID_PARAMETER         =       -61,
+    STATE_INVALID_POINTER           =       -62,
+    STATE_INVALID_STACK             =       -63,
 }E_STATUS, * PE_STATUS, FAR * LPE_STATUS;
 
 #define SET_STATUS(status, value)       \
