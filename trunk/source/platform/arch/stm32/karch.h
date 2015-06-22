@@ -42,6 +42,24 @@ struct tagIRQ_REGISTER_STACK
     LPVOID          SP;
 };
 
+
+typedef struct tagARCH_CONTEXT ARCH_CONTEXT;
+typedef struct tagARCH_CONTEXT * PARCH_CONTEXT;
+typedef struct tagARCH_CONTEXT FAR * LPARCH_CONTEXT;
+
+struct tagARCH_CONTEXT{
+    SIZE_T                  StackCapacity;                      /* ¶ÑÕ»ÈÝÁ¿ */
+    LPVOID                  lpStackBuffer;                      /* ¶ÑÕ»Ö¸Õë */
+    LPVOID                  lpStackPoint;                       /* Õ»¶¥Ö¸Õë */
+};
+
+#define     GetArchContextStackCapacity(lpAC)               ((lpAC)->StackCapacity)
+#define     SetArchContextStackCapacity(lpAC, Len)          do {(lpAC)->StackCapacity = (Len); } while(0)
+#define     GetArchContextStackBuffer(lpAC)                 ((lpAC)->lpStackBuffer)
+#define     SetArchContextStackBuffer(lpAC, Buff)           do {(lpAC)->lpStackBuffer = (Buff);} while(0)
+#define     GetArchContextStackPosition(lpAC)               ((lpAC)->lpStackPoint)
+#define     SetArchContextStackPosition(lpAC, Stack)        do {(lpAC)->lpStackPoint = (Stack);} while(0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -50,14 +68,17 @@ extern "C" {
 #else
 #define     CORE_ActiveSwitchIRQ()
 #endif
+    
     PUBLIC VOID CORE_SystemHang(VOID);
     PUBLIC VOID CORE_EnableIRQ(VOID);
     PUBLIC VOID CORE_RestoreIRQ(DWORD dwFlags);
     PUBLIC DWORD CORE_DisableIRQ(VOID);
     PUBLIC DWORD CORE_SaveIRQFlags(VOID);
     PUBLIC LPVOID CORE_GetBootStackBuffer(VOID);
+    PUBLIC DWORD CORE_GetCPUNumbers(VOID);
     PUBLIC E_STATUS CORE_EnableKernelStack(LPVOID lpKStack);
     PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, HANDLE hTask);
+    PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpParam);
 #ifdef __cplusplus
 }
 #endif

@@ -26,21 +26,14 @@
 #include "kdebug.h"
 #include "schedule.h"
 
-#define     CORE_TASK_MAX               2
 #define     BOOT_TASK_ID                0
 #define     IDLE_TASK_ID                1
 #define     MakeCoreStackHandle(id)                                                             \
             MakeCoreHandle(Magic2ClassID(STK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
-#define     MakeCoreTaskHandle(id)                                                              \
-            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
-#define     IDLE_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, IDLE_TASK_ID, 0)
-#define     BOOT_TASK_HANDLE            MakeCoreHandle(Magic2ClassID(TSK_MAGIC), 0, 0, BOOT_TASK_ID, 0)
 
 EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
 
 STATIC DWORD g_SystemTaskCount = 0;
-//STATIC TASK_CONTEXT g_SystemCoreContext[CORE_TASK_MAX];
-
 
 #define Handle2TaskContext(hTask)       CORE_Handle2TaskContextCheck(hTask, TRUE)
 #define GetGlobalTaskContextCount()     g_SystemTaskCount
@@ -50,27 +43,6 @@ STATIC DWORD g_SystemTaskCount = 0;
 EXPORT LPTASK_CONTEXT CORE_Handle2TaskContextCheck(HANDLE hTask, BOOL Check)
 {
     return (LPTASK_CONTEXT) CORE_Handle2HeaderCheck(hTask, Check);
-#if 0
-    if (!IsCoreHandle(hTask))
-    {
-        return (LPTASK_CONTEXT) CORE_Handle2HeaderCheck(hTask, Check);
-    }
-
-    if ((BOOT_TASK_HANDLE & (~ HANDLE_OBJECT_SID_MASK)) == (hTask & (~ HANDLE_OBJECT_SID_MASK)))
-    {
-        return &g_SystemCoreContext[BOOT_TASK_ID];
-    }
-    
-    if (IDLE_TASK_HANDLE == hTask)
-    {
-        return &g_SystemCoreContext[IDLE_TASK_ID];
-    }
-    
-    CORE_ERROR(TRUE, "Why to get context failed ? hTask: 0x%08X, hBoot: 0x%08X, hIdle: 0x%08X",
-        hTask, BOOT_TASK_HANDLE, IDLE_TASK_HANDLE);
-    
-    return NULL;
-#endif
 }
 
 /************************************************************************************************
@@ -80,10 +52,10 @@ PUBLIC E_STATUS ScheduleStartup(VOID)
 {
     SetScheduleRunState(TRUE);
     SetInterruptNestLayer(0);
-    return CORE_EnableKernelStack(GetKernelStackButtom());
+    return CORE_EnableKernelStack(CORE_GetCoreStackButtom());
 }
 
-STATIC E_STATUS TaskSetError(E_STATUS emCode)
+STATIC E_STATUS SetTaskError(E_STATUS emCode)
 {
     LPTASK_CONTEXT lpCurrentContext = GetCurrentTaskContext();
 
@@ -98,7 +70,7 @@ STATIC E_STATUS TaskSetError(E_STATUS emCode)
     return STATE_INVALID_TASK;
 }
 
-STATIC E_STATUS TaskGetError(VOID)
+STATIC E_STATUS GetTaskError(VOID)
 {
     LPTASK_CONTEXT lpCurrentContext = GetCurrentTaskContext();
     
@@ -131,18 +103,15 @@ STATIC VOID SetContextParam(LPTASK_CONTEXT lpTaskContext, LPKTASK_CREATE_PARAM l
 STATIC VOID AttachStack2Context(LPTASK_CONTEXT lpTaskContext,
                     LPKOBJECT_HEADER StackHeader, LPKTASK_CREATE_PARAM lpTaskParam)
 {
-    LPBYTE lpStackBuffer = (LPVOID) StackHeader;
-    LPBYTE lpStackPosition = (LPVOID) (lpStackBuffer + lpTaskParam->Param.StackSize);
     KOBJTABLE_ID_T Tid = GetHandleObjectTid(GetObjectHandle(StackHeader));
     KCONTAINER_ID_T Pid = GetHandleObjectPid(GetObjectHandle(StackHeader));
     
- 
-    lpStackPosition = CORE_FillStack(lpStackPosition, lpTaskParam->Param.fnTaskMain,
+    lpTaskParam->lpStackBuffer   = (LPVOID) StackHeader;
+    lpTaskParam->lpStackPosition = (LPVOID) (lpTaskParam->lpStackBuffer + lpTaskParam->Param.StackSize);
+    lpTaskParam->lpStackPosition = CORE_FillStack(lpTaskParam->lpStackPosition, lpTaskParam->Param.fnTaskMain,
                                      lpTaskParam->Param.lpArgument, GetContextHandle(lpTaskContext));
 
-    SetContextStackCapacity(lpTaskContext, lpTaskParam->Param.StackSize);
-    SetContextStackBuffer(lpTaskContext, lpStackBuffer); 
-    SetContextStackPosition(lpTaskContext, lpStackPosition);
+    CORE_SetArchContextParam(&lpTaskContext->ArchContext, lpTaskParam);
     SetContextStackID(lpTaskContext, Pid, Tid);
     CORE_DEBUG(TRUE, "Task '%s' stack pid is %u, tid is %u.",
         GetContextTaskName(lpTaskContext), Pid, Tid);
@@ -221,14 +190,14 @@ STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
         CORE_RestoreIRQ(dwFlags);
         return STATE_NOT_READY;
     }
-
+#if 0
     /* 任务堆栈必须已删除 */
     if (NULL != GetContextStackBuffer(lpTaskContext))
     {
         CORE_RestoreIRQ(dwFlags);
         return STATE_SYSTEM_BUSY;
     }
-
+#endif
     switch(GetContextState(lpTaskContext))
     {
     case TASK_STATE_READY:
@@ -513,14 +482,14 @@ DEFINE_CLASS(TSK_MAGIC, TaskClass, sizeof(TASK_CONTEXT),
 
 STATIC E_STATUS SVC_GetTaskError(LPVOID lpPrivate, LPVOID lpParam)
 {
-    return TaskGetError();
+    return GetTaskError();
 }
 
 STATIC E_STATUS SVC_SetTaskError(LPVOID lpPrivate, LPVOID lpParam)
 {
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
     
-    return TaskSetError((E_STATUS) lpPacket->u0.dParam);
+    return SetTaskError((E_STATUS) lpPacket->u0.dParam);
 }
 
 STATIC E_STATUS SVC_GetCurrentTask(LPVOID lpPrivate, LPVOID lpParam)
@@ -612,7 +581,7 @@ STATIC E_STATUS SVC_TestCancel(LPVOID lpPrivate, LPVOID lpParam)
     
     if (TRUE == lpPacket->u0.dParam)
     {
-        TaskSetError(STATE_REMOVED);
+        SetTaskError(STATE_REMOVED);
     }
     
     return STATE_SUCCESS;
@@ -690,7 +659,7 @@ STATIC E_STATUS SVC_GetSmltKey(LPVOID lpPrivate, LPVOID lpParam)
     
     if (TASK_SMLTKEY_INVALID == (SMLT_KEY_T) lpPacket->u0.dParam)
     {
-        TaskSetError(STATE_OUT_OF_MEMORY);
+        SetTaskError(STATE_OUT_OF_MEMORY);
         return STATE_OUT_OF_MEMORY;
     }
     
@@ -944,8 +913,8 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
 {
     DWORD CpuID = 0;
     E_STATUS State;
-    
-//    CORE_INFOR(TRUE, "Idle stack size is %u bytes.", sizeof(g_SystemIdleTaskStack));
+
+    CORE_INFOR(TRUE, "ArchContext offset of TaskContext is %d.", OFFSET_OF(TASK_CONTEXT, ArchContext));
     CORE_INFOR(TRUE, "Max priority is %d, Show the size of tss type for debug:", CONFIG_TASK_PRIORITY_MAX);
     CORE_INFOR(TRUE, "POOL_MAP_T: %d  MANA_MAP_T: %d  TASK_CONTEXT: %d   KOBJECT_HEADER: %d",
         sizeof(POOL_MAP_T), sizeof(MANA_MAP_T), sizeof(TASK_CONTEXT), sizeof(KOBJECT_HEADER));
@@ -1025,21 +994,22 @@ EXPORT DWORD CORE_LeaveIRQ(VOID)
 EXPORT VOID CORE_SetTaskStackPosition(LPVOID StackPosition)
 {
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
+
     SetContextStackPosition(lpCurrentTask, StackPosition);
 }
 
 EXPORT LPVOID CORE_GetTaskStackPosition(VOID)
 {
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
+
     return GetContextStackPosition(lpCurrentTask);
 }
 
 EXPORT LPVOID CORE_GetCoreStackPosition(LPVOID StackPosition)
 {
-    return GetKernelStackPosition(StackPosition);
+    return CORE_GetTaskCoreStackPosition(GetCurrentTaskContext(), StackPosition);
 }
+
 
 #if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
 /**
@@ -1086,7 +1056,7 @@ EXPORT E_STATUS CORE_SetError(E_STATUS emCode)
 {
     DWORD dwFlags = CORE_DisableIRQ();
 
-    E_STATUS State = TaskSetError(emCode);
+    E_STATUS State = SetTaskError(emCode);
 
     CORE_RestoreIRQ(dwFlags);
     
@@ -1098,7 +1068,7 @@ EXPORT E_STATUS CORE_GetError(VOID)
 {
     DWORD dwFlags = CORE_DisableIRQ();
     
-    E_STATUS State = TaskGetError();
+    E_STATUS State = GetTaskError();
     
     CORE_RestoreIRQ(dwFlags);
     

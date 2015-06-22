@@ -46,7 +46,6 @@
 extern "C" {
 #endif
     EXPORT VOID kSystemOops(VOID);
-    EXPORT E_STATUS CORE_CreateRegion(MMADDR Address, SIZE_T Length);
     EXPORT E_STATUS kprintf(CONST CHAR * Format,...);
     EXPORT E_STATUS kwprintf(CONST WCHAR * Format,...);
 #ifdef __cplusplus

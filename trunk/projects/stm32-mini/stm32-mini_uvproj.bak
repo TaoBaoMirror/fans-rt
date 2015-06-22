@@ -566,6 +566,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\system\core\khash.c</FilePath>
             </File>
+            <File>
+              <FileName>schedule.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\system\core\schedule.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -735,6 +740,11 @@
               <FileName>uipc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libapi\uipc.c</FilePath>
+            </File>
+            <File>
+              <FileName>uobject.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libapi\uobject.c</FilePath>
             </File>
           </Files>
         </Group>

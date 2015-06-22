@@ -1255,7 +1255,7 @@ STATIC E_STATUS PageFreeAddress(LPMM_MANAGER lpManager, LPVOID PageAddress)
         return STATE_INVALID_PAGE;
     }
 
-    RegionID = BSP_GetRegionID((MMADDR) PageAddress);
+    RegionID = CORE_GetRegionID((MMADDR) PageAddress);
 
     /* 检查 REGION ID 是否有效 */   
     if (RegionID >= CONFIG_MEM_REGION_MAX)
@@ -1435,7 +1435,7 @@ EXPORT E_STATUS CORE_CreateRegion(MMADDR Address, SIZE_T Length)
                   : (Address % CONFIG_MEM_PAGE_SIZE);
     SIZE_T Suffix = ((Address + Length) % CONFIG_MEM_PAGE_SIZE);
     
-    RegionID = BSP_GetRegionID(Address);
+    RegionID = CORE_GetRegionID(Address);
 
     /* 检查 REGION ID 是否有效 */   
     if (RegionID >= CONFIG_MEM_REGION_MAX)

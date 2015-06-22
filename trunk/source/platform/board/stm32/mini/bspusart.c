@@ -1,3 +1,15 @@
+/*
+ *    Copyright(C) 2013-2015, Fans-rt development team.
+ *
+ *    All rights reserved.
+ *
+ *    This is open source software.
+ *    Learning and research can be unrestricted to modification, use and dissemination.
+ *    If you need for commercial purposes, you should get the author's permission.
+ *
+ *    date           author          notes
+ *    2014-09-07     JiangYong       new file
+ */
 #include <string.h>
 #include <stdio.h>
 #include <misc.h>
@@ -27,7 +39,7 @@ PUBLIC VOID BSP_UsartWriteByte(DWORD Data)
     }  
 
     while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-    USART_SendData(USART1, Data); 
+    USART_SendData(USART1, Data);
 }
 
 PUBLIC VOID BSP_DebugWriteByte(DWORD Data)
