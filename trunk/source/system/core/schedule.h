@@ -112,34 +112,6 @@ STATIC  VOLATILE        BYTE            g_PriorityReadyBitmap2[32];             
 #define     SetSystemScheduleCount(x)                   (g_SystemScheduleCount = (x))
 #endif
 
-#if (CONFIG_KERNEL_STACK_SIZE!=0)
-STATIC  BYTE            g_KernelStackBuffer[CONFIG_KERNEL_STACK_SIZE];  /**< ÄÚºË¶ÑÕ» */
-#define     GetKernelStackBuffer()                      (g_KernelStackBuffer)
-#endif
-
-#if ((CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE) && (CONFIG_ARCH_SUPPORT_KSTACK != TRUE))
-#error "CONFIG_ARCH_SUPPORT_SCHEDULE and CONFIG_ARCH_SUPPORT_KSTACK invalid."
-#endif
-
-#if ((CONFIG_KERNEL_STACK_SIZE == 0) && (CONFIG_ARCH_SUPPORT_KSTACK == TRUE))
-#error "CONFIG_KERNEL_STACK_SIZE and CONFIG_ARCH_SUPPORT_KSTACK invalid."
-#endif
-
-#if (CONFIG_KERNEL_STACK_SIZE != 0)
-#define GetKernelStackButtom()      (GetKernelStackBuffer() + CONFIG_KERNEL_STACK_SIZE)
-#else
-#define GetKernelStackButtom()      0
-#endif
-
-STATIC INLINE LPVOID GetKernelStackPosition(LPVOID StackPosition)
-{
-#if (CONFIG_KERNEL_STACK_SIZE != 0)
-    return GetKernelStackButtom();
-#else
-    return StackPosition;
-#endif
-}
-
 STATIC E_STATUS StackOverflowCheck(LPTASK_CONTEXT lpTaskContext)
 {
     return STATE_SUCCESS;

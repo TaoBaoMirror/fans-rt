@@ -10,16 +10,39 @@
  *    date           author          notes
  *    2014-09-07     JiangYong       new file
  */
-//#include <string.h>
-//#include <stdio.h>
+#include "config.h"
 #include <stm32f10x.h>
+#include <facore.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
 
-#include "kcore.h"
-#include "libcal.h"
 #include "birq.h"
+#include "kmem.h"
+#include "ktask.h"
+
+STATIC CHAR g_SystemIdleTaskStack[CONFIG_IDLE_STACK_SIZE];
+STATIC CHAR g_SystemCoreTaskStack[CONFIG_CORE_STACK_SIZE];
+
+PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID)
+{
+    if (0 != CpuID)
+    {
+        return NULL;
+    }
+    
+    return g_SystemIdleTaskStack;
+}
+
+PUBLIC LPVOID CORE_GetCoreStackButtom(VOID)
+{
+    return g_SystemCoreTaskStack + CONFIG_CORE_STACK_SIZE;
+}
+
+PUBLIC LPVOID CORE_GetTaskCoreStackPosition(LPVOID lpTaskContext, LPVOID StackPosition)
+{
+    return g_SystemCoreTaskStack + CONFIG_CORE_STACK_SIZE;
+}
 
 PUBLIC LPSTR BSP_GetBoardName(VOID)
 {

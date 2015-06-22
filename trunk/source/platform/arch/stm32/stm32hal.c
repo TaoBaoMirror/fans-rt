@@ -19,10 +19,23 @@
 #include <fatypes.h>
 
 #include "karch.h"
+#include "ktask.h"
 #include "stm32hal.h"
 
 PUBLIC VOID CORE_Starting(VOID);
 
+PUBLIC DWORD CORE_GetCPUNumbers(VOID)
+{
+    return 1;
+}
+
+PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpParam)
+{
+    LPKTASK_CREATE_PARAM lpTaskParam = lpParam;
+    SetArchContextStackCapacity(lpArchContext, lpTaskParam->Param.StackSize);
+    SetArchContextStackBuffer(lpArchContext, lpTaskParam->lpStackBuffer); 
+    SetArchContextStackPosition(lpArchContext, lpTaskParam->lpStackPosition);
+}
 
 int main(VOID)
 {

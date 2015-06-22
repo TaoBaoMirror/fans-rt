@@ -1,18 +1,24 @@
-//#include <string.h>
-//#include <stdio.h>
+/*
+ *    Copyright(C) 2013-2015, Fans-rt development team.
+ *
+ *    All rights reserved.
+ *
+ *    This is open source software.
+ *    Learning and research can be unrestricted to modification, use and dissemination.
+ *    If you need for commercial purposes, you should get the author's permission.
+ *
+ *    date           author          notes
+ *    2014-09-07     JiangYong       new file
+ */
 #include <stm32f10x.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
 
 #include "birq.h"
+#include "ktask.h"
 
 STATIC CHAR g_SystemIdleTaskStack[CONFIG_IDLE_STACK_SIZE];
-
-PUBLIC DWORD CORE_GetCPUNumbers(VOID)
-{
-    return 1;
-}
 
 PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID)
 {

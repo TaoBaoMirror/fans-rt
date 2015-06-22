@@ -22,10 +22,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define     BSP_GetRegionID(x)                  0
+#define     CORE_GetRegionID(x)                  0
     PUBLIC LPSTR BSP_GetBoardName(VOID);
     PUBLIC VOID BSP_DebugWriteByte(DWORD Data);
     PUBLIC LPSTR BSP_GetIRQNameString(E_IRQ_ID Id);
+
+    PUBLIC LPVOID CORE_GetCoreStackButtom(VOID);
+    PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID);
+    PUBLIC LPVOID CORE_GetTaskCoreStackPosition(LPVOID lpTaskContext, LPVOID StackPosition);
+    
+
 #if (CONFIG_MEM_REGION_MAX != 0)
     PUBLIC E_STATUS BSP_ScanMemoryRegion(VOID);
 #else

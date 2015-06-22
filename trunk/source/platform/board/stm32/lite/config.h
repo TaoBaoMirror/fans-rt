@@ -67,7 +67,7 @@
 #define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1024        /**< 引导任务的堆栈长度 */
 #define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */
-#define     CONFIG_KERNEL_STACK_SIZE            1024        /**< 内核堆栈长度 */
+#define     CONFIG_CORE_STACK_SIZE              1024        /**< 内核的堆栈长度 */
 #ifndef     CONFIG_ARCH_SUPPORT_KSTACK
 #define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU 是否支持内核堆栈 */
 #endif

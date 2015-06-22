@@ -33,6 +33,7 @@ extern "C" {
 #endif
     EXPORT LPVOID CORE_PageAlloc(SIZE_T Length);
     EXPORT E_STATUS CORE_PageFree(LPVOID lpAddress);
+    EXPORT E_STATUS CORE_CreateRegion(MMADDR Address, SIZE_T Length);
 #ifdef __cplusplus
 }
 #endif

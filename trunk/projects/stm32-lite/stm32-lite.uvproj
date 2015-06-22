@@ -786,6 +786,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libapi\uipc.c</FilePath>
             </File>
+            <File>
+              <FileName>uobject.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libapi\uobject.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -17,10 +17,11 @@
 #include <faerror.h>
 #include <fatypes.h>
 
-#include "limits.h"
 #include "klpc.h"
 #include "klist.h"
+#include "karch.h"
 #include "kobject.h"
+#include "limits.h"
 
 #define     TASK_PERMISSION_CORE        0
 #define     TASK_PERMISSION_USER        1
@@ -28,6 +29,8 @@
 typedef struct tagKTASK_CREATE_PARAM{
     TASK_CREATE_PARAM           Param;
     HANDLE                      hTask;
+    LPSTR                       lpStackBuffer;
+    LPSTR                       lpStackPosition;
 }KTASK_CREATE_PARAM, * PKTASK_CREATE_PARAM, FAR * LPKTASK_CREATE_PARAM;
 
 enum{
@@ -67,10 +70,6 @@ typedef struct tagTASK_CONTEXT FAR * LPTASK_CONTEXT;
 struct tagTASK_CONTEXT{
     KOBJECT_HEADER          Header;
     HANDLE                  hLockedMutex;                       /* Mutex handle */
-    SIZE_T                  StackCapacity;                      /* 堆栈容量 */
-    LPVOID                  lpStackBuffer;                      /* 堆栈指针 */
-    LPVOID                  lpStackPoint;                       /* 栈顶指针 */
-    LPVOID                  lpPlatform;                         /* 平台相关 */
     LIST_HEAD               SystemNode;                         /* 系统任务节点*/
     LIST_HEAD               IPCNode;                            /* IPC对象的任务节点 */
     union{
@@ -85,12 +84,7 @@ struct tagTASK_CONTEXT{
     LONG                    ResumeRemain;                       /* 休眠后剩余的唤醒时间 */
     DWORD                   TickReserved[2];
 #endif
-#ifdef SYSTEM_HAVE_QWORD
-    QWORD                   WorkTimes;
-#else
-    DWORD                   WorkTimesL;                         /* 任务被调度的次数，低位 */
-    DWORD                   WorkTimesH;                         /* 任务被调度的次数，高位 */
-#endif
+    ARCH_CONTEXT            ArchContext;
     union{
         struct {
             DWORD           CPUPercent:8;                       /* 单位时间内任务的CPU占用率 */
@@ -109,16 +103,21 @@ struct tagTASK_CONTEXT{
         }Bits;
         DWORD               MiscBits;
     }ub;
+#ifdef SYSTEM_HAVE_QWORD
+    QWORD                   WorkTimes;
+#else
+    DWORD                   WorkTimesL;                         /* 任务被调度的次数，低位 */
+    DWORD                   WorkTimesH;                         /* 任务被调度的次数，高位 */
+#endif
     TASK_PRIORITY           ThisPriority;                       /* 当前优先级 */
     TASK_PRIORITY           InitPriority;                       /* 初始优先级 */
     TIME_SLICE_T            SliceRemain;                        /* W时间片剩余TICK数 */
     TIME_SLICE_T            SliceLength;                        /* W时间片最大TICK数 */
     E_STATUS                ErrorCode;                          /* 错误码 */
-    BYTE                    HostCPUID;                          /**< The identify for host cpu */
-    DWORD                   CPUBindMask;                        /**< The bind mask for all cpus */ 
+    BYTE                    bReserved[3];
     LPLPC_REQUEST_PACKET    lpLPCPacket;                        /* LPC 请求包指针 for wait object */
     DWORD                   SmltArray[SMLT_ARRAY_SIZE];         /* static memory local to a task */
-    DWORD                   Reserved[1];                        /* 保留 */
+    DWORD                   Reserved[2];                        /* 保留 */
 #if (CONFIG_BUILD_TASK_PATH == TRUE)
     CHAR                    cbTaskPath[MAX_PATH];               /* 任务当前路径 */
 #endif
@@ -248,14 +247,14 @@ struct tagTASK_CONTEXT{
 #define     GetContextTaskError(lpTC)                       ((lpTC)->ErrorCode)
 #define     SetContextTaskError(lpTC, Code)                 do {(lpTC)->ErrorCode = (Code);} while(0)
 
-#define     GetContextStackCapacity(lpTC)                   ((lpTC)->StackCapacity)
-#define     SetContextStackCapacity(lpTC, Len)              do {(lpTC)->StackCapacity = (Len); } while(0)
+#define     GetContextStackCapacity(lpTC)                   GetArchContextStackCapacity(&lpTC->ArchContext)
+#define     SetContextStackCapacity(lpTC, Len)              SetArchContextStackCapacity(&lpTC->ArchContext, Len)
 
-#define     GetContextStackBuffer(lpTC)                     ((lpTC)->lpStackBuffer)
-#define     SetContextStackBuffer(lpTC, Buff)               do {(lpTC)->lpStackBuffer = (Buff);} while(0)
+#define     GetContextStackBuffer(lpTC)                     GetArchContextStackBuffer(&lpTC->ArchContext)
+#define     SetContextStackBuffer(lpTC, Buff)               SetArchContextStackBuffer(&lpTC->ArchContext, Buff)
 
-#define     GetContextStackPosition(lpTC)                   ((lpTC)->lpStackPoint)
-#define     SetContextStackPosition(lpTC, Stack)            do {(lpTC)->lpStackPoint = (Stack);} while(0)
+#define     GetContextStackPosition(lpTC)                   GetArchContextStackPosition(&lpTC->ArchContext)
+#define     SetContextStackPosition(lpTC, Stack)            SetArchContextStackPosition(&lpTC->ArchContext, Stack)
 
 #define     GetContextLPCPacket(lpTC)                       ((lpTC)->lpLPCPacket)
 #define     SetContextLPCPacket(lpTC, Addr)                 do {((lpTC)->lpLPCPacket) = (Addr); } while(0)
