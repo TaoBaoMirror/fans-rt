@@ -250,7 +250,7 @@ $(OBJECTS_PATH)/%.d: %.s $(CONFIG_MAKE)
 $(CONFIGS_PATH)/%.h: $(SOURCES_ROOT)/%.ini $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/ini2ver.sh $< $@
-	
+
 $(CONFIGS_PATH)/%.h: $(CONFIGS_PATH)/%.ini $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/ini2enum.sh $< $@
@@ -258,11 +258,14 @@ $(CONFIGS_PATH)/%.h: $(CONFIGS_PATH)/%.ini $(CONFIG_MAKE)
 $(CONFIGS_PATH)/%.inc: $(CONFIGS_PATH)/%.ini $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/ini2inc.$(COMPILER).sh $< $@
-	
+
 $(CONFIGS_PATH)/$(COMPILER)/%.inc: $(CONFIGS_PATH)/%.ini $(CONFIGS_PATH)/$(COMPILER) $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/ini2inc.$(COMPILER).sh $< $@
 
+$(CONFIGS_PATH)/%.h:$(CONFIG_MAKE)
+	@$(ECHO) "Create file [$@] ..."
+	@$(ECHO) "#define    BOARD_NAME_STRING    \"$(ARCH)-$(BOARD)\"" > $@
 clean:
 	@$(MAKE) -f $(CREATE_MAKE) clean
 

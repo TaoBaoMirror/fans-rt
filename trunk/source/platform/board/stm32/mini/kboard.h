@@ -17,26 +17,21 @@
 #include <fatypes.h>
 #include <faerror.h>
 
-#include "birq.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define     CORE_GetRegionID(x)                  0
-    PUBLIC LPSTR BSP_GetBoardName(VOID);
-    PUBLIC VOID BSP_DebugWriteByte(DWORD Data);
-    PUBLIC LPSTR BSP_GetIRQNameString(E_IRQ_ID Id);
-    
+    PUBLIC LPSTR CORE_GetBoardName(VOID);
+    PUBLIC VOID CORE_DebugWriteByte(DWORD Data);
+    PUBLIC LPCSTR CORE_GetIRQNameString(DWORD IrqID);
+
     PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID);
-#define     CORE_GetTaskCoreStackPosition(lpTaskContext, StackPosition)     (StackPosition)
-#define     CORE_GetCoreStackButtom()                                       0
-
-#if (CONFIG_MEM_REGION_MAX != 0)
-    PUBLIC E_STATUS BSP_ScanMemoryRegion(VOID);
-#else
-#define     BSP_ScanMemoryRegion()
-#endif
-
+    PUBLIC SIZE_T CORE_GetIdleStackCapacity(VOID);
+#define     CORE_GetTaskCoreStackPosition(lpTaskContext, StackPosition)         \
+                                            (StackPosition)
+#define     CORE_GetRegionID(x)             0
+#define     CORE_GetCoreStackButtom()       0
+#define     CORE_ActiveSwitchIRQ()
+#define     CORE_ScanMemoryRegion()         STATE_SUCCESS
 #ifdef __cplusplus
 }
 #endif

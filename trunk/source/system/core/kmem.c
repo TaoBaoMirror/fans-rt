@@ -1782,7 +1782,7 @@ PUBLIC E_STATUS initCoreSystemGlobalMemoryManager(VOID)
 
     LPC_INSTALL(&MemService, "System global Memory Manager(SMM) starting");
     
-    BSP_ScanMemoryRegion();
+    CORE_ScanMemoryRegion();
     
     return STATE_SUCCESS;
 }

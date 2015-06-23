@@ -39,7 +39,7 @@ PUBLIC E_STATUS initCoreSystemDebugManager(VOID);
 PUBLIC VOID CORE_Starting(VOID)
 {
     CORE_INFOR(TRUE, "Starting Fans-RT %d.%02d.%04d for board %s ...",
-            MAJOR_VERSION, MINOR_VERSION, DEBUG_VERSION, BSP_GetBoardName());
+            MAJOR_VERSION, MINOR_VERSION, DEBUG_VERSION, CORE_GetBoardName());
     CORE_INFOR(TRUE, "Build for %s %02d.%02d.%04d, data: %s, time: %s.", __CC_COMPILER_NAME,
                 __CC_MAJOR_VERSION, __CC_MINOR_VERSION, __CC_BUILD_VERSION, __DATE__, __TIME__);
 

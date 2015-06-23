@@ -762,7 +762,6 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_SystemPerformance,          /* 18.LPC_TSS_PERFORMANCE */
     SVC_MallocStack,                /* 19.LPC_TSS_STACK_MALLOC */
     SVC_FreeStack,                  /* 20.LPC_TSS_STACK_FREE */
-    
 };
 
 DEFINE_LPC_SERVICE(LPCService, STM_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHandlers);
@@ -797,7 +796,7 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREA
     if (TASK_PRIORITY_IDLE == TaskParam.Param.Priority)
     {
         TaskParam.Param.SliceLength = TASK_SLICE_INFINITE;
-        TaskParam.Param.StackSize = CONFIG_IDLE_STACK_SIZE;
+        TaskParam.Param.StackSize = CORE_GetIdleStackCapacity();
     }
     else
     {

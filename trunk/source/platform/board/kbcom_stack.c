@@ -8,15 +8,14 @@
  *    If you need for commercial purposes, you should get the author's permission.
  *
  *    date           author          notes
- *    2014-09-07     JiangYong       new file
+ *    2015-06-4     JiangYong       new file
  */
+#include "config.h"
 #include <stm32f10x.h>
+#include <facore.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
-
-#include "birq.h"
-#include "ktask.h"
 
 STATIC CHAR g_SystemIdleTaskStack[CONFIG_IDLE_STACK_SIZE];
 
@@ -30,28 +29,8 @@ PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID)
     return g_SystemIdleTaskStack;
 }
 
-PUBLIC LPSTR BSP_GetBoardName(VOID)
+PUBLIC SIZE_T CORE_GetIdleStackCapacity(VOID)
 {
-    return "stm32-mini";
+    return sizeof(g_SystemIdleTaskStack);
 }
-
-PUBLIC LPSTR BSP_GetIRQNameString(E_IRQ_ID Id)
-{
-    switch(Id)
-    {
-    case E_CORE_SYSTICK_IRQ_ID:
-        return _TEXT("SysTick");
-    case E_CORE_SYSCALL_IRQ_ID:
-        return _TEXT("caSystemCall");
-    default:
-        return _TEXT("Unknow");
-    }
-}
-
-#if (CONFIG_MEM_REGION_MAX != 0)
-PUBLIC E_STATUS BSP_ScanMemoryRegion(VOID)
-{
-    return STATE_SUCCESS;
-}
-#endif
 

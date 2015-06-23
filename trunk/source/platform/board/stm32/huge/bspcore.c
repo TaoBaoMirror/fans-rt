@@ -8,12 +8,12 @@
 #include "libnt.h"
 #include "birq.h"
 
-PUBLIC LPSTR BSP_GetBoardName(VOID)
+PUBLIC LPSTR CORE_GetBoardName(VOID)
 {
     return "stm32-lite";
 }
 
-PUBLIC LPSTR BSP_GetIRQNameString(E_IRQ_ID Id)
+PUBLIC LPSTR CORE_GetIRQNameString(E_IRQ_ID Id)
 {
     switch(Id)
     {

@@ -63,12 +63,6 @@ struct tagARCH_CONTEXT{
 #ifdef __cplusplus
 extern "C" {
 #endif
-#if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
-    PUBLIC VOID CORE_ActiveSwitchIRQ(VOID);
-#else
-#define     CORE_ActiveSwitchIRQ()
-#endif
-    
     PUBLIC VOID CORE_SystemHang(VOID);
     PUBLIC VOID CORE_EnableIRQ(VOID);
     PUBLIC VOID CORE_RestoreIRQ(DWORD dwFlags);

@@ -8,7 +8,6 @@
     EXPORT  SysTick_Handler
     EXPORT  PendSV_Handler
     EXPORT  SVC_Handler
-    EXPORT  CORE_ActiveSwitchIRQ
     EXPORT  CORE_EnableKernelStack
 
     IMPORT  CORE_EnterIRQ
@@ -25,9 +24,6 @@
     ALIGN 4
     THUMB
 
-NVIC_CONTROL    EQU     0xE000ED04
-NVIC_PEND_SET   EQU     0x10000000
-
 CORE_EnableKernelStack   PROC
     PUSH    {R0, R1}
     MRS     R1,     MSP
@@ -40,17 +36,6 @@ CORE_EnableKernelStack   PROC
     ISB
     POP     {R0, R1}
     BX      LR
-    ENDP
-    
-CORE_ActiveSwitchIRQ  PROC
-    PUSH    {R4, R5}
-    LDR     R4,     =NVIC_CONTROL
-    LDR     R5,     =NVIC_PEND_SET
-    STR     R5,     [R4]
-    ISB
-    POP     {R4, R5}
-    BX      LR
-    NOP
     ENDP
 
 PendSV_Handler  PROC

@@ -716,6 +716,11 @@
               <FileType>2</FileType>
               <FilePath>..\..\source\platform\arch\stm32\arm\stack_model\stm32_single_sw.s</FilePath>
             </File>
+            <File>
+              <FileName>karch.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\karch.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
