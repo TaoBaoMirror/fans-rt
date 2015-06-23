@@ -42,7 +42,7 @@ PUBLIC VOID BSP_UsartWriteByte(DWORD Data)
     USART_SendData(USART1, Data);
 }
 
-PUBLIC VOID BSP_DebugWriteByte(DWORD Data)
+PUBLIC VOID CORE_DebugWriteByte(DWORD Data)
 {
     if ('\0' != Data)
     {

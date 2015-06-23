@@ -17,6 +17,7 @@
 #include <faerror.h>
 #include <fatypes.h>
 
+#include "birq.h"
 #include "klpc.h"
 #include "ktask.h"
 #include "ktick.h"
@@ -79,10 +80,10 @@ static int put_debug_char(INT Ch, LPVOID lpPrivate)
 {
     if ('\n' == Ch)
     {
-        BSP_DebugWriteByte('\r');
+        CORE_DebugWriteByte('\r');
     }
 
-    BSP_DebugWriteByte(Ch);
+    CORE_DebugWriteByte(Ch);
 
     return Ch;
 }
@@ -194,7 +195,7 @@ STATIC VOID CORE_DebugShowMonitorTable(E_IRQ_ID Id)
     LPMONITOR_IRQ_TABLE lpTable = &g_MonitorTable[Id];
     
     kDebugPrintf(TRUE, LOG_LEVEL_FATAL, "******%s [%s] dump infor: Layer = %lu  Tick = %u ******",
-            BSP_GetIRQNameString(Id), 
+            CORE_GetIRQNameString(Id), 
             GetContextTaskName(lpTable->lpTask),
             lpTable->Layer,
             (DWORD)lpTable->Tick);
@@ -214,7 +215,7 @@ STATIC E_STATUS SVC_WriteByte(LPVOID lpPrivate, LPVOID lpParam)
 {
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
     
-    BSP_DebugWriteByte(lpPacket->u0.dParam);
+    CORE_DebugWriteByte(lpPacket->u0.dParam);
 
     return STATE_SUCCESS;;
 }

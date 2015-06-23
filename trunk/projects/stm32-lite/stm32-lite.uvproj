@@ -667,16 +667,6 @@
               <FilePath>..\..\source\platform\board\stm32\lite\birq.ini</FilePath>
             </File>
             <File>
-              <FileName>bspcore.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\bspcore.c</FilePath>
-            </File>
-            <File>
-              <FileName>bspusart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\bspusart.c</FilePath>
-            </File>
-            <File>
               <FileName>config.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\platform\board\stm32\lite\config.h</FilePath>
@@ -700,6 +690,41 @@
               <FileName>khash.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\platform\board\stm32\lite\khash.h</FilePath>
+            </File>
+            <File>
+              <FileName>birq.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\birq.h</FilePath>
+            </File>
+            <File>
+              <FileName>kbcom_stack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\kbcom_stack.c</FilePath>
+            </File>
+            <File>
+              <FileName>kbstm32_misc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\kbstm32_misc.c</FilePath>
+            </File>
+            <File>
+              <FileName>kbstm32_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\kbstm32_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>kblite_memory.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\kblite_memory.c</FilePath>
+            </File>
+            <File>
+              <FileName>kblite_stack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\kblite_stack.c</FilePath>
+            </File>
+            <File>
+              <FileName>kblite_armcc_misc.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\armcc\kblite_armcc_misc.s</FilePath>
             </File>
           </Files>
         </Group>

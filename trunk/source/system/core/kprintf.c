@@ -26,10 +26,10 @@ static int put_kernel_char(INT Ch, LPVOID lpPrivate)
 {
     if ('\n' == Ch)
     {
-        BSP_DebugWriteByte('\r');
+        CORE_DebugWriteByte('\r');
     }
     
-    BSP_DebugWriteByte(Ch);
+    CORE_DebugWriteByte(Ch);
 
     return Ch;
 }

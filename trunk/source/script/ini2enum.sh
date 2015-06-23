@@ -8,8 +8,13 @@ echo "#ifndef __H_$section_name" > $2
 echo "#define __H_$section_name" >> $2
 echo "" >>$2
 echo "typedef enum{" >> $2
-cat $1.tmp | grep "=" | awk -F "=" '{printf "    %s = %s,\n",$1,$2}' >> $2
+cat $1.tmp | grep "=" | awk -F '=' '{if ($2 != "") printf "    %s = %s ,\n",$1,$2}' |\
+     awk -F ',' '{printf "%s,\n",$1}' >> $2
 echo "}$section_name;" >> $2
+echo "" >> $2
+echo "STATIC LPCSTR g_SystemInterruptRequestName[] = {" >> $2
+cat $1.tmp | grep "=" | awk -F ',' '{if ($2 != "") printf "    %s,\n",$2}'>> $2
+echo "};" >> $2
 echo "" >> $2
 echo "#endif" >> $2
 echo "" >> $2

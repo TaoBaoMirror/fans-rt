@@ -667,16 +667,6 @@
               <FilePath>..\..\source\platform\board\stm32\lite\birq.ini</FilePath>
             </File>
             <File>
-              <FileName>bspcore.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\bspcore.c</FilePath>
-            </File>
-            <File>
-              <FileName>bspusart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\bspusart.c</FilePath>
-            </File>
-            <File>
               <FileName>config.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\platform\board\stm32\lite\config.h</FilePath>
@@ -700,6 +690,36 @@
               <FileName>khash.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\platform\board\stm32\lite\khash.h</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_memory.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\kboard_memory.c</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_misc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\kboard_misc.c</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_stack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\kboard_stack.c</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\kboard_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>birq.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\birq.h</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_irq.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\armcc\kboard_irq.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -785,6 +805,11 @@
               <FileName>uipc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libapi\uipc.c</FilePath>
+            </File>
+            <File>
+              <FileName>uobject.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libapi\uobject.c</FilePath>
             </File>
           </Files>
         </Group>
