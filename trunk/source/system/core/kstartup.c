@@ -24,8 +24,8 @@
 #include "compiler.h"
 #include "version.h"
 
-#define CORE_MAGIC      MAKE_DWORD('K', 'N', 'L')
-
+PUBLIC E_STATUS initCoreHardwareParameterForARCH(VOID);
+PUBLIC E_STATUS initCoreHardwareParameterForBoard(VOID);
 PUBLIC E_STATUS initCoreSystemObjectPoolManager(VOID);
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID);
 PUBLIC E_STATUS initCoreInterruptServiceRoutinesManager(VOID);
@@ -36,7 +36,8 @@ PUBLIC E_STATUS initSystemApplicationModulesStartup(VOID);
 PUBLIC E_STATUS initCoreSystemTimerManager(VOID);
 PUBLIC E_STATUS initCoreSystemDebugManager(VOID);
 
-PUBLIC VOID CORE_Starting(VOID)
+
+STATIC VOID ShowSystemInformation(VOID)
 {
     CORE_INFOR(TRUE, "Starting Fans-RT %d.%02d.%04d for board %s ...",
             MAJOR_VERSION, MINOR_VERSION, DEBUG_VERSION, CORE_GetBoardName());
@@ -50,7 +51,15 @@ PUBLIC VOID CORE_Starting(VOID)
         sizeof(BYTE), sizeof(WORD), sizeof(DWORD), sizeof(QWORD), sizeof(SIZE_T), sizeof(LPVOID));
     CORE_INFOR(TRUE, "BOOL: %d  FLOAT:%d  DOUBLE:%d", sizeof(BOOL), sizeof(float), sizeof(double));
     CORE_INFOR(TRUE, "Hardware tick max value is %d.", FW_GetTickBase());
+}
 
+PUBLIC VOID CORE_Starting(VOID)
+{
+    initCoreHardwareParameterForARCH();
+    
+    initCoreHardwareParameterForBoard();
+    
+    ShowSystemInformation();
     /* Local procedure call initialize */
     initCoreLocalProcedureCallManager();
     

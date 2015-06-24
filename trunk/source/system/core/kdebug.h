@@ -14,12 +14,11 @@
 #define __K_DEBUG_H
 
 #include <stdarg.h>
+#include <facore.h>
 #include <fadefs.h>
 #include <fatypes.h>
 #include <faerror.h>
 #include <fadebug.h>
-
-#include "karch.h"
 
 #define     DEBUG_LOG_CONDITION(lv)         ((kDebugGetMask() & (1 << (lv))) != 0)
 #define     DEBUG_LOG_LEVEL(lv)             kDebugLevel2String(lv)
@@ -100,13 +99,6 @@ extern "C" {
 #endif  
     EXPORT DWORD kDebugGetMask(VOID);
     EXPORT BOOL kDebugGetState(VOID);
-#ifdef DEBUG_IRQ_MONITOR
-    EXPORT VOID kDebugMonitorIRQ(VOID);
-#else
-    STATIC INLINE VOID kDebugMonitorIRQ(VOID) {}
-#endif
-    PUBLIC VOID kDebugShowStack(LPIRQ_REGISTER_STACK lpStack, BOOL IsStack);
-
     EXPORT VOID kDebugEnableLevel(E_LOG_LEVEL emLevel);
     EXPORT VOID kDebugDisableLevel(E_LOG_LEVEL emLevel);
     EXPORT LPSTR kDebugLevel2String(E_LOG_LEVEL emLevel);

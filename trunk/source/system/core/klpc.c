@@ -102,7 +102,6 @@ EXPORT VOID CORE_HandlerLPC(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE
             lpPacket->StateCode = STATE_INVALID_SERVICE;
             CORE_ERROR(TRUE, "Call service 0x%08x, function %d failed, packet %p.",
                 ServiceID, FunctionID, lpPacket);
-            kDebugMonitorIRQ();
             return;
         }
 

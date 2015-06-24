@@ -16,33 +16,6 @@
 #include <fadefs.h>
 #include <fatypes.h>
 
-typedef struct tagIRQ_REGISTER_STACK IRQ_REGISTER_STACK;
-typedef struct tagIRQ_REGISTER_STACK * PIRQ_REGISTER_STACK;
-typedef struct tagIRQ_REGISTER_STACK FAR * LPIRQ_REGISTER_STACK;
-
-struct tagIRQ_REGISTER_STACK
-{
-    DWORD           R4;
-    DWORD           R5;
-    DWORD           R6;
-    DWORD           R7;
-    DWORD           R8;
-    DWORD           R9;
-    DWORD           R10;
-    DWORD           R11;
-    DWORD           LR1;
-    DWORD           R0;
-    DWORD           R1;
-    DWORD           R2;
-    DWORD           R3;
-    DWORD           R12;
-    DWORD           LR0;
-    DWORD           R15;
-    DWORD           xPSR;
-    LPVOID          SP;
-};
-
-
 typedef struct tagARCH_CONTEXT ARCH_CONTEXT;
 typedef struct tagARCH_CONTEXT * PARCH_CONTEXT;
 typedef struct tagARCH_CONTEXT FAR * LPARCH_CONTEXT;
@@ -70,7 +43,7 @@ extern "C" {
     PUBLIC DWORD CORE_SaveIRQFlags(VOID);
     PUBLIC LPVOID CORE_GetBootStackBuffer(VOID);
     PUBLIC DWORD CORE_GetCPUNumbers(VOID);
-    PUBLIC E_STATUS CORE_EnableKernelStack(LPVOID lpKStack);
+    PUBLIC E_STATUS CORE_Switch2UserMode(VOID);
     PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, HANDLE hTask);
     PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpParam);
 #ifdef __cplusplus

@@ -21,31 +21,6 @@
 EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask);
 
 
-#if (defined(__CC_ARM))
-#ifdef __MICROLIB
-extern BYTE __initial_sp;
-
-PUBLIC LPVOID CORE_GetBootStackBuffer(VOID)
-{
-    return (&__initial_sp) - CONFIG_BOOT_STACK_SIZE;
-}
-#else           //__MICROLIB
-
-    PUBLIC LPVOID CORE_BootStackAddress(VOID);
-    PUBLIC DWORD  CORE_BootStackLength(VOID);
-    PUBLIC LPVOID CORE_HeapAddress(VOID);
-    PUBLIC DWORD CORE_HeapLength(VOID);
-
-PUBLIC LPVOID CORE_GetBootStackBuffer(VOID)
-{
-    return CORE_BootStackAddress();
-}
-#endif          //__MICROLIB
-#else           //__ARM_CC
-#error "not support this complier..."
-#endif          //__ARM_CC
-
-
 PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, HANDLE hTask)
 {
     LPDWORD StackPoint = Position;
@@ -76,3 +51,11 @@ PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, H
     return (StackPoint);
 }
 
+
+PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpParam)
+{
+    LPKTASK_CREATE_PARAM lpTaskParam = lpParam;
+    SetArchContextStackCapacity(lpArchContext, lpTaskParam->Param.StackSize);
+    SetArchContextStackBuffer(lpArchContext, lpTaskParam->lpStackBuffer); 
+    SetArchContextStackPosition(lpArchContext, lpTaskParam->lpStackPosition);
+}

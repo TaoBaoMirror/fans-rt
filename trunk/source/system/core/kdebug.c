@@ -27,15 +27,6 @@
 #include "libcmini.h"
 
 
-typedef struct tagMONITOR_IRQ_TABLE
-{
-    VOLATILE    IRQ_REGISTER_STACK          Registers;
-    VOLATILE    DWORD                       Layer;
-    VOLATILE    TICK                        Tick;
-    VOLATILE    DWORD                       Count;
-    VOLATILE    LPTASK_CONTEXT              lpTask;
-}MONITOR_IRQ_TABLE, * PMONITOR_IRQ_TABLE, FAR * LPMONITOR_IRQ_TABLE;
-
 STATIC BOOL DebugEnable = TRUE;
 STATIC DWORD DebugLevelMask = DEBUG_LOG_MASK;
 
@@ -172,44 +163,6 @@ EXPORT VOID kDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
 
     kDebugPrintf(FALSE, "\n");
 }
-
-#ifdef DEBUG_IRQ_MONITOR
-
-STATIC MONITOR_IRQ_TABLE g_MonitorTable[E_SYSTEM_IRQ_MAX];
-
-PUBLIC VOID CORE_SaveIRQ(LPDWORD lpStackPosition, DWORD Id)
-{
-    STATIC DWORD Count = 0;
-    LPMONITOR_IRQ_TABLE lpTable = &g_MonitorTable[Id];
-
-    memcpy((VOID *)&lpTable->Registers, lpStackPosition, sizeof(IRQ_REGISTER_STACK) - sizeof(LPVOID));
-    lpTable->Registers.SP = lpStackPosition;
-    lpTable->Layer =  CORE_GetInterruptLayer();
-    lpTable->Tick  =  CORE_GetSystemTick();
-    lpTable->lpTask=  CORE_GetCurrentTask();
-    lpTable->Count =  Count++;
-}
-
-STATIC VOID CORE_DebugShowMonitorTable(E_IRQ_DEFINE Id)
-{
-    LPMONITOR_IRQ_TABLE lpTable = &g_MonitorTable[Id];
-    
-    kDebugPrintf(TRUE, LOG_LEVEL_FATAL, "******%s [%s] dump infor: Layer = %lu  Tick = %u ******",
-            CORE_GetIRQNameString(Id), 
-            GetContextTaskName(lpTable->lpTask),
-            lpTable->Layer,
-            (DWORD)lpTable->Tick);
-    kDebugShowStack((LPVOID) &lpTable->Registers, FALSE);
-    kDebugPrintf(TRUE, LOG_LEVEL_FATAL, "****Count = %d****", lpTable->Count);
-}
-
-PUBLIC VOID kDebugMonitorIRQ(VOID)
-{
-    CORE_DebugShowMonitorTable(E_CORE_SYSTICK_IRQ_ID);
-    CORE_DebugShowMonitorTable(E_CORE_SYSCALL_IRQ_ID);
-
-}
-#endif
 
 STATIC E_STATUS SVC_WriteByte(LPVOID lpPrivate, LPVOID lpParam)
 {

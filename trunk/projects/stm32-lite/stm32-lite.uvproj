@@ -662,11 +662,6 @@
           <GroupName>board</GroupName>
           <Files>
             <File>
-              <FileName>birq.ini</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\birq.ini</FilePath>
-            </File>
-            <File>
               <FileName>config.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\platform\board\stm32\lite\config.h</FilePath>
@@ -692,11 +687,6 @@
               <FilePath>..\..\source\platform\board\stm32\lite\khash.h</FilePath>
             </File>
             <File>
-              <FileName>birq.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\birq.h</FilePath>
-            </File>
-            <File>
               <FileName>kbcom_stack.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\kbcom_stack.c</FilePath>
@@ -705,11 +695,6 @@
               <FileName>kbstm32_misc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\kbstm32_misc.c</FilePath>
-            </File>
-            <File>
-              <FileName>kbstm32_usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\board\stm32\kbstm32_usart.c</FilePath>
             </File>
             <File>
               <FileName>kblite_memory.c</FileName>
@@ -722,69 +707,14 @@
               <FilePath>..\..\source\platform\board\stm32\lite\kblite_stack.c</FilePath>
             </File>
             <File>
-              <FileName>kblite_armcc_misc.s</FileName>
+              <FileName>kbstm32_init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\kbstm32_init.c</FilePath>
+            </File>
+            <File>
+              <FileName>kblite_interrupt.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\armcc\kblite_armcc_misc.s</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>arch</GroupName>
-          <Files>
-            <File>
-              <FileName>karch.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\karch.h</FilePath>
-            </File>
-            <File>
-              <FileName>stm32fault.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\stm32fault.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32hal.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\stm32hal.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32hal.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\stm32hal.h</FilePath>
-            </File>
-            <File>
-              <FileName>stm32nvic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\stm32nvic.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32rcc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\stm32rcc.c</FilePath>
-            </File>
-            <File>
-              <FileName>saveirq.inc</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\arm\saveirq.inc</FilePath>
-            </File>
-            <File>
-              <FileName>stm32misc.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\arm\stm32misc.s</FilePath>
-            </File>
-            <File>
-              <FileName>stm32stack.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\arm\stm32stack.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32_bootstack.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\arm\stm32_bootstack.s</FilePath>
-            </File>
-            <File>
-              <FileName>stm32_double_hw.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\arm\stack_model\stm32_double_hw.s</FilePath>
+              <FilePath>..\..\source\platform\board\stm32\lite\armcc\kblite_interrupt.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -935,6 +865,51 @@
               <FileName>camodule.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libcal\camodule.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>arch</GroupName>
+          <Files>
+            <File>
+              <FileName>karch.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\karch.h</FilePath>
+            </File>
+            <File>
+              <FileName>karch_init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\karch_init.c</FilePath>
+            </File>
+            <File>
+              <FileName>karch_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\karch_main.c</FilePath>
+            </File>
+            <File>
+              <FileName>karch_stack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\karch_stack.c</FilePath>
+            </File>
+            <File>
+              <FileName>karch_misc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\karch_misc.c</FilePath>
+            </File>
+            <File>
+              <FileName>karch_armasm_misc.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\arm\karch_armasm_misc.s</FilePath>
+            </File>
+            <File>
+              <FileName>karch_armasm_stack.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\arm\karch_armasm_stack.s</FilePath>
+            </File>
+            <File>
+              <FileName>karch_armcc_stack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\arm\karch_armcc_stack.c</FilePath>
             </File>
           </Files>
         </Group>
