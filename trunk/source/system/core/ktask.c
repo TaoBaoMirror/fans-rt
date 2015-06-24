@@ -52,7 +52,7 @@ PUBLIC E_STATUS ScheduleStartup(VOID)
 {
     SetScheduleRunState(TRUE);
     SetInterruptNestLayer(0);
-    return CORE_EnableKernelStack(CORE_GetCoreStackButtom());
+    return CORE_Switch2UserMode();
 }
 
 STATIC E_STATUS SetTaskError(E_STATUS emCode)

@@ -8,26 +8,20 @@
  *    If you need for commercial purposes, you should get the author's permission.
  *
  *    date           author          notes
- *    2014-09-07     JiangYong       new file
+ *    2015-06-25     JiangYong       new file
  */
-#ifndef __STM32HAL_H
-#define __STM32HAL_H
+#include <string.h>
+#include <stdio.h>
+#include <stm32f10x.h>
 
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-    PUBLIC VOID RCC_Configuration(VOID);
-    PUBLIC VOID NVIC_Configuration(VOID);
-    PUBLIC VOID GPIO_Configuration(VOID);
-    PUBLIC VOID EXTI_Configuration(VOID);
-    PUBLIC VOID USART_Configuration(VOID);
-#ifdef __cplusplus
+#include "karch.h"
+#include "kcore.h"
+
+PUBLIC DWORD CORE_GetCPUNumbers(VOID)
+{
+    return 1;
 }
-#endif
-
-#endif
-

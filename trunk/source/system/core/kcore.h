@@ -48,6 +48,7 @@ extern "C" {
     EXPORT VOID kSystemOops(VOID);
     EXPORT E_STATUS kprintf(CONST CHAR * Format,...);
     EXPORT E_STATUS kwprintf(CONST WCHAR * Format,...);
+    PUBLIC VOID CORE_Starting(VOID);
 #ifdef __cplusplus
 }
 #endif

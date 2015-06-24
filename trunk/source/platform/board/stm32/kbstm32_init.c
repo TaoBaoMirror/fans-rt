@@ -90,6 +90,14 @@ PUBLIC VOID USART_Configuration(VOID)
     USART_Cmd(USART1, ENABLE);
 }
 
+PUBLIC E_STATUS initCoreHardwareParameterForBoard(VOID)
+{
+    USART_Configuration();
+
+    return STATE_SUCCESS;
+}
+
+
 #if 0
 
 #define USART_MAGIC         MAKE_DWORD('C','O','M')

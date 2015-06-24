@@ -19,8 +19,8 @@
 #include "kirq.h"
 #include "klist.h"
 #include "kcore.h"
+#include "karch.h"
 #include "kdebug.h"
-#include "libfw.h"
 
 STATIC LIST_HEAD g_IRQServiceTable[E_HARDWARE_IRQ_MAX];
 

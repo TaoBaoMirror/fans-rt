@@ -1,7 +1,5 @@
-        IF      :DEF:CONFIG_ARCH_SUPPORT_KSTACK
-	INCLUDE birq.inc
-	INCLUDE saveirq.inc
-    
+	INCLUDE kirq_define_enum.inc
+
     EXPORT  UsageFault_Handler
     EXPORT  BusFault_Handler
     EXPORT  MemManage_Handler
@@ -9,8 +7,7 @@
     EXPORT  SysTick_Handler
     EXPORT  PendSV_Handler
     EXPORT  SVC_Handler
-    EXPORT  CORE_ActiveSwitchIRQ
-    EXPORT  CORE_EnableKernelStack
+    EXPORT  CORE_Switch2UserMode
 
     IMPORT  CORE_EnterIRQ
     IMPORT  CORE_LeaveIRQ
@@ -18,7 +15,7 @@
     IMPORT  CORE_TaskScheduling
     IMPORT  CORE_HandlerLPC
     IMPORT  CORE_SwitchTask
-    IMPORT  STM32_FaultHandler
+    IMPORT  CORE_GetCoreStackButtom
 
     PRESERVE8
 
@@ -29,8 +26,9 @@
 NVIC_CONTROL    EQU     0xE000ED04
 NVIC_PEND_SET   EQU     0x10000000
 
-CORE_EnableKernelStack   PROC
-    PUSH    {R0, R1}
+CORE_Switch2UserMode   PROC
+    PUSH    {LR}
+    BL      CORE_GetCoreStackButtom
     MRS     R1,     MSP
     MSR     PSP,    R1
     MSR     MSP,    R0
@@ -39,19 +37,7 @@ CORE_EnableKernelStack   PROC
     MOV     R0,     #0x3
     MSR     CONTROL,    R0
     ISB
-    POP     {R0, R1}
-    BX      LR
-    ENDP
-    
-CORE_ActiveSwitchIRQ  PROC
-    PUSH    {R4, R5}
-    LDR     R4,     =NVIC_CONTROL
-    LDR     R5,     =NVIC_PEND_SET
-    STR     R5,     [R4]
-    ISB
-    POP     {R4, R5}
-    BX      LR
-    NOP
+    POP     {PC}
     ENDP
 
 PendSV_Handler  PROC
@@ -97,52 +83,20 @@ SysTick_Handler PROC
     CPSIE   I
     POP     {PC}
     ENDP
-    
-
-Fault_Handler PROC
-    CPSID   I
-    PUSH    {LR}
-    PUSH    {R4-R12}
-    MRS     R0,     PSP                     ; 堆栈指针作为入参
-    MOV     R4,     R0
-    MOV     R5,     R1
-    BL      CORE_EnterIRQ                   ; 保存堆栈指针
-    MSR     PSP,    R0                      ; 使用内核堆栈
-    CPSIE   I
-
-    MOV     R1,     R5
-    MOV     R0,     R4
-    BL      STM32_FaultHandler              ; 进入中断处理程序
-
-    CPSID   I
-    MRS     R0,     PSP                     ; 堆栈指针作为入参
-    BL      CORE_LeaveIRQ                   ; 加载新的堆栈指针
-    MSR     PSP,    R0
-    POP     {R4-R12}
-    CPSIE   I
-    POP     {PC}
-
-    ENDP
 
 HardFault_Handler   PROC
-    MRS     R1,     CONTROL
-    MOV     R1,     #0
-    B       Fault_Handler
+    B       .
     ENDP
 
 MemManage_Handler   PROC
-    MOV     R1,     #1
-    B       Fault_Handler
+    B       .
     ENDP
 BusFault_Handler    PROC
-    MOV     R1,     #2
-    B       Fault_Handler
+    B       .
     ENDP
 UsageFault_Handler  PROC
-    MOV     R1,     #3
-    B       Fault_Handler
+    B       .
     ENDP
 	
 ALIGN
-        ENDIF
             END
