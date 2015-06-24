@@ -17,8 +17,6 @@
 #include <faerror.h>
 #include <fatypes.h>
 
-#include "birq.h"
-#include "kmem.h"
 #include "ktask.h"
 
 STATIC CHAR g_SystemCoreTaskStack[CONFIG_CORE_STACK_SIZE];

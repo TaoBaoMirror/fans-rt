@@ -18,10 +18,9 @@
 #include <fatypes.h>
 #include <faerror.h>
 
-#include "birq.h"
 #include "klist.h"
 #include "kcore.h"
-
+#include "kirq_define_enum.h"
 /* 硬件中断服务 */
 typedef struct tagIRQ_SERVICE IRQ_SERVICE;
 typedef struct tagIRQ_SERVICE * PIRQ_SERVICE;
@@ -40,7 +39,7 @@ struct tagIRQ_SERVICE
         CHAR            SvcName[4];                     /**< 服务名 */
     }u;
     LIST_HEAD           ISRList;                        /**< ISR链表 */
-    E_IRQ_ID            IRQNumber;                      /**< 中断类型 */
+    E_IRQ_DEFINE        IRQNumber;                      /**< 中断类型 */
     LPVOID              lpPrivate;                      /**< 私有数据*/
     IRQHANDLER          fnHandler;                      /**< 处理函数 */
 };
@@ -68,7 +67,7 @@ extern "C" {
 #endif
     EXPORT E_STATUS caInstallIRQ(LPIRQ_SERVICE lpHandler);
     EXPORT E_STATUS caUnstallIRQ(LPIRQ_SERVICE lpHandler);
-    EXPORT VOID CORE_HandlerIRQ(LPVOID lpPacket, E_IRQ_ID IRQNumber);
+    EXPORT VOID CORE_HandlerIRQ(LPVOID lpPacket, E_IRQ_DEFINE IRQNumber);
 #ifdef __cplusplus
 }
 #endif
