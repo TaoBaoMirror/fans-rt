@@ -98,7 +98,7 @@ OS_INCLUDES				:=	-I$(SOURCES_ROOT)/include
 STD_INCLUDES			:=	-I$(SOURCES_ROOT)/include/stdc
 LIBCM_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcmini
 LIBCU_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcuser
-LIBNT_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libnt
+LIBCAL_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcal
 CL_INCLUDES				:=	-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/include									\
 							-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/include-fixed							\
 							-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/install-tools/include					\
@@ -112,7 +112,7 @@ STM32_INCLUDES			:=	-I$(SOURCES_ROOT)/platform/libfw/$(FWLIB)/Libraries/CMSIS/CM
 							-I$(SOURCES_ROOT)/platform/libfw/$(FWLIB)/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x
 GLOBAL_INCLUDES			:=	$(STD_INCLUDES) $(OS_INCLUDES) $(CL_INCLUDES) $(FW_INCLUDES) $(BOARD_INCLUDES)						\
 							$(ARCH_INCLUDES) $(CORE_INCLUDES) $(STM32_INCLUDES)													\
-							$(LIBCM_INCLUDES) $(LIBCU_INCLUDES) $(LIBNT_INCLUDES)
+							$(LIBCM_INCLUDES) $(LIBCU_INCLUDES) $(LIBCAL_INCLUDES)
 
 CONFIG_MAKE				=	$(SOURCES_ROOT)/build/$(ARCH).mak
 SUFFIX_MAKE				=	$(SOURCES_ROOT)/build/$(ARCH)/suffix.mak
@@ -251,15 +251,19 @@ $(CONFIGS_PATH)/%.h: $(SOURCES_ROOT)/%.ini $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/ini2ver.sh $< $@
 
-$(CONFIGS_PATH)/%.h: $(CONFIGS_PATH)/%.ini $(CONFIG_MAKE)
+$(CONFIGS_PATH)/%_enum.h: $(CONFIGS_PATH)/%.ini $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/ini2enum.sh $< $@
+
+$(CONFIGS_PATH)/%_name.h: $(CONFIGS_PATH)/%.ini $(CONFIG_MAKE)
+	@$(ECHO) "Create file [$@] ..."
+	@$(SCRIPTS_ROOT)/ini2name.sh $< $@
 
 $(CONFIGS_PATH)/%.inc: $(CONFIGS_PATH)/%.ini $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/ini2inc.$(COMPILER).sh $< $@
 
-$(CONFIGS_PATH)/$(COMPILER)/%.inc: $(CONFIGS_PATH)/%.ini $(CONFIGS_PATH)/$(COMPILER) $(CONFIG_MAKE)
+$(CONFIGS_PATH)/$(COMPILER)/%_enum.inc: $(CONFIGS_PATH)/%.ini $(CONFIGS_PATH)/$(COMPILER) $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/ini2inc.$(COMPILER).sh $< $@
 
