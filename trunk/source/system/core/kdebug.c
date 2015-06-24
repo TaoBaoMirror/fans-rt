@@ -17,7 +17,7 @@
 #include <faerror.h>
 #include <fatypes.h>
 
-#include "birq.h"
+#include "kirq.h"
 #include "klpc.h"
 #include "ktask.h"
 #include "ktick.h"
@@ -190,7 +190,7 @@ PUBLIC VOID CORE_SaveIRQ(LPDWORD lpStackPosition, DWORD Id)
     lpTable->Count =  Count++;
 }
 
-STATIC VOID CORE_DebugShowMonitorTable(E_IRQ_ID Id)
+STATIC VOID CORE_DebugShowMonitorTable(E_IRQ_DEFINE Id)
 {
     LPMONITOR_IRQ_TABLE lpTable = &g_MonitorTable[Id];
     

@@ -1,4 +1,4 @@
-	INCLUDE birq.inc
+	INCLUDE kirq_define_enum.inc
 
     EXPORT  UsageFault_Handler
     EXPORT  BusFault_Handler

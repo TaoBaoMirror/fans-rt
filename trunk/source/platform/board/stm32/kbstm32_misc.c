@@ -17,7 +17,8 @@
 #include <faerror.h>
 #include <fatypes.h>
 
-#include "birq.h"
+#include "kirq_define_enum.h"
+#include "kirq_define_name.h"
 #include "kboard_name.h"
 
 PUBLIC LPCSTR CORE_GetBoardName(VOID)
@@ -27,9 +28,9 @@ PUBLIC LPCSTR CORE_GetBoardName(VOID)
 
 PUBLIC LPCSTR CORE_GetIRQNameString(DWORD IrqID)
 {
-    if (IrqID < SIZEOF_ARRAY(g_SystemInterruptRequestName))
+    if (IrqID < SIZEOF_ARRAY(g_IRQNameString))
     {
-        return g_SystemInterruptRequestName[IrqID];
+        return g_IRQNameString[IrqID];
     }
     
     return "Unknow IRQ";

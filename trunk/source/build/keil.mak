@@ -6,16 +6,20 @@ SCRIPTS_ROOT			=	$(SOURCES_ROOT)/script
 VERSION_PATH			=	$(SOURCES_ROOT)/include
 CONFIGS_PATH			=	$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)
 TARGETS					=	$(CONFIGS_PATH)/kboard_name.h						\
-							$(CONFIGS_PATH)/birq.h 								\
-							$(CONFIGS_PATH)/$(COMPILER)/birq.inc				\
+							$(CONFIGS_PATH)/kirq_define_enum.h 					\
+							$(CONFIGS_PATH)/kirq_define_name.h 					\
+							$(CONFIGS_PATH)/$(COMPILER)/kirq_define_enum.inc	\
 							$(VERSION_PATH)/version.h
 							
 all: $(CONFIGS_PATH) $(CONFIGS_PATH)/$(COMPILER) $(TARGETS)
 
-$(CONFIGS_PATH)/%.h: $(CONFIGS_PATH)/%.ini $(SCRIPTS_ROOT)/ini2enum.sh
+$(CONFIGS_PATH)/%_enum.h: $(CONFIGS_PATH)/%.ini $(SCRIPTS_ROOT)/ini2enum.sh
 	$(COMMAND_SPEC) -c "$(SCRIPTS_ROOT)/ini2enum.sh $< $@ :/usr/local/bin:/mingw/bin:/bin:"
 	
-$(CONFIGS_PATH)/$(COMPILER)/%.inc: $(CONFIGS_PATH)/%.ini $(SCRIPTS_ROOT)/ini2inc.$(COMPILER).sh
+$(CONFIGS_PATH)/%_name.h: $(CONFIGS_PATH)/%.ini $(SCRIPTS_ROOT)/ini2enum.sh
+	$(COMMAND_SPEC) -c "$(SCRIPTS_ROOT)/ini2name.sh $< $@ :/usr/local/bin:/mingw/bin:/bin:"
+	
+$(CONFIGS_PATH)/$(COMPILER)/%_enum.inc: $(CONFIGS_PATH)/%.ini $(SCRIPTS_ROOT)/ini2inc.$(COMPILER).sh
 	$(COMMAND_SPEC) -c "$(SCRIPTS_ROOT)/ini2inc.$(COMPILER).sh $< $@ :/usr/local/bin:/mingw/bin:/bin:"
 
 $(VERSION_PATH)/%.h: $(SOURCES_ROOT)/%.ini $(SCRIPTS_ROOT)/ini2ver.sh
