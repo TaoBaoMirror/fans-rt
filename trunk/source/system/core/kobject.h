@@ -183,6 +183,7 @@ struct tagKOBJECT_HEADER{
     union{
         CHAR            caName[OBJECT_NAME_MAX];
         DWORD           daName[OBJECT_NAME_MAX/sizeof(DWORD)];
+        DWORD           daMagic[OBJECT_NAME_MAX/sizeof(DWORD)];
     }un;
 };
 #define     OBJECT_ENTRY(Ptr, Member)                                                               \
@@ -264,7 +265,17 @@ struct tagKOBJECT_HEADER{
                 (lpHeader)->un.daName[1] = lpdName[1];                                              \
             } while(0)
 
+#define     ZeroObjectName(lpHeader)                                                                \
+            do {                                                                                    \
+                (lpHeader)->un.daName[0] = 0;                                                       \
+                (lpHeader)->un.daName[1] = 0;                                                       \
+            } while(0)
 
+#define     SetObjectMagic(lpHeader, M0, M1)                                                        \
+            do {                                                                                    \
+                (lpHeader)->un.daMagic[0] = M0;                                                     \
+                (lpHeader)->un.daMagic[1] = M0;                                                     \
+            } while(0)
 
 #define     GetObjecctByHashNode(lpNode)    OBJECT_ENTRY(lpNode, HashNode)
 
@@ -277,6 +288,7 @@ extern "C" {
     PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * Class);
 
     EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpParam);
+    EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam);
     EXPORT E_STATUS CORE_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
     EXPORT LPKOBJECT_HEADER CORE_CreateObject(DWORD Magic, LPCSTR lpName, LPVOID lpParam);
     EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam);

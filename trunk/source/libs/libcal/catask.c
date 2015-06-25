@@ -225,7 +225,7 @@ EXPORT CODE_TEXT E_STATUS caCloseTask(HANDLE hTask)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_CLOSE_TASK);
 }
 
-EXPORT CODE_TEXT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam)
+EXPORT CODE_TEXT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, BOOL IsCore)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -235,6 +235,30 @@ EXPORT CODE_TEXT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam)
     Packet.u1.pParam = lpParam;
     
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_STACK_MALLOC);
+}
+
+EXPORT E_STATUS caStackFill(HANDLE hTask, BOOL IsCore)
+{
+    LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+
+    Packet.u0.hParam = hTask;
+    Packet.u1.dParam = IsCore;
+    
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_STACK_FILL);
+}
+
+EXPORT E_STATUS caStackFree(HANDLE hTask, BOOL IsCore)
+{
+    LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+
+    Packet.u0.hParam = hTask;
+    Packet.u1.dParam = IsCore;
+    
+    return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_STACK_FREE);
 }
 
 EXPORT CODE_TEXT SMLT_KEY_T caGetSmltKey(VOID)

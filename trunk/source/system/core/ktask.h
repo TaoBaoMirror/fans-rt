@@ -25,13 +25,7 @@
 
 #define     TASK_PERMISSION_CORE        0
 #define     TASK_PERMISSION_USER        1
-
-typedef struct tagKTASK_CREATE_PARAM{
-    TASK_CREATE_PARAM           Param;
-    HANDLE                      hTask;
-    LPSTR                       lpStackBuffer;
-    LPSTR                       lpStackPosition;
-}KTASK_CREATE_PARAM, * PKTASK_CREATE_PARAM, FAR * LPKTASK_CREATE_PARAM;
+#define     TASK_BOOTSTARTUP_CPUID      0
 
 enum{
     LPC_TSS_GET_TASKERROR,
@@ -54,6 +48,7 @@ enum{
     LPC_TSS_SYS_ENUMTASK,
     LPC_TSS_PERFORMANCE,
     LPC_TSS_STACK_MALLOC,
+    LPC_TSS_STACK_FILL,
     LPC_TSS_STACK_FREE,
     LPC_TSS_REQUEST_MAX
 };
@@ -250,11 +245,12 @@ struct tagTASK_CONTEXT{
 #define     GetContextStackCapacity(lpTC)                   GetArchContextStackCapacity(&lpTC->ArchContext)
 #define     SetContextStackCapacity(lpTC, Len)              SetArchContextStackCapacity(&lpTC->ArchContext, Len)
 
-#define     GetContextStackBuffer(lpTC)                     GetArchContextStackBuffer(&lpTC->ArchContext)
-#define     SetContextStackBuffer(lpTC, Buff)               SetArchContextStackBuffer(&lpTC->ArchContext, Buff)
+#define     GetContextArchParameter(lpTC)                   (&(lpTC)->ArchContext)
+//#define     GetContextStackBuffer(lpTC)                     GetArchContextStackBuffer(&lpTC->ArchContext)
+//#define     SetContextStackBuffer(lpTC, Buff)               SetArchContextStackBuffer(&lpTC->ArchContext, Buff)
 
-#define     GetContextStackPosition(lpTC)                   GetArchContextStackPosition(&lpTC->ArchContext)
-#define     SetContextStackPosition(lpTC, Stack)            SetArchContextStackPosition(&lpTC->ArchContext, Stack)
+//#define     GetContextStackPosition(lpTC)                   GetArchContextStackPosition(&lpTC->ArchContext)
+//#define     SetContextStackPosition(lpTC, Stack)            SetArchContextStackPosition(&lpTC->ArchContext, Stack)
 
 #define     GetContextLPCPacket(lpTC)                       ((lpTC)->lpLPCPacket)
 #define     SetContextLPCPacket(lpTC, Addr)                 do {((lpTC)->lpLPCPacket) = (Addr); } while(0)
@@ -321,6 +317,8 @@ struct tagTASK_CONTEXT{
 
 #define     DumpContextTaskName(lpTC, lpdName)              DumpObjectName(&(lpTC)->Header, lpdName)
 
+#define     Handle2TaskContext(hTask)                       CORE_Handle2TaskContextCheck(hTask, TRUE)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -334,6 +332,7 @@ extern "C" {
 
     EXPORT DWORD CORE_EnterIRQ(VOID);
     EXPORT DWORD CORE_LeaveIRQ(VOID);
+    EXPORT DWORD CORE_GetGlobalTaskCount(VOID);
     EXPORT LPVOID CORE_GetTaskStackPosition(VOID);
     EXPORT VOID CORE_SetTaskStackPosition(LPVOID StackPosition);
     EXPORT LPVOID CORE_GetCoreStackPosition(LPVOID StackPosition);

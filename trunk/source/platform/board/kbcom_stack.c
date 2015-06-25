@@ -29,8 +29,3 @@ PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID)
     return g_SystemIdleTaskStack;
 }
 
-PUBLIC SIZE_T CORE_GetIdleStackCapacity(VOID)
-{
-    return sizeof(g_SystemIdleTaskStack);
-}
-

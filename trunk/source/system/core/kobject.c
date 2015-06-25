@@ -35,13 +35,22 @@
 #define     SIZEOF_OBJECT6                 (CONFIG_OBJECT_SIZE_MAX>>1)          /**< 2048 bytes object */
 #define     SIZEOF_OBJECT7                 (CONFIG_OBJECT_SIZE_MAX>>0)          /**< 4096 bytes object */
 
-#define     ObjectInit(lpHeader, mg, lpdName, Pid, Sid, Tid)                                        \
+#define     initNamedObject(lpHeader, mg, lpdName, Pid, Sid, Tid)                                   \
             do{                                                                                     \
                 KOBJCLASS_ID_T Cid = Magic2ClassID(mg);                                             \
                 HANDLE handle = MakeHandle(Cid, Pid, KOBJECT_STATE_CREATE, Sid, Tid);               \
                                                                                                     \
                 SetObjectHandle(lpHeader, handle);                                                  \
                 SetObjectName(lpHeader, lpdName);                                                   \
+            }while(0)
+
+#define     initNonameObject(lpHeader, mg, Pid, Sid, Tid)                                           \
+            do{                                                                                     \
+                KOBJCLASS_ID_T Cid = Magic2ClassID(mg);                                             \
+                HANDLE handle = MakeHandle(Cid, Pid, KOBJECT_STATE_CREATE, Sid, Tid);               \
+                                                                                                    \
+                ZeroObjectName(lpHeader);                                                           \
+                SetObjectHandle(lpHeader, handle);                                                  \
             }while(0)
             
 #define     ObjectRepair(lpHeader, Cid, Pid, Tid)                                                   \
@@ -553,13 +562,20 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
     lpHeader = CORE_PoolTakeBlock(lpManager, Pid);
     
-    dwFlags = CORE_DisableIRQ();
+    if (NULL != lpName)
+    {
+        dwFlags = CORE_DisableIRQ();
 
-    Attach2HashList(GetObjectHash(lpName), lpHeader);
+        Attach2HashList(GetObjectHash(lpName), lpHeader);
 
-    ObjectInit(lpHeader, lpClass->Magic, lpdName, Pid, GetSystemObjectSid(), Tid);
-    
-    CORE_RestoreIRQ(dwFlags);
+        initNamedObject(lpHeader, lpClass->Magic, lpdName, Pid, GetSystemObjectSid(), Tid);
+        
+        CORE_RestoreIRQ(dwFlags);
+    }
+    else
+    {
+        initNonameObject(lpHeader, lpClass->Magic, Pid, GetSystemObjectSid(), Tid);
+    }
    
     CORE_SetError(STATE_SUCCESS); 
 
@@ -652,6 +668,58 @@ EXPORT LPKOBJECT_HEADER CORE_Handle2HeaderCheck(HANDLE handle, BOOL Check)
     return lpHeader;
 }
 
+EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam)
+{
+    E_STATUS State;
+    LPKOBJECT_HEADER lpHeader = NULL;
+    LPKCLASS_DESCRIPTOR lpClass = NULL;
+
+    lpClass = CID2ClassDescriptor(Magic2ClassID(Magic));
+    
+    if (NULL == lpClass)
+    {
+        CORE_ERROR(TRUE, "No class(0x%08x) to malloc no name object.", Magic);
+        CORE_SetError(STATE_INVALID_CLASS);
+        return NULL;
+    }
+    
+    if (Magic != lpClass->Magic)
+    {
+        CORE_ERROR(TRUE, "Magic(0x%08x) not match for class(0x%08x) to create no name object.",
+            Magic, lpClass->Magic);
+        CORE_SetError(STATE_NOT_MATCH);
+        return NULL;
+    }
+
+    CORE_ASSERT(lpClass->fnMallocObject, SYSTEM_CALL_OOPS(), 
+        "BUG: Not support function for class(%s) to create no name object.",
+            lpClass->ClassName);
+
+    lpHeader = MallocObjectFromPool(lpClass, NULL);
+
+    if (NULL == lpHeader)
+    {
+        CORE_ERROR(TRUE, "Can't malloc no name object for class '%s'",
+            lpClass->ClassName);
+        return NULL;
+    }
+
+    State = lpClass->fnMallocObject(lpHeader, lpParam);
+    
+    if (STATE_SUCCESS != State)
+    {
+        CORE_ERROR(TRUE, "No name bject call malloc in the class '%s' failed.",
+            lpClass->ClassName);
+        SetObjectState(lpHeader, KOBJECT_STATE_DEATH);
+        CORE_FreeObject(lpHeader);
+        lpHeader = NULL;
+    }
+    
+    CORE_SetError(State);
+    
+    return lpHeader;
+     
+}
 
 
 EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpParam)

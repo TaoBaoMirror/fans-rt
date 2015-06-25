@@ -35,11 +35,10 @@
  */
 FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
 {
-    KTASK_CREATE_PARAM TaskParam;
+    HANDLE hTask;
+    TASK_CREATE_PARAM TaskParam;
     CHAR TaskName[OBJECT_NAME_MAX];
-#if (CONFIG_DYNAMIC_STACK_ENABLE == FALSE)
-    CHAR StackName[OBJECT_NAME_MAX];
-#endif
+
     memset(TaskName, 0, sizeof(TaskName));
 
     if (NULL == lpTaskName)
@@ -62,9 +61,9 @@ FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lp
         return INVALID_HANDLE_VALUE;
     }
 
-    TaskParam.Param = *lpParam;
+    TaskParam = *lpParam;
 
-    if (NULL == TaskParam.Param.fnTaskMain)
+    if (NULL == TaskParam.fnTaskMain)
     {
         LOG_ERROR(TRUE, "Invalid entry to create task '%s' !", TaskName);
         caSetError(STATE_INVALID_POINTER);
@@ -72,66 +71,68 @@ FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lp
     }
 
 #if (CONFIG_TASK_PRIORITY_MAX != 256)
-    if (TaskParam.Param.Priority >= CONFIG_TASK_PRIORITY_MAX)
+    if (TaskParam.Priority >= CONFIG_TASK_PRIORITY_MAX)
     {
         LOG_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!",
-                        TaskParam.Param.Priority, TaskName);
+                        TaskParam.Priority, TaskName);
         caSetError(STATE_INVALID_PRIORITY);
         return INVALID_HANDLE_VALUE;
     }
 #endif
 
-    if (TASK_PRIORITY_IDLE == TaskParam.Param.Priority)
+    if (TASK_PRIORITY_IDLE == TaskParam.Priority)
     {
         LOG_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!",
-                        TaskParam.Param.Priority, TaskName);
+                        TaskParam.Priority, TaskName);
         caSetError(STATE_INVALID_PRIORITY);
         return INVALID_HANDLE_VALUE;
     }
 
-    if (TaskParam.Param.SliceLength < CONFIG_TIME_SLICE_NORMAL)
+    if (TaskParam.SliceLength < CONFIG_TIME_SLICE_NORMAL)
     {
         LOG_ERROR(TRUE, "Invalid slice time to create task '%s' !", TaskName);
         caSetError(STATE_INVALID_TIME);
         return INVALID_HANDLE_VALUE;
     }
 
-    TaskParam.Param.StackSize   =   0 == TaskParam.Param.StackSize
-                                ?   CONFIG_DEFAULT_STACK_SIZE
-                                :   TaskParam.Param.StackSize;
-    TaskParam.Param.lpTaskPath  =   NULL == TaskParam.Param.lpTaskPath
-                                ?   CONFIG_DEFAULT_PATH
-                                :   TaskParam.Param.lpTaskPath;
+    TaskParam.StackSize   =   0 == TaskParam.StackSize
+                          ?   CONFIG_DEFAULT_STACK_SIZE
+                          :   TaskParam.StackSize;
+    TaskParam.lpTaskPath  =   NULL == TaskParam.lpTaskPath
+                          ?   CONFIG_DEFAULT_PATH
+                          :   TaskParam.lpTaskPath;
     
-    if (INVALID_HANDLE_VALUE == (TaskParam.hTask = caMallocObject(TaskName, TSK_MAGIC, &TaskParam)))
+    if (INVALID_HANDLE_VALUE == (hTask = caMallocObject(TaskName, TSK_MAGIC, &TaskParam)))
     {
         LOG_ERROR(TRUE, "No memory to create task '%s' !", TaskName);
         return INVALID_HANDLE_VALUE;
     }
-    
-#if (CONFIG_DYNAMIC_STACK_ENABLE == FALSE)
 
-    memcpy(StackName, TaskName, sizeof(TaskName));
-    SetStackObjectName(StackName, '*');
-    
-    if (INVALID_HANDLE_VALUE == caMallocObject(StackName, STK_MAGIC, &TaskParam))
-#else
-    if (STATE_SUCCESS != ntStackMalloc(TaskParam.hTask, &TaskParam))
-#endif
+    if (STATE_SUCCESS != caStackMalloc(hTask, &TaskParam, TRUE))
     {
-        LOG_ERROR(TRUE, "No memory to create task '%s' !", TaskName);
-        caCloseTask(TaskParam.hTask);
+        LOG_ERROR(TRUE, "Malloc core stack for task '%s' failed.", TaskName);
+        caCloseTask(hTask);
         return INVALID_HANDLE_VALUE;
     }
 
-    if (STATE_SUCCESS != caActiveObject(TaskParam.hTask, &TaskParam))
+    if (STATE_SUCCESS != caStackMalloc(hTask, &TaskParam, FALSE))
+    {
+        LOG_ERROR(TRUE, "Malloc user stack for task '%s' failed.", TaskName);
+        caStackFree(hTask, TRUE);
+        caCloseTask(hTask);
+        return INVALID_HANDLE_VALUE;
+    }
+    
+    if (STATE_SUCCESS != caActiveObject(hTask, &TaskParam))
     {
         LOG_ERROR(TRUE, "Active object failed to create task '%s' !", TaskName);
-        caCloseTask(TaskParam.hTask);
+        caStackFree(hTask, FALSE);
+        caStackFree(hTask, TRUE);
+        caCloseTask(hTask);
         return INVALID_HANDLE_VALUE;
     }
 
-    return TaskParam.hTask;
+    return hTask;
 }
 EXPORT_SYMBOL(CreateTaskEx);
 
