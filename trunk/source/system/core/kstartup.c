@@ -26,6 +26,7 @@
 
 PUBLIC E_STATUS initCoreHardwareParameterForARCH(VOID);
 PUBLIC E_STATUS initCoreHardwareParameterForBoard(VOID);
+PUBLIC E_STATUS initCoreSystemTaskStackManagerForBoard(VOID);
 PUBLIC E_STATUS initCoreSystemObjectPoolManager(VOID);
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID);
 PUBLIC E_STATUS initCoreInterruptServiceRoutinesManager(VOID);
@@ -81,7 +82,10 @@ PUBLIC VOID CORE_Starting(VOID)
     /* IPC initialize */
     initCoreInterProcessCommunicationManager();
     
-    /* TSM initialize*/
+    /* Stack Initialize */
+    initCoreSystemTaskStackManagerForBoard();
+    
+    /* Task initialize*/
     initCoreSystemTaskScheduleManager();
     
     /* Load application modules*/

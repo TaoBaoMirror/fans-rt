@@ -24,6 +24,11 @@ struct tagARCH_CONTEXT{
     SIZE_T                  StackCapacity;                      /* ¶ÑÕ»ÈÝÁ¿ */
     LPVOID                  lpStackBuffer;                      /* ¶ÑÕ»Ö¸Õë */
     LPVOID                  lpStackPoint;                       /* Õ»¶¥Ö¸Õë */
+#if (FALSE == CONFIG_DYNAMIC_STACK_ENABLE)
+    HANDLE                  StackHandle;
+#else
+    DWORD                   ArchReserved;
+#endif
 };
 
 #define     GetArchContextStackCapacity(lpAC)               ((lpAC)->StackCapacity)
@@ -32,6 +37,12 @@ struct tagARCH_CONTEXT{
 #define     SetArchContextStackBuffer(lpAC, Buff)           do {(lpAC)->lpStackBuffer = (Buff);} while(0)
 #define     GetArchContextStackPosition(lpAC)               ((lpAC)->lpStackPoint)
 #define     SetArchContextStackPosition(lpAC, Stack)        do {(lpAC)->lpStackPoint = (Stack);} while(0)
+#if (FALSE == CONFIG_DYNAMIC_STACK_ENABLE)
+#define     SetArchContextStackHandle(lpAC, hStack)         do {(lpAC)->StackHandle = (hStack);} while(0)
+#define     GetArchContextStackHandle(lpAC)                 (lpAC)->StackHandle)
+#else
+#define     SetArchContextStackHandle(lpAC, hStack)
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +52,6 @@ extern "C" {
     PUBLIC VOID CORE_RestoreIRQ(DWORD dwFlags);
     PUBLIC DWORD CORE_DisableIRQ(VOID);
     PUBLIC DWORD CORE_SaveIRQFlags(VOID);
-    PUBLIC LPVOID CORE_GetBootStackBuffer(VOID);
     PUBLIC DWORD CORE_GetCPUNumbers(VOID);
     PUBLIC E_STATUS CORE_Switch2UserMode(VOID);
     PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, HANDLE hTask);

@@ -616,6 +616,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\system\core\khash.c</FilePath>
             </File>
+            <File>
+              <FileName>kstack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\system\core\kstack.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -705,11 +710,6 @@
               <FileName>kblite_stack.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\lite\kblite_stack.c</FilePath>
-            </File>
-            <File>
-              <FileName>kblite_armcc_misc.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\armcc\kblite_armcc_misc.s</FilePath>
             </File>
             <File>
               <FileName>kbstm32_init.c</FileName>

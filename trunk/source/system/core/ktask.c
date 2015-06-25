@@ -35,10 +35,14 @@ EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
 
 STATIC DWORD g_SystemTaskCount = 0;
 
-#define Handle2TaskContext(hTask)       CORE_Handle2TaskContextCheck(hTask, TRUE)
 #define GetGlobalTaskContextCount()     g_SystemTaskCount
 #define IncGlobalTaskContextCount()     (g_SystemTaskCount ++)
 #define DecGlobalTaskContextCount()     (-- g_SystemTaskCount)
+
+EXPORT DWORD CORE_GetGlobalTaskCount(VOID)
+{
+    return g_SystemTaskCount;
+}
 
 EXPORT LPTASK_CONTEXT CORE_Handle2TaskContextCheck(HANDLE hTask, BOOL Check)
 {
@@ -82,52 +86,22 @@ STATIC E_STATUS GetTaskError(VOID)
     return GetSystemGlobalError();
 }
 
-STATIC VOID SetContextParam(LPTASK_CONTEXT lpTaskContext, LPKTASK_CREATE_PARAM lpTaskParam)
+STATIC VOID SetContextParam(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE_PARAM lpTaskParam)
 {
 #ifdef SYSTEM_HAVE_TICK64
     SetContextResumeTick(lpTaskContext, TASK_SLICE_INFINITE);
 #else
     SetContextResumeRemain(lpTaskContext, TASK_SLICE_INFINITE);
 #endif
-    SetContextSliceRemain(lpTaskContext, MILLI_SECOND_TO_TICK(lpTaskParam->Param.SliceLength));
-    SetContextSliceLength(lpTaskContext, MILLI_SECOND_TO_TICK(lpTaskParam->Param.SliceLength));
+    SetContextSliceRemain(lpTaskContext, MILLI_SECOND_TO_TICK(lpTaskParam->SliceLength));
+    SetContextSliceLength(lpTaskContext, MILLI_SECOND_TO_TICK(lpTaskParam->SliceLength));
     SetContextMiscBits(lpTaskContext, 0, TASK_STATE_DETACH, FALSE, 0, 0);
-    SetContextThisPriority(lpTaskContext, lpTaskParam->Param.Priority);
-    SetContextInitPriority(lpTaskContext, lpTaskParam->Param.Priority);
+    SetContextThisPriority(lpTaskContext, lpTaskParam->Priority);
+    SetContextInitPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextTaskError(lpTaskContext, STATE_SUCCESS);
-    SetContextStackBuffer(lpTaskContext, NULL);
+    CORE_SetArchContextParam(GetContextArchParameter(lpTaskContext), lpTaskParam);
 
     return;
-}
-
-STATIC VOID AttachStack2Context(LPTASK_CONTEXT lpTaskContext,
-                    LPKOBJECT_HEADER StackHeader, LPKTASK_CREATE_PARAM lpTaskParam)
-{
-    KOBJTABLE_ID_T Tid = GetHandleObjectTid(GetObjectHandle(StackHeader));
-    KCONTAINER_ID_T Pid = GetHandleObjectPid(GetObjectHandle(StackHeader));
-    
-    lpTaskParam->lpStackBuffer   = (LPVOID) StackHeader;
-    lpTaskParam->lpStackPosition = (LPVOID) (lpTaskParam->lpStackBuffer + lpTaskParam->Param.StackSize);
-    lpTaskParam->lpStackPosition = CORE_FillStack(lpTaskParam->lpStackPosition, lpTaskParam->Param.fnTaskMain,
-                                     lpTaskParam->Param.lpArgument, GetContextHandle(lpTaskContext));
-
-    CORE_SetArchContextParam(&lpTaskContext->ArchContext, lpTaskParam);
-    SetContextStackID(lpTaskContext, Pid, Tid);
-    CORE_DEBUG(TRUE, "Task '%s' stack pid is %u, tid is %u.",
-        GetContextTaskName(lpTaskContext), Pid, Tid);
-    CORE_DEBUG(TRUE, "Task '%s' stack pid is %u, tid is %u.",
-        GetContextTaskName(lpTaskContext), GetContextStackPid(lpTaskContext),
-        GetContextStackTid(lpTaskContext));
-}
-
-STATIC VOID AttachStack2BootTask(LPTASK_CONTEXT lpTaskContext, LPKOBJECT_HEADER StackHeader)
-{
-    LPBYTE lpStackBuffer = (LPVOID) StackHeader;
-    KOBJTABLE_ID_T Tid = GetHandleObjectTid(GetObjectHandle(StackHeader));
-    KCONTAINER_ID_T Pid = GetHandleObjectPid(GetObjectHandle(StackHeader));
-    
-    SetContextStackBuffer(lpTaskContext, lpStackBuffer); 
-    SetContextStackID(lpTaskContext, Pid, Tid);
 }
 
 STATIC E_STATUS AttachQueue(LPTASK_CONTEXT lpTaskContext, TASK_STATUS TaskState)
@@ -149,10 +123,10 @@ STATIC E_STATUS AttachQueue(LPTASK_CONTEXT lpTaskContext, TASK_STATUS TaskState)
     return STATE_SUCCESS;
 }
 
-STATIC E_STATUS AttachContext2System(LPTASK_CONTEXT lpTaskContext, LPKTASK_CREATE_PARAM lpTaskParam)
+STATIC E_STATUS AttachContext2System(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE_PARAM lpTaskParam)
 {
     E_STATUS State;
-    TASK_STATUS TaskState = lpTaskParam->Param.AutoStartup
+    TASK_STATUS TaskState = lpTaskParam->AutoStartup
                           ? TASK_STATE_READY
                           : TASK_STATE_SLEEP;
     DWORD dwFlags = CORE_DisableIRQ();
@@ -170,6 +144,8 @@ STATIC E_STATUS AttachContext2System(LPTASK_CONTEXT lpTaskContext, LPKTASK_CREAT
         }
         else
         {
+            SetCurrentTaskContext(lpTaskContext);
+            SetCurrentPriority(TASK_PRIORITY_NORMAL);
             SetContextState(lpTaskContext, TASK_STATE_WORKING);
             SetContextStartTick(lpTaskContext, CORE_GetSystemTick());
         }
@@ -217,6 +193,7 @@ STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
 
 STATIC E_STATUS CloseTaskContext(LPTASK_CONTEXT lpTaskContext)
 {
+#if 0
     LPKOBJECT_HEADER lpStackHeader = GetContextStackBuffer(lpTaskContext);
     
     if (IsCoreHandle(GetContextHandle(lpTaskContext)))
@@ -240,6 +217,9 @@ STATIC E_STATUS CloseTaskContext(LPTASK_CONTEXT lpTaskContext)
     }
     
     return CORE_FreeObject(GetContextHeader(lpTaskContext));
+#endif
+    CORE_ERROR(TRUE, "This function is not support !");
+    return STATE_SUCCESS;
 }
 
 
@@ -337,55 +317,13 @@ STATIC E_STATUS NONE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_NOT_SUPPORT;
 }
 
-/************************************************************************************************
-                               Some stack object functions
-************************************************************************************************/
-STATIC E_STATUS STM_MallocStack(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    LPTASK_CONTEXT lpTaskContext;
-    LPKTASK_CREATE_PARAM lpPacket = lpParam;
-
-    if (NULL == lpPacket)
-    {
-        CORE_ERROR(TRUE, "Invalid parameter for malloc stack");
-        return STATE_INVALID_PARAMETER;
-    }
-    
-    if (NULL == (lpTaskContext = Handle2TaskContext(lpPacket->hTask)))
-    {
-        CORE_ERROR(TRUE, "Invalid task context(handle: 0x%08x) for malloc stack", lpPacket->hTask);
-        return STATE_INVALID_TASK;
-    }
-
-    CORE_DEBUG(TRUE, "Malloc stack '%s' for task 0x%P handle 0x%08X ...",
-            GetObjectName(lpHeader), lpTaskContext, lpPacket->hTask);
-    
-    AttachStack2Context(lpTaskContext, lpHeader, lpPacket);
-    
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS STM_FreeStack(LPKOBJECT_HEADER lpHeader)
-{
-    return STATE_SUCCESS;
-}
-
-
-DEFINE_CLASS(STK_MAGIC, StackClass, CONFIG_DEFAULT_STACK_SIZE,
-            STM_MallocStack,
-            NONE_ActiveObject,
-            NONE_TakeObject,
-            NONE_WaitObject,
-            NONE_PostObject,
-            NONE_ResetObject,
-            STM_FreeStack);
 
 /************************************************************************************************
                                Some task object functions
 ************************************************************************************************/
 STATIC E_STATUS STM_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    LPKTASK_CREATE_PARAM lpTaskParam = lpParam;
+    LPTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
 
     if (NULL == lpTaskParam)
@@ -394,20 +332,13 @@ STATIC E_STATUS STM_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
         
-    if (0 != GetGlobalTaskContextCount() && NULL == lpTaskParam->Param.fnTaskMain)
+    if (0 != GetGlobalTaskContextCount() && NULL == lpTaskParam->fnTaskMain)
     {
         CORE_ERROR(TRUE, "Invalid entry to create task '%s' !", GetContextTaskName(lpTaskContext));
         return STATE_INVALID_POINTER;
     }
 
-#if 0
-    if (CONFIG_DEFAULT_STACK_SIZE != lpTaskParam->Param.StackSize)
-    {
-        CORE_ERROR(TRUE, "Invalid stack size %d.", lpTaskParam->Param.StackSize);
-        return STATE_INVALID_SIZE;
-    }
-#endif
-    if (lpTaskParam->Param.Priority == TASK_PRIORITY_IDLE)
+    if (lpTaskParam->Priority == TASK_PRIORITY_IDLE)
     {
         if (TRUE == CheckAllIdleTaskCreateFinished())
         {
@@ -415,27 +346,27 @@ STATIC E_STATUS STM_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
             return STATE_INVALID_PRIORITY;
         }
         
-        if (TASK_SLICE_INFINITE != lpTaskParam->Param.SliceLength)
+        if (TASK_SLICE_INFINITE != lpTaskParam->SliceLength)
         {
             CORE_ERROR(TRUE, "Invalid slice(%d) time to create task '%s' !",
-                lpTaskParam->Param.SliceLength, GetContextTaskName(lpTaskContext));
+                lpTaskParam->SliceLength, GetContextTaskName(lpTaskContext));
             return STATE_INVALID_TIME;
         }
     }
-    else if (lpTaskParam->Param.Priority < CONFIG_TASK_PRIORITY_MAX)
+    else if (lpTaskParam->Priority < CONFIG_TASK_PRIORITY_MAX)
     {
-        if (CONFIG_TIME_SLICE_NORMAL > lpTaskParam->Param.SliceLength)
+        if (CONFIG_TIME_SLICE_NORMAL > lpTaskParam->SliceLength)
         {
             CORE_ERROR(TRUE, "Invalid slice(%d) time to create task '%s' !",
-                lpTaskParam->Param.SliceLength, GetContextTaskName(lpTaskContext));
+                lpTaskParam->SliceLength, GetContextTaskName(lpTaskContext));
             return STATE_INVALID_TIME;
         }
     }
 #if (CONFIG_TASK_PRIORITY_MAX != 256)
-    else if (lpTaskParam->Param.Priority >= CONFIG_TASK_PRIORITY_MAX)
+    else if (lpTaskParam->Priority >= CONFIG_TASK_PRIORITY_MAX)
     {
         CORE_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!",
-            lpTaskParam->Param.Priority, GetContextTaskName(lpTaskContext));
+            lpTaskParam->Priority, GetContextTaskName(lpTaskContext));
         return STATE_INVALID_PRIORITY;
     }
 #endif
@@ -449,7 +380,7 @@ STATIC E_STATUS STM_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS STM_ActiveContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    LPKTASK_CREATE_PARAM lpTaskParam = lpParam;
+    LPTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
     
     CORE_DEBUG(TRUE, "Active task '%s' ...", GetObjectName(lpHeader));
@@ -731,7 +662,42 @@ STATIC E_STATUS SVC_SystemPerformance(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_MallocStack(LPVOID lpPrivate, LPVOID lpParam)
 {
-    return STATE_NOT_IMPLEMENTED;
+    LPTASK_CONTEXT lpTaskContext;
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    
+    lpTaskContext = Handle2TaskContext(lpPacket->u0.hParam);
+    
+    if (NULL == lpTaskContext)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+    
+    if (KOBJECT_STATE_CREATE != GetObjectState(GetContextHeader(lpTaskContext)))
+    {
+        return STATE_INVALID_STATE;
+    }
+    
+    return CORE_CreateStackForTask(lpTaskContext, lpPacket->u1.pParam, lpPacket->u2.dParam);
+}
+
+STATIC E_STATUS SVC_FillStack(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPTASK_CONTEXT lpTaskContext;
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    
+    lpTaskContext = Handle2TaskContext(lpPacket->u0.hParam);
+    
+    if (NULL == lpTaskContext)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+    
+    if (KOBJECT_STATE_CREATE != GetObjectState(GetContextHeader(lpTaskContext)))
+    {
+        return STATE_INVALID_STATE;
+    }
+    
+    return CORE_FillTaskStack(lpTaskContext, lpPacket->u1.pParam, lpPacket->u2.dParam);
 }
 
 STATIC E_STATUS SVC_FreeStack(LPVOID lpPrivate, LPVOID lpParam)
@@ -761,6 +727,7 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_EnumTask,                   /* 17.LPC_TSS_SYS_ENUMTASK */
     SVC_SystemPerformance,          /* 18.LPC_TSS_PERFORMANCE */
     SVC_MallocStack,                /* 19.LPC_TSS_STACK_MALLOC */
+    SVC_FillStack,                  /* 20.LPC_TSS_STACK_FILL */
     SVC_FreeStack,                  /* 20.LPC_TSS_STACK_FREE */
 };
 
@@ -769,49 +736,46 @@ DEFINE_LPC_SERVICE(LPCService, STM_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHand
 EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
 {
     E_STATUS State;
-    KTASK_CREATE_PARAM TaskParam;
+    TASK_CREATE_PARAM TaskParam;
     LPTASK_CONTEXT lpTaskContext = NULL;
-#if (CONFIG_DYNAMIC_STACK_ENABLE == FALSE)
-    CHAR StackName[OBJECT_NAME_MAX];
-#endif
-    
+
     if (NULL == lpTaskName || NULL == lpParam)
     {
         CORE_SetError(STATE_INVALID_PARAMETER);
         return NULL;
     }
     
-    TaskParam.Param = *lpParam;
+    TaskParam = *lpParam;
 
 #if (CONFIG_TASK_PRIORITY_MAX != 256)
-    if (TaskParam.Param.Priority >= CONFIG_TASK_PRIORITY_MAX)
+    if (TaskParam.Priority >= CONFIG_TASK_PRIORITY_MAX)
     {
         CORE_ERROR(TRUE, "Invalid priority(%d) to create task '%s'!",
-                        TaskParam.Param.Priority, lpTaskName);
+                        TaskParam.Priority, lpTaskName);
         CORE_SetError(STATE_INVALID_PRIORITY);
         return NULL;
     }
 #endif
 
-    if (TASK_PRIORITY_IDLE == TaskParam.Param.Priority)
+    if (TASK_PRIORITY_IDLE == TaskParam.Priority)
     {
-        TaskParam.Param.SliceLength = TASK_SLICE_INFINITE;
-        TaskParam.Param.StackSize = CORE_GetIdleStackCapacity();
+        TaskParam.SliceLength = TASK_SLICE_INFINITE;
+        TaskParam.StackSize = CORE_GetIdleStackCapacity();
     }
     else
     {
-        if (TaskParam.Param.SliceLength < CONFIG_TIME_SLICE_NORMAL)
+        if (TaskParam.SliceLength < CONFIG_TIME_SLICE_NORMAL)
         {
-            TaskParam.Param.SliceLength = CONFIG_TIME_SLICE_NORMAL;
+            TaskParam.SliceLength = CONFIG_TIME_SLICE_NORMAL;
         }
     }
     
-    TaskParam.Param.StackSize   =   0 == TaskParam.Param.StackSize
+    TaskParam.StackSize   =   0 == TaskParam.StackSize
                                 ?   CONFIG_DEFAULT_STACK_SIZE
-                                :   TaskParam.Param.StackSize;
-    TaskParam.Param.lpTaskPath  =   NULL == TaskParam.Param.lpTaskPath
+                                :   TaskParam.StackSize;
+    TaskParam.lpTaskPath  =   NULL == TaskParam.lpTaskPath
                                 ?   CONFIG_DEFAULT_PATH
-                                :   TaskParam.Param.lpTaskPath;
+                                :   TaskParam.lpTaskPath;
 
     lpTaskContext = (LPVOID) CORE_MallocObject(TSK_MAGIC, lpTaskName, &TaskParam);
 
@@ -820,54 +784,30 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREA
         CORE_ERROR(TRUE, "Malloc task '%s' failed!", lpTaskName);
         return NULL;
     }
-    
-    TaskParam.hTask = GetContextHandle(lpTaskContext);
+
     SetTaskPermission(lpTaskContext, TASK_PERMISSION_CORE);
-    
-#if (CONFIG_DYNAMIC_STACK_ENABLE == FALSE)
-    memcpy(StackName, lpTaskName, OBJECT_NAME_MAX);
-    SetStackObjectName(StackName, '*');
-#endif
-    if (0 == GetGlobalTaskContextCount())
-    {
-        LPKOBJECT_HEADER StackHeader = CORE_GetBootStackBuffer();
-        SetObjectHandle(StackHeader, MakeCoreStackHandle(BOOT_TASK_ID));
-        AttachStack2BootTask(lpTaskContext, StackHeader);
-        SetCurrentPriority(TASK_PRIORITY_NORMAL);
-        SetCurrentTaskContext(lpTaskContext);               /* boot task is current task */
-        SetSwitch2TaskContext(lpTaskContext);
-    }
-    else if (TASK_PRIORITY_IDLE == TaskParam.Param.Priority)
-    {
-        LPKOBJECT_HEADER StackHeader = (LPVOID) CORE_GetIdleStackBuffer(GetFreeIdleCPUID());
 
-        if (NULL == StackHeader)
-        {
-            CORE_ERROR(TRUE, "No memory to create stack for task '%s' !", lpTaskName);
-            CloseTaskContext(lpTaskContext);
-            CORE_SetError(STATE_INVALID_STACK);
-            return NULL;
-        }
-
-        SetObjectHandle(StackHeader, MakeCoreStackHandle(IDLE_TASK_ID));
-        AttachStack2Context(lpTaskContext, StackHeader, &TaskParam);
-    }
-#if (CONFIG_DYNAMIC_STACK_ENABLE == FALSE)
-    else if (NULL == CORE_MallocObject(STK_MAGIC, StackName, &TaskParam))
+    if (STATE_SUCCESS != (State = CORE_CreateStackForTask(lpTaskContext, &TaskParam, TRUE)))
     {
-        State = CORE_GetError();
-        CORE_ERROR(TRUE, "No memory to create stack for task '%s' !", lpTaskName);
+        CORE_ERROR(TRUE, "Malloc stack for task '%s' failed!", lpTaskName);
         CloseTaskContext(lpTaskContext);
         CORE_SetError(State);
         return NULL;
     }
-#else
-#error "Can not dynamic stack."
-#endif
+    
+    if (STATE_SUCCESS != (State = CORE_FillTaskStack(lpTaskContext, &TaskParam, TRUE)))
+    {
+        CORE_ERROR(TRUE, "Fill stack for task '%s' failed!", lpTaskName);
+        CORE_StackFree(lpTaskContext, TRUE);
+        CloseTaskContext(lpTaskContext);
+        CORE_SetError(State);
+        return NULL;
+    }
 
     if (STATE_SUCCESS != (State = CORE_ActiveObject(GetContextHeader(lpTaskContext), &TaskParam)))
     {
         CORE_ERROR(TRUE, "Active object failed to create task '%s' !", lpTaskName);
+        CORE_StackFree(lpTaskContext, TRUE);
         CloseTaskContext(lpTaskContext);
         CORE_SetError(State);
     }
@@ -926,13 +866,6 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Register task context class failed, result = %d !", State);
-#if (CONFIG_DYNAMIC_STACK_ENABLE == FALSE)
-    /* ×¢²áTask stack¶ÔÏóÀà */
-    State = CORE_RegisterClass(&StackClass);
-
-    CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
-        "Register stack context class failed, result = %d !", State);
-#endif
 
     LPC_INSTALL(&LPCService, "Task Schedule(TSK) service starting");
 
@@ -994,14 +927,14 @@ EXPORT VOID CORE_SetTaskStackPosition(LPVOID StackPosition)
 {
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
 
-    SetContextStackPosition(lpCurrentTask, StackPosition);
+    SetArchContextStackPosition(GetContextArchParameter(lpCurrentTask), StackPosition);
 }
 
 EXPORT LPVOID CORE_GetTaskStackPosition(VOID)
 {
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
 
-    return GetContextStackPosition(lpCurrentTask);
+    return GetArchContextStackPosition(GetContextArchParameter(lpCurrentTask));
 }
 
 EXPORT LPVOID CORE_GetCoreStackPosition(LPVOID StackPosition)
@@ -1024,11 +957,11 @@ EXPORT LPVOID CORE_SwitchTask(LPVOID StackPosition)
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
     LPTASK_CONTEXT lpSwitch2Task = GetSwitch2TaskContext();
     
-    SetContextStackPosition(lpCurrentTask, StackPosition);
+    SetArchContextStackPosition(GetContextArchParameter(lpCurrentTask), StackPosition);
     SetCurrentPriority(GetContextThisPriority(lpSwitch2Task));
     SetContextState(lpSwitch2Task, TASK_STATE_WORKING);
     SetCurrentTaskContext(lpSwitch2Task);
-    StackPosition = GetContextStackPosition(lpSwitch2Task);
+    StackPosition = GetArchContextStackPosition(GetContextArchParameter(lpSwitch2Task));
     
     if (INVALID_TICK == GetContextStartTick(lpSwitch2Task))
     {

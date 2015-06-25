@@ -54,8 +54,8 @@ PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, H
 
 PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpParam)
 {
-    LPKTASK_CREATE_PARAM lpTaskParam = lpParam;
-    SetArchContextStackCapacity(lpArchContext, lpTaskParam->Param.StackSize);
-    SetArchContextStackBuffer(lpArchContext, lpTaskParam->lpStackBuffer); 
-    SetArchContextStackPosition(lpArchContext, lpTaskParam->lpStackPosition);
+    SetArchContextStackCapacity(lpArchContext, 0);
+    SetArchContextStackBuffer(lpArchContext, NULL); 
+    SetArchContextStackPosition(lpArchContext, NULL);
+    SetArchContextStackHandle(lpArchContext, INVALID_HANDLE_VALUE);
 }
