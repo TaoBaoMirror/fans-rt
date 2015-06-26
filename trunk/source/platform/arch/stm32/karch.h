@@ -16,33 +16,20 @@
 #include <fadefs.h>
 #include <fatypes.h>
 
+#include "kstack.h"
+
 typedef struct tagARCH_CONTEXT ARCH_CONTEXT;
 typedef struct tagARCH_CONTEXT * PARCH_CONTEXT;
 typedef struct tagARCH_CONTEXT FAR * LPARCH_CONTEXT;
 
+
 struct tagARCH_CONTEXT{
-    SIZE_T                  StackCapacity;                      /* ¶ÑÕ»ÈÝÁ¿ */
-    LPVOID                  lpStackBuffer;                      /* ¶ÑÕ»Ö¸Õë */
-    LPVOID                  lpStackPoint;                       /* Õ»¶¥Ö¸Õë */
-#if (FALSE == CONFIG_DYNAMIC_STACK_ENABLE)
-    HANDLE                  StackHandle;
-#else
-    DWORD                   ArchReserved;
-#endif
+    STACK_DESCRIPTOR            Stack[TASK_PERMISSION_MAX];
 };
 
-#define     GetArchContextStackCapacity(lpAC)               ((lpAC)->StackCapacity)
-#define     SetArchContextStackCapacity(lpAC, Len)          do {(lpAC)->StackCapacity = (Len); } while(0)
-#define     GetArchContextStackBuffer(lpAC)                 ((lpAC)->lpStackBuffer)
-#define     SetArchContextStackBuffer(lpAC, Buff)           do {(lpAC)->lpStackBuffer = (Buff);} while(0)
-#define     GetArchContextStackPosition(lpAC)               ((lpAC)->lpStackPoint)
-#define     SetArchContextStackPosition(lpAC, Stack)        do {(lpAC)->lpStackPoint = (Stack);} while(0)
-#if (FALSE == CONFIG_DYNAMIC_STACK_ENABLE)
-#define     SetArchContextStackHandle(lpAC, hStack)         do {(lpAC)->StackHandle = (hStack);} while(0)
-#define     GetArchContextStackHandle(lpAC)                 (lpAC)->StackHandle)
-#else
-#define     SetArchContextStackHandle(lpAC, hStack)
-#endif
+#define     GetArchSD(lpAC, Permission)     (&((lpAC)->Stack[Permission]))
+#define     GetArchUserSD(lpAC)             (&((lpAC)->Stack[TASK_PERMISSION_USER]))
+#define     GetArchCoreSD(lpAC)             (&((lpAC)->Stack[TASK_PERMISSION_CORE]))
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,6 +40,7 @@ extern "C" {
     PUBLIC DWORD CORE_DisableIRQ(VOID);
     PUBLIC DWORD CORE_SaveIRQFlags(VOID);
     PUBLIC DWORD CORE_GetCPUNumbers(VOID);
+    STATIC BOOL CORE_CpuSupportGlobalCoreStack(VOID) { return TRUE; }
     PUBLIC E_STATUS CORE_Switch2UserMode(VOID);
     PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, HANDLE hTask);
     PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpParam);

@@ -108,31 +108,45 @@ FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lp
         return INVALID_HANDLE_VALUE;
     }
 
-    if (STATE_SUCCESS != caStackMalloc(hTask, &TaskParam, TRUE))
-    {
-        LOG_ERROR(TRUE, "Malloc core stack for task '%s' failed.", TaskName);
-        caCloseTask(hTask);
-        return INVALID_HANDLE_VALUE;
-    }
-
-    if (STATE_SUCCESS != caStackMalloc(hTask, &TaskParam, FALSE))
+    if (STATE_SUCCESS != caStackMalloc(hTask, &TaskParam, TASK_PERMISSION_USER))
     {
         LOG_ERROR(TRUE, "Malloc user stack for task '%s' failed.", TaskName);
-        caStackFree(hTask, TRUE);
-        caCloseTask(hTask);
-        return INVALID_HANDLE_VALUE;
+        goto lable0;
     }
     
-    if (STATE_SUCCESS != caActiveObject(hTask, &TaskParam))
+    if (STATE_SUCCESS != caStackFill(hTask, TASK_PERMISSION_USER))
     {
-        LOG_ERROR(TRUE, "Active object failed to create task '%s' !", TaskName);
-        caStackFree(hTask, FALSE);
-        caStackFree(hTask, TRUE);
-        caCloseTask(hTask);
-        return INVALID_HANDLE_VALUE;
+        LOG_ERROR(TRUE, "Fill user stack for task '%s' failed.", TaskName);
+        goto lable1;
     }
 
-    return hTask;
+    if (STATE_SUCCESS != caStackMalloc(hTask, &TaskParam, TASK_PERMISSION_CORE))
+    {
+        LOG_ERROR(TRUE, "Malloc core stack for task '%s' failed.", TaskName);
+        goto lable1;
+    }
+
+    if (STATE_SUCCESS != caStackFill(hTask, TASK_PERMISSION_CORE))
+    {
+        LOG_ERROR(TRUE, "Fill user stack for task '%s' failed.", TaskName);
+        goto lable2;
+    }
+    
+    if (STATE_SUCCESS == caActiveObject(hTask, &TaskParam))
+    {
+        return hTask;
+    }
+
+    LOG_ERROR(TRUE, "Active object failed to create task '%s' !", TaskName);
+    
+lable2:
+    caStackFree(hTask, TASK_PERMISSION_CORE);
+lable1:
+    caStackFree(hTask, TASK_PERMISSION_USER);
+lable0:
+    caCloseTask(hTask);
+
+    return INVALID_HANDLE_VALUE;
 }
 EXPORT_SYMBOL(CreateTaskEx);
 

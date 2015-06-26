@@ -29,13 +29,6 @@ extern "C" {
     PUBLIC LPVOID CORE_GetCoreStackButtom(VOID);
     PUBLIC LPVOID CORE_GetBootStackBuffer(VOID);
     PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID);
-#define     CORE_GetBootStackCapacity()     CONFIG_BOOT_STACK_SIZE
-#define     CORE_GetIdleStackCapacity()     CONFIG_IDLE_STACK_SIZE
-    PUBLIC LPVOID CORE_GetTaskCoreStackPosition(LPVOID lpTaskContext, LPVOID StackPosition);
-    PUBLIC E_STATUS CORE_CreateStackForTask(LPVOID lpTaskContext, LPVOID lpTaskParam, BOOL IsCore);
-    PUBLIC E_STATUS CORE_FillTaskStack(LPVOID lpTaskContext, LPVOID lpParam, BOOL IsCore);
-    PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, BOOL IsCore);
-
     PUBLIC E_STATUS CORE_ScanMemoryRegion(VOID);
 
 #ifdef __cplusplus

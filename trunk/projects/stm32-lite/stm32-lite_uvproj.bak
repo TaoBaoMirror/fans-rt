@@ -616,11 +616,6 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\system\core\khash.c</FilePath>
             </File>
-            <File>
-              <FileName>kstack.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\system\core\kstack.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
