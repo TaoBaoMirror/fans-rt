@@ -237,6 +237,12 @@ typedef enum emTASK_STATUS{
     TASK_STATE_MAX,
 }TASK_STATUS;
 
+typedef enum emTASK_PERMISSION{
+    TASK_PERMISSION_CORE    =       0,
+    TASK_PERMISSION_USER    =       1,
+    TASK_PERMISSION_MAX     =       2,
+}E_TASK_PERMISSION;
+
 typedef FANSAPI E_STATUS (FAR *FNTASKMAIN)(LPVOID lpArgment);
 
 typedef struct tagTASK_CREATE_PARAM{

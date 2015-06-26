@@ -15,7 +15,7 @@
     IMPORT  CORE_TaskScheduling
     IMPORT  CORE_HandlerLPC
     IMPORT  CORE_SwitchTask
-    IMPORT  CORE_GetCoreStackButtom
+    IMPORT  CORE_GetCoreStackPosition
 
     PRESERVE8
 
@@ -28,7 +28,8 @@ NVIC_PEND_SET   EQU     0x10000000
 
 CORE_Switch2UserMode   PROC
     PUSH    {LR}
-    BL      CORE_GetCoreStackButtom
+    MRS     R0,     MSP
+    BL      CORE_GetCoreStackPosition
     MRS     R1,     MSP
     MSR     PSP,    R1
     MSR     MSP,    R0

@@ -23,8 +23,7 @@
 #include "kobject.h"
 #include "limits.h"
 
-#define     TASK_PERMISSION_CORE        0
-#define     TASK_PERMISSION_USER        1
+
 #define     TASK_BOOTSTARTUP_CPUID      0
 
 enum{
@@ -47,9 +46,6 @@ enum{
     LPC_TSS_GET_TASKINFO,
     LPC_TSS_SYS_ENUMTASK,
     LPC_TSS_PERFORMANCE,
-    LPC_TSS_STACK_MALLOC,
-    LPC_TSS_STACK_FILL,
-    LPC_TSS_STACK_FREE,
     LPC_TSS_REQUEST_MAX
 };
 
@@ -216,8 +212,8 @@ struct tagTASK_CONTEXT{
 #define     GetContextSliceLength(lpTC)                     ((lpTC)->SliceLength)
 #define     SetContextSliceLength(lpTC, Ticks)              do {(lpTC)->SliceLength = (Ticks);} while(0)
 
-#define     GetContextCPUPercent(lpTC)                      ((lpTC)->CPUPercent)
-#define     SetContextCPUPercent(lpTC, Percent)             do {(lpTC)->CPUPercent = (Percent);} while(0)
+#define     GetContextCPUPercent(lpTC)                      ((lpTC)->ub.Bits.CPUPercent)
+#define     SetContextCPUPercent(lpTC, Percent)             do {(lpTC)->ub.Bits.CPUPercent = (Percent);} while(0)
 
 #define     GetContextState(lpTC)                           ((lpTC)->ub.Bits.TaskState)
 #define     SetContextState(lpTC, State)                    do { (lpTC)->ub.Bits.TaskState = (State); } while(0)
@@ -225,8 +221,11 @@ struct tagTASK_CONTEXT{
 #define     GetContextCancel(lpTC)                          ((lpTC)->ub.Bits.CancelBit)
 #define     SetContextCancel(lpTC, boolean)                 do { (lpTC)->ub.Bits.CancelBit = (boolean); } while(0)
 
-#define     GetTaskPermission(lpTC)                         ((lpTC)->ub.Bits.Permission)
-#define     SetTaskPermission(lpTC, boolean)                do { (lpTC)->ub.Bits.Permission = (boolean); } while(0)
+#define     GetContextFaultBit(lpTC)                        ((lpTC)->ub.Bits.FaultBit)
+#define     SetContextFaultBit(lpTC, Fault)                 do {(lpTC)->ub.Bits.FaultBit = (Fault);} while(0)
+
+#define     GetContextPermission(lpTC)                      ((E_TASK_PERMISSION)((lpTC)->ub.Bits.Permission))
+#define     SetContextPermission(lpTC, Perm)                do {(lpTC)->ub.Bits.Permission = (Perm);} while(0)
 
 #define     GetContextSmltMarkBits(lpTC)                    ((lpTC)->ub.Bits.SmltMark)
 #define     GetContextSmltKeyIsFree(lpTC, id)               (0 == (((lpTC)->ub.Bits.SmltMark) & (1 << (id))))
@@ -242,15 +241,7 @@ struct tagTASK_CONTEXT{
 #define     GetContextTaskError(lpTC)                       ((lpTC)->ErrorCode)
 #define     SetContextTaskError(lpTC, Code)                 do {(lpTC)->ErrorCode = (Code);} while(0)
 
-#define     GetContextStackCapacity(lpTC)                   GetArchContextStackCapacity(&lpTC->ArchContext)
-#define     SetContextStackCapacity(lpTC, Len)              SetArchContextStackCapacity(&lpTC->ArchContext, Len)
-
 #define     GetContextArchParameter(lpTC)                   (&(lpTC)->ArchContext)
-//#define     GetContextStackBuffer(lpTC)                     GetArchContextStackBuffer(&lpTC->ArchContext)
-//#define     SetContextStackBuffer(lpTC, Buff)               SetArchContextStackBuffer(&lpTC->ArchContext, Buff)
-
-//#define     GetContextStackPosition(lpTC)                   GetArchContextStackPosition(&lpTC->ArchContext)
-//#define     SetContextStackPosition(lpTC, Stack)            SetArchContextStackPosition(&lpTC->ArchContext, Stack)
 
 #define     GetContextLPCPacket(lpTC)                       ((lpTC)->lpLPCPacket)
 #define     SetContextLPCPacket(lpTC, Addr)                 do {((lpTC)->lpLPCPacket) = (Addr); } while(0)
@@ -285,32 +276,6 @@ struct tagTASK_CONTEXT{
 #define     GetContextHeader(lpTC)                          (&(lpTC)->Header)
 #define     GetContextHandle(lpTC)                          GetObjectHandle(GetContextHeader(lpTC))
 #define     SetContextHandle(lpTC, H)                       SetObjectHandle(GetContextHeader(lpTC), H)
-#define     GetCurrentTaskHandle()                          GetContextHandle(CORE_GetCurrentTask())
-
-#define     GetContextTaskCid(lpC)                          GetObjectCid(&(lpC)->Header)
-#define     SetContextTaskCid(lpC, Cid)                     SetObjectCid(&(lpC)->Header, Cid)
-
-#define     GetContextTaskPid(lpC)                          GetObjectPid(&(lpC)->Header)
-#define     SetContextTaskPid(lpC, Pid)                     SetObjectPid(&(lpC)->Header, Pid)
-
-#define     GetContextStackPid(lpTC)                        ((lpTC)->ub.Bits.StackPid)
-#define     SetContextStackPid(lpTC, Pid)                   do {(lpTC)->ub.Bits.StackPid = (Pid);} while(0);
-
-#define     GetContextStackTid(lpTC)                        ((lpTC)->ub.Bits.StackTid)
-#define     SetContextStackTid(lpTC, Tid)                   do {(lpTC)->ub.Bits.StackTid = (Tid);} while(0);
-#define     SetStackObjectName(Name, Value)                 do { Name[0] = Value; } while(0)
-#define     SetContextStackID(lpTC, Pid, Tid)                                                                   \
-            do{                                                                                                 \
-                (lpTC)->ub.MiscBits &= (~MISCBITS_STACKID_BITS_MASK);                                           \
-                (lpTC)->ub.MiscBits |= (((Pid)<< MISCBITS_STACKPID_BITS_SHIFT)                                  \
-                                      | ((Tid)<< MISCBITS_STACKTID_BITS_SHIFT));                                \
-            }while(0)
-
-#define     GetContextFaultBit(lpTC)                        ((lpTC)->FaultBit)
-#define     SetContextFaultBit(lpTC, Fault)                 do {(lpTC)->FaultBit = (Fault);} while(0)
-
-#define     GetContextPermission(lpTC)                      ((lpTC)->Permission)
-#define     SetContextPermission(lpTC, Mark)                do {(lpTC)->Permission = (Mark);} while(0)
 
 #define     GetContextTaskName(lpTC)                        GetObjectName(&(lpTC)->Header)
 #define     SetContextTaskName(lpTC, lpdName)               SetObjectName(&(lpTC)->Header, lpdName)
@@ -319,13 +284,11 @@ struct tagTASK_CONTEXT{
 
 #define     Handle2TaskContext(hTask)                       CORE_Handle2TaskContextCheck(hTask, TRUE)
 
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-#if (CONFIG_PROFILER_CYCLE != 0)
-
-#endif
-
     EXPORT E_STATUS CORE_GetError(VOID);
     EXPORT E_STATUS CORE_SetError(E_STATUS emCode);
     EXPORT LPTASK_CONTEXT CORE_Handle2TaskContextCheck(HANDLE hTask, BOOL Check);
@@ -340,6 +303,7 @@ extern "C" {
 
     EXPORT DWORD CORE_GetInterruptLayer(VOID);
     EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID);
+    EXPORT LPTASK_CONTEXT CORE_GetCurrentTaskSafe(VOID);
     EXPORT VOID CORE_SetCurrentTaskLPCPacket(LPVOID lpPacket);
     EXPORT E_STATUS CORE_TaskSuspend(LONG Timeout);
     EXPORT E_STATUS CORE_TaskAttach2WaitQueue(LPLIST_HEAD lpWaitQueue, LONG Timeout);

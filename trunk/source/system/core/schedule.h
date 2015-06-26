@@ -38,7 +38,7 @@ typedef union tagSCHEDULER_FLAGS{
 STATIC  LIST_HEAD       g_SystemTaskTable;                                                  /**< 系统任务表 */
 STATIC  LIST_HEAD       g_TaskSuspendQueue;                                                 /**< 任务休眠队列 */
 STATIC  LIST_HEAD       g_TaskReadyQueue[CONFIG_TASK_PRIORITY_MAX];                         /**< 优先级就绪队列 */
-STATIC  VOLATILE        LPTASK_CONTEXT  g_CurrentContext        =       NULL;               /**< 当前任务上下文指针 */
+PUBLIC  VOLATILE        LPTASK_CONTEXT  g_CurrentContext        =       NULL;               /**< 当前任务上下文指针 */
 #if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
 STATIC  VOLATILE        LPTASK_CONTEXT  g_Switch2Context        =       NULL;               /**< 切换目标任务上下文指针  */
 #endif

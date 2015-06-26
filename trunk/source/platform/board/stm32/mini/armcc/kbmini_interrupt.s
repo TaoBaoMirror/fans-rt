@@ -16,7 +16,6 @@
     IMPORT  CORE_TaskScheduling
     IMPORT  CORE_SetTaskStackPosition
     IMPORT  CORE_GetTaskStackPosition
-    IMPORT  CORE_GetCoreStackPosition
 
     PRESERVE8
 

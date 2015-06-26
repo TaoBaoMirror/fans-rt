@@ -253,8 +253,10 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     }
     else
     {
-        SetMutexAttribute(lpHeader, GetCurrentTaskHandle(), 0);
-        SetContextLockedMutex(CORE_GetCurrentTask(), GetObjectHandle(lpHeader));
+        LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
+        CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS(), "Current task context not found ?");
+        SetMutexAttribute(lpHeader, GetContextHandle(lpCurrentTask), 0);
+        SetContextLockedMutex(lpCurrentTask, GetObjectHandle(lpHeader));
     }
 
     return STATE_SUCCESS;
@@ -274,6 +276,7 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
     {
         lpOnwerContext = CORE_GetCurrentTask();
 
+        CORE_ASSERT(lpOnwerContext, SYSTEM_CALL_OOPS(), "Current task context not found ?");
         SetMutexOnwer(lpHeader, GetContextHandle(lpOnwerContext));
         SetContextLockedMutex(lpOnwerContext, GetObjectHandle(lpHeader));
 

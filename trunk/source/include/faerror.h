@@ -59,6 +59,7 @@ typedef enum emSTATUS{
     STATE_INVALID_PARAMETER         =       -61,
     STATE_INVALID_POINTER           =       -62,
     STATE_INVALID_STACK             =       -63,
+    STATE_INVALID_PERMISSION        =       -64,
 }E_STATUS, * PE_STATUS, FAR * LPE_STATUS;
 
 #define SET_STATUS(status, value)       \

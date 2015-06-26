@@ -67,8 +67,9 @@ extern "C" {
     EXPORT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime);
     EXPORT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam);
     EXPORT E_STATUS caFreeObject(HANDLE handle);
-    EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, BOOL IsCore);
-    EXPORT E_STATUS caStackFree(HANDLE hTask, BOOL IsCore);
+    EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);
+    EXPORT E_STATUS caStackFill(HANDLE hTask, E_TASK_PERMISSION Permission);
+    EXPORT E_STATUS caStackFree(HANDLE hTask, E_TASK_PERMISSION Permission);
 
     EXPORT LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType);
 

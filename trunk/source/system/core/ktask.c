@@ -23,6 +23,7 @@
 #include "klist.h"
 #include "kcore.h"
 #include "kboard.h"
+#include "kstack.h"
 #include "kdebug.h"
 #include "schedule.h"
 
@@ -99,6 +100,7 @@ STATIC VOID SetContextParam(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE_PARAM lp
     SetContextThisPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextInitPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextTaskError(lpTaskContext, STATE_SUCCESS);
+    //SetContextPermission(lpTaskContext, TASK_PERMISSION_USER);  /* no need see @SetContextMiscBits*/
     CORE_SetArchContextParam(GetContextArchParameter(lpTaskContext), lpTaskParam);
 
     return;
@@ -292,27 +294,17 @@ STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey
 /************************************************************************************************
                                Some none object functions
 ************************************************************************************************/
-STATIC E_STATUS NONE_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+#define     OBJ_TakeContext                         OBJ_DummyOperation
+#define     OBJ_PostContext                         OBJ_DummyOperation
+#define     OBJ_ResetContext                        OBJ_DummyOperation
+
+STATIC E_STATUS OBJ_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    return STATE_NOT_SUPPORT;
+    return STATE_SUCCESS;
 }
 
-STATIC E_STATUS NONE_TakeObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_NOT_SUPPORT;
-}
 
-STATIC E_STATUS NONE_WaitObject(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
-{
-    return STATE_NOT_SUPPORT;
-}
-
-STATIC E_STATUS NONE_PostObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_NOT_SUPPORT;
-}
-
-STATIC E_STATUS NONE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+STATIC E_STATUS OBJ_WaitContext(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
 {
     return STATE_NOT_SUPPORT;
 }
@@ -321,7 +313,7 @@ STATIC E_STATUS NONE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 /************************************************************************************************
                                Some task object functions
 ************************************************************************************************/
-STATIC E_STATUS STM_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+STATIC E_STATUS OBJ_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     LPTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
@@ -378,7 +370,7 @@ STATIC E_STATUS STM_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_SUCCESS;
 }
 
-STATIC E_STATUS STM_ActiveContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+STATIC E_STATUS OBJ_ActiveContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     LPTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
@@ -388,7 +380,7 @@ STATIC E_STATUS STM_ActiveContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return AttachContext2System(lpTaskContext, lpTaskParam);
 }
 
-STATIC E_STATUS STM_FreeContext(LPKOBJECT_HEADER lpHeader)
+STATIC E_STATUS OBJ_FreeContext(LPKOBJECT_HEADER lpHeader)
 {
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
 
@@ -403,13 +395,13 @@ STATIC E_STATUS STM_FreeContext(LPKOBJECT_HEADER lpHeader)
 
 
 DEFINE_CLASS(TSK_MAGIC, TaskClass, sizeof(TASK_CONTEXT),
-            STM_MallocContext,
-            STM_ActiveContext,
-            NONE_TakeObject,
-            NONE_WaitObject,
-            NONE_PostObject,
-            NONE_ResetObject,
-            STM_FreeContext);
+            OBJ_MallocContext,
+            OBJ_ActiveContext,
+            OBJ_TakeContext,
+            OBJ_WaitContext,
+            OBJ_PostContext,
+            OBJ_ResetContext,
+            OBJ_FreeContext);
 
 STATIC E_STATUS SVC_GetTaskError(LPVOID lpPrivate, LPVOID lpParam)
 {
@@ -660,52 +652,6 @@ STATIC E_STATUS SVC_SystemPerformance(LPVOID lpPrivate, LPVOID lpParam)
     return STATE_NOT_IMPLEMENTED;
 }
 
-STATIC E_STATUS SVC_MallocStack(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPTASK_CONTEXT lpTaskContext;
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    
-    lpTaskContext = Handle2TaskContext(lpPacket->u0.hParam);
-    
-    if (NULL == lpTaskContext)
-    {
-        return STATE_INVALID_PARAMETER;
-    }
-    
-    if (KOBJECT_STATE_CREATE != GetObjectState(GetContextHeader(lpTaskContext)))
-    {
-        return STATE_INVALID_STATE;
-    }
-    
-    return CORE_CreateStackForTask(lpTaskContext, lpPacket->u1.pParam, lpPacket->u2.dParam);
-}
-
-STATIC E_STATUS SVC_FillStack(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPTASK_CONTEXT lpTaskContext;
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    
-    lpTaskContext = Handle2TaskContext(lpPacket->u0.hParam);
-    
-    if (NULL == lpTaskContext)
-    {
-        return STATE_INVALID_PARAMETER;
-    }
-    
-    if (KOBJECT_STATE_CREATE != GetObjectState(GetContextHeader(lpTaskContext)))
-    {
-        return STATE_INVALID_STATE;
-    }
-    
-    return CORE_FillTaskStack(lpTaskContext, lpPacket->u1.pParam, lpPacket->u2.dParam);
-}
-
-STATIC E_STATUS SVC_FreeStack(LPVOID lpPrivate, LPVOID lpParam)
-{
-    return STATE_NOT_IMPLEMENTED;
-}
-
-
 STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_GetTaskError,               /* 00.LPC_TSS_GET_TASKERROR */
     SVC_SetTaskError,               /* 01.LPC_TSS_SET_TASKERROR */
@@ -726,9 +672,6 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_GetTaskInfo,                /* 16.LPC_TSS_GET_TASKINFO */
     SVC_EnumTask,                   /* 17.LPC_TSS_SYS_ENUMTASK */
     SVC_SystemPerformance,          /* 18.LPC_TSS_PERFORMANCE */
-    SVC_MallocStack,                /* 19.LPC_TSS_STACK_MALLOC */
-    SVC_FillStack,                  /* 20.LPC_TSS_STACK_FILL */
-    SVC_FreeStack,                  /* 20.LPC_TSS_STACK_FREE */
 };
 
 DEFINE_LPC_SERVICE(LPCService, STM_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHandlers);
@@ -785,34 +728,53 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREA
         return NULL;
     }
 
-    SetTaskPermission(lpTaskContext, TASK_PERMISSION_CORE);
+    if (0 == GetGlobalTaskContextCount())
+    {
+        if (STATE_SUCCESS != (State = CORE_CreateStackForTask(lpTaskContext, &TaskParam, TASK_PERMISSION_USER)))
+        {
+            CORE_ERROR(TRUE, "Malloc stack for task '%s' failed!", lpTaskName);
+            goto lable0;
+        }
+        
+        if (STATE_SUCCESS != (State = CORE_FillTaskStack(lpTaskContext, &TaskParam, TASK_PERMISSION_USER)))
+        {
+            CORE_ERROR(TRUE, "Fill stack for task '%s' failed!", lpTaskName);
+            goto lable1;
+        }
+    }
+    else
+    {
+        SetContextPermission(lpTaskContext, TASK_PERMISSION_CORE);
+    }
 
-    if (STATE_SUCCESS != (State = CORE_CreateStackForTask(lpTaskContext, &TaskParam, TRUE)))
+    if (STATE_SUCCESS != (State = CORE_CreateStackForTask(lpTaskContext, &TaskParam, TASK_PERMISSION_CORE)))
     {
         CORE_ERROR(TRUE, "Malloc stack for task '%s' failed!", lpTaskName);
-        CloseTaskContext(lpTaskContext);
-        CORE_SetError(State);
-        return NULL;
+        goto lable1;
     }
     
-    if (STATE_SUCCESS != (State = CORE_FillTaskStack(lpTaskContext, &TaskParam, TRUE)))
+    if (STATE_SUCCESS != (State = CORE_FillTaskStack(lpTaskContext, &TaskParam, TASK_PERMISSION_CORE)))
     {
         CORE_ERROR(TRUE, "Fill stack for task '%s' failed!", lpTaskName);
-        CORE_StackFree(lpTaskContext, TRUE);
-        CloseTaskContext(lpTaskContext);
-        CORE_SetError(State);
-        return NULL;
+        goto lable2;
     }
 
-    if (STATE_SUCCESS != (State = CORE_ActiveObject(GetContextHeader(lpTaskContext), &TaskParam)))
+    if (STATE_SUCCESS == (State = CORE_ActiveObject(GetContextHeader(lpTaskContext), &TaskParam)))
     {
-        CORE_ERROR(TRUE, "Active object failed to create task '%s' !", lpTaskName);
-        CORE_StackFree(lpTaskContext, TRUE);
-        CloseTaskContext(lpTaskContext);
-        CORE_SetError(State);
+        return lpTaskContext;
     }
+
+    CORE_ERROR(TRUE, "Active object failed to create task '%s' !", lpTaskName);
     
-    return lpTaskContext;
+lable2:
+    CORE_StackFree(lpTaskContext, TASK_PERMISSION_CORE);
+lable1:
+    CORE_StackFree(lpTaskContext, TASK_PERMISSION_USER);
+lable0:
+    CloseTaskContext(lpTaskContext);
+    CORE_SetError(State);
+    
+    return NULL;
 }
 EXPORT_SYMBOL(CORE_CreateTaskEx);
 
@@ -889,6 +851,7 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
     }
         
     ScheduleStartup();
+    Sleep(100);
 
     return STATE_SUCCESS;
 }
@@ -923,26 +886,6 @@ EXPORT DWORD CORE_LeaveIRQ(VOID)
     return (DWORD)(LeaveInterruptCritiacl());
 }
 
-EXPORT VOID CORE_SetTaskStackPosition(LPVOID StackPosition)
-{
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-
-    SetArchContextStackPosition(GetContextArchParameter(lpCurrentTask), StackPosition);
-}
-
-EXPORT LPVOID CORE_GetTaskStackPosition(VOID)
-{
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-
-    return GetArchContextStackPosition(GetContextArchParameter(lpCurrentTask));
-}
-
-EXPORT LPVOID CORE_GetCoreStackPosition(LPVOID StackPosition)
-{
-    return CORE_GetTaskCoreStackPosition(GetCurrentTaskContext(), StackPosition);
-}
-
-
 #if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
 /**
  * 切换任务(硬件任务切换中断，硬件内核堆栈)
@@ -956,12 +899,14 @@ EXPORT LPVOID CORE_SwitchTask(LPVOID StackPosition)
 {
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
     LPTASK_CONTEXT lpSwitch2Task = GetSwitch2TaskContext();
+    LPARCH_CONTEXT lpCurrentArch = GetContextArchParameter(lpCurrentTask);
+    LPARCH_CONTEXT lpSwitch2Arch = GetContextArchParameter(lpSwitch2Task);
     
-    SetArchContextStackPosition(GetContextArchParameter(lpCurrentTask), StackPosition);
+    SetStackPosition(GetArchUserSD(lpCurrentArch), StackPosition);
     SetCurrentPriority(GetContextThisPriority(lpSwitch2Task));
     SetContextState(lpSwitch2Task, TASK_STATE_WORKING);
     SetCurrentTaskContext(lpSwitch2Task);
-    StackPosition = GetArchContextStackPosition(GetContextArchParameter(lpSwitch2Task));
+    StackPosition = GetStackPosition(GetArchUserSD(lpSwitch2Arch));
     
     if (INVALID_TICK == GetContextStartTick(lpSwitch2Task))
     {
@@ -1008,8 +953,13 @@ EXPORT E_STATUS CORE_GetError(VOID)
 }
 EXPORT_SYMBOL(CORE_GetError);
 
-
 EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID)
+{
+    return GetCurrentTaskContext();
+}
+EXPORT_SYMBOL(CORE_GetCurrentTask);
+
+EXPORT LPTASK_CONTEXT CORE_GetCurrentTaskSafe(VOID)
 {
     DWORD dwFlags = CORE_DisableIRQ();
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
@@ -1020,7 +970,7 @@ EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID)
     
     return lpCurrentTask;
 }
-EXPORT_SYMBOL(CORE_GetCurrentTask);
+EXPORT_SYMBOL(CORE_GetCurrentTaskSafe);
 
 EXPORT VOID CORE_SetCurrentTaskLPCPacket(LPVOID lpPacket)
 {
