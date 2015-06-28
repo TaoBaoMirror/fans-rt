@@ -4,6 +4,7 @@
 #include <fadefs.h>
 #include <fatypes.h>
 
+#include "ktask.h"
 #include "kobject.h"
 
 typedef struct tagIPC_BASE_OBJECT IPC_BASE_OBJECT;
@@ -69,7 +70,7 @@ struct tagSEMSET_ATTRIBUTE{
 #ifdef __cplusplus
 extern "C" {
 #endif
-    EXPORT E_STATUS CORE_DetachIPCObject(LPLIST_HEAD lpQueueNode);
+    EXPORT E_STATUS CORE_DetachIPCObject(LPTASK_CONTEXT lpTaskContext);
 #ifdef __cplusplus
 }
 #endif

@@ -453,39 +453,6 @@ STATIC VOID Attach2SuspendQueue(LPTASK_CONTEXT lpTaskContext, TICK Ticks)
 }
 
 /**
- * Task insert to the IPC queue.
- * @param The context of the task.
- * @return VOID
- * \par
- * If need wait an IPC object, the task will be insert to IPC wait queue
- * (Best appropriate priority in the queue).
- *
- * 如果需要等待一个 IPC 对象，任务需要插入到 IPC 对象的等待队列，插入队列
- * 的位置根据队列中任务的优先级进行排列。
- *
- * date           author          notes
- * 2015-06-13     JiangYong       first version
- */
-STATIC VOID Insert2WaitQueue(LPLIST_HEAD lpHead, LPTASK_CONTEXT lpTaskContext)
-{
-    LPLIST_HEAD lpList = lpHead;
-    
-    LIST_FOR_EACH(lpList, lpHead)
-    {
-        LPTASK_CONTEXT lpWaitContext = GetContextBySleepNode(lpList);
-        
-        if (GetContextThisPriority(lpWaitContext) >
-            GetContextThisPriority(lpTaskContext))
-        {
-            break;
-        }
-    }
-
-    AttachIPCNode(lpList, lpTaskContext);
-    SetContextState(lpTaskContext, TASK_STATE_WAITING);
-}
-
-/**
  * Task will be detach state.
  * @param The context of the task.
  * @return VOID
@@ -496,6 +463,10 @@ STATIC VOID Insert2WaitQueue(LPLIST_HEAD lpHead, LPTASK_CONTEXT lpTaskContext)
 STATIC VOID Context2DetachState(LPTASK_CONTEXT lpTaskContext)
 {
     DetachReady(lpTaskContext);
+    DetachIPCNode(lpTaskContext);
+    SetContextCancel(lpTaskContext, TRUE);
+    SetContextState(lpTaskContext, TASK_STATE_DETACH);
+    ClearTaskReadyBitmap(lpTaskContext);
 }
 /**
  * The slice handler for the scheduler.

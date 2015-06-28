@@ -105,7 +105,7 @@ EXPORT VOID CORE_HandlerLPC(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE
             return;
         }
 
-        CORE_SetCurrentTaskLPCPacket(lpPacket);
+        CORE_SetCurrentTaskRequestPacket(lpPacket);
         
         fnHandle = lpService->fnHandlers[FunctionID];
 

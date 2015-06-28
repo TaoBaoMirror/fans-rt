@@ -51,6 +51,7 @@ struct tagKCLASS_DESCRIPTOR{
     E_STATUS            (* fnWaitObject)(LPKOBJECT_HEADER Header, LONG WaitTime);
     E_STATUS            (* fnPostObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
     E_STATUS            (* fnResetObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
+    E_STATUS            (* fnDetachTask)(LPKOBJECT_HEADER Header, LPVOID lpParam);
     E_STATUS            (* fnFreeObject)(LPKOBJECT_HEADER Header);
 };
 
@@ -90,6 +91,11 @@ STATIC E_STATUS object_no_need_free(LPKOBJECT_HEADER lpHeader)
     return STATE_SUCCESS;
 }
 
+STATIC E_STATUS object_no_need_detach(LPKOBJECT_HEADER lpHeader)
+{
+    return STATE_SUCCESS;
+}
+
 #define     DEFINE_DUMMY_CLASS(M, Name, Size)                                                   \
             STATIC CONST KCLASS_DESCRIPTOR Name = {                                             \
                 .Magic          =       M,                                                      \
@@ -101,12 +107,13 @@ STATIC E_STATUS object_no_need_free(LPKOBJECT_HEADER lpHeader)
                 .fnWaitObject   =       object_no_need_wait,                                    \
                 .fnPostObject   =       object_no_need_post,                                    \
                 .fnResetObject  =       object_no_need_reset,                                   \
+                .fnDetachTask   =       object_no_need_detach,                                  \
                 .fnFreeObject   =       object_no_need_free,                                    \
             }
 #endif
 
 #define     DEFINE_CLASS(M, Name, Size, fnMalloc, fnActive, fnTake,                             \
-                        fnWait, fnPost, fnReset, fnFree)                                        \
+                        fnWait, fnPost, fnReset, fnDetach, fnFree)                              \
             STATIC CONST KCLASS_DESCRIPTOR Name = {                                             \
                 .Magic          =       M,                                                      \
                 .ClassName      =       #Name,                                                  \
@@ -117,6 +124,7 @@ STATIC E_STATUS object_no_need_free(LPKOBJECT_HEADER lpHeader)
                 .fnWaitObject   =       fnWait,                                                 \
                 .fnPostObject   =       fnPost,                                                 \
                 .fnResetObject  =       fnReset,                                                \
+                .fnDetachTask   =       fnDetach,                                               \
                 .fnFreeObject   =       fnFree,                                                 \
             }
 
@@ -239,7 +247,7 @@ struct tagKOBJECT_HEADER{
 #define     SetObjectPid(lpHeader, Pid)                                                             \
             do { (lpHeader)->uh.Bits.ObjectPid = (Pid);} while(0)
 
-#define     GetObjectCid(lpHeader)                  ((lpHeader)->uh.Bits.ObjectCid)
+#define     GetObjectCid(lpHeader)                  ((KOBJCLASS_ID_T)((lpHeader)->uh.Bits.ObjectCid))
 #define     SetObjectCid(lpHeader, Cid)                                                             \
             do { (lpHeader)->uh.Bits.ObjectCid = (Cid);} while(0)
 
@@ -247,6 +255,10 @@ struct tagKOBJECT_HEADER{
 #define     SetObjectSid(lpHeader, Sid)                                                             \
             do { (lpHeader)->uh.Bits.ObjectSid = (Sid);} while(0)
 
+#define     GetObjectTid(lpHeader)                  ((lpHeader)->uh.Bits.ObjectTid)
+#define     SetObjectTid(lpHeader, Tid)                                                             \
+            do { (lpHeader)->uh.Bits.ObjectTid = (Tid);} while(0)
+            
 #define     GetObjectState(lpHeader)                ((KOBJECT_STATE)((lpHeader)->uh.Bits.ObjectState))
 #define     SetObjectState(lpHeader, State)                                                         \
             do { (lpHeader)->uh.Bits.ObjectState = (State);} while(0)
@@ -291,13 +303,12 @@ extern "C" {
     EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpParam);
     EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam);
     EXPORT E_STATUS CORE_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
-    EXPORT LPKOBJECT_HEADER CORE_CreateObject(DWORD Magic, LPCSTR lpName, LPVOID lpParam);
     EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam);
     EXPORT E_STATUS CORE_WaitObject(LPKOBJECT_HEADER lpHeader, DWORD WaitTime);
     EXPORT E_STATUS CORE_PostObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
     EXPORT E_STATUS CORE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
-    EXPORT E_STATUS CORE_DetachObject(LPKOBJECT_HEADER lpHeader);
     EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader);
+    EXPORT E_STATUS CORE_DetachIPCQueue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
 
 #ifdef __cplusplus
 }
