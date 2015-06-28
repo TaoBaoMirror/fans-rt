@@ -230,10 +230,13 @@ typedef unsigned char * PTASK_PRIORITY;
 typedef unsigned char FAR * LPTASK_PRIORITY;
 
 typedef enum emTASK_STATUS{
-    TASK_STATE_DETACH       =       0,                          /**< 任务分离状态 */
+    TASK_STATE_CREATE       =       0,                          /**< 任务创建状态 */
     TASK_STATE_SLEEP        =       1,                          /**< 任务休眠状态 */
     TASK_STATE_READY        =       2,                          /**< 任务准备状态 */
-    TASK_STATE_WORKING      =       3,                          /**< 任务工作状态 */
+    TASK_STATE_WAITING      =       3,                          /**< 任务等待状态 */
+    TASK_STATE_WORKING      =       4,                          /**< 任务工作状态 */
+    TASK_STATE_DETACH       =       5,                          /**< 任务分离状态 */
+    TASK_STATE_DEATH        =       6,                          /**< 任务死亡状态 */
     TASK_STATE_MAX,
 }TASK_STATUS;
 

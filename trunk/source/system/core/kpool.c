@@ -29,6 +29,8 @@ STATIC E_STATUS CreatePool(LPCORE_POOL lpCorePool)
     SIZE_T Length = 0;
     LPVOID lpContainer = NULL;
     
+    CORE_DEBUG(TRUE, "Create core pool %p.", lpCorePool);
+    
     if (INVALID_MAGIC != GetPoolMagic(lpCorePool))
     {
         CORE_DEBUG(TRUE, "Create pool failed !");
@@ -39,15 +41,14 @@ STATIC E_STATUS CreatePool(LPCORE_POOL lpCorePool)
 
     lpContainer = CORE_PageAlloc(Length);
     
-    SetPoolBuffer(lpCorePool, lpContainer);
-    
-    if (NULL == GetPoolBuffer(lpCorePool))
+    if (NULL == lpContainer)
     {
         CORE_DEBUG(TRUE, "Malloc %d bytes to create pool failed, container is 0x%p !", Length, lpContainer);
         
         return STATE_OUT_OF_MEMORY;
     }
 
+    SetPoolBuffer(lpCorePool, lpContainer);
     SetPoolMagic(lpCorePool, POL_MAGIC);
 
     return STATE_SUCCESS;
@@ -55,11 +56,12 @@ STATIC E_STATUS CreatePool(LPCORE_POOL lpCorePool)
 }
 
 
-EXPORT VOID CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
+EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
                                 LPBYTE lpTable, BYTE Pools, BYTE BlockPrePool, 
-                                SIZE_T BytePreBlock, BOOL SearchForHash)
+                                SIZE_T BytePreBlock, BOOL AllocForInit)
 {
     BYTE Pid, Bid;
+    
     
     memset(lpManager, 0, sizeof(CORE_CONTAINER));
     
@@ -76,7 +78,7 @@ EXPORT VOID CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
 
         AddContainerBitmap(lpManager, ((MANA_MAP_T) (1 << Pid)));
         SetPoolMagic(lpCorePool, POOL_INITIALIZE_MAGIC);
-        SetPoolBuffer(lpCorePool, POOL_INITIALIZE_TABLE(lpTable, Pid, BytePreBlock));
+        
         SetPoolTotalBlocks(lpCorePool, BlockPrePool);
         SetPoolRemainBlocks(lpCorePool, BlockPrePool);
         SetPoolBlockLength(lpCorePool, BytePreBlock);
@@ -85,7 +87,25 @@ EXPORT VOID CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
         {
             AddPoolBitmap(lpCorePool, ((POOL_MAP_T) (1 << Bid)));
         }
+
+        if (NULL != lpTable)
+        {
+            SetPoolBuffer(lpCorePool, POOL_INITIALIZE_TABLE(lpTable, Pid, BytePreBlock));
+        }
+        else
+        {
+            E_STATUS Result;
+            
+            if (TRUE == AllocForInit && STATE_SUCCESS != (Result = CreatePool(lpCorePool)))
+            {
+                CORE_ERROR(TRUE, "Malloc page to create pool '%s' failed.",
+                    GetContainerName(lpManager));
+                return Result;
+            }
+        }
     }
+    
+    return STATE_SUCCESS;
 }
 EXPORT_SYMBOL(CORE_CreatePoolContainer)
 
@@ -96,7 +116,7 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
 
     Pid = GetFreePoolID(lpManager);
 
-    CORE_DEBUG(TRUE, "Malloc '0x%08X' in manager '%s' ...", Magic, GetContainerName(lpManager));
+    CORE_DEBUG(TRUE, "Malloc block in manager '%s' ...", GetContainerName(lpManager));
     
     if (Pid >= GetTotalPools(lpManager))
     {
@@ -110,7 +130,7 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
     {
         if (STATE_SUCCESS != CreatePool(lpCorePool))
         {
-            CORE_ERROR(TRUE, "Invalid TSS magic %p.", lpCorePool);
+            CORE_ERROR(TRUE, "Invalid pool magic %p.", lpCorePool);
             return INVALID_CONTAINER_ID;
         }
     }

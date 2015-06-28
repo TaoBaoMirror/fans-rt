@@ -35,19 +35,20 @@ EXPORT CODE_TEXT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, E_TASK_PER
     Packet.u1.pParam = lpParam;
     Packet.u2.dParam = Permission;
     
-    return caSystemCall(&Packet, STM_MAGIC, LPC_STK_STACK_MALLOC);
+    return caSystemCall(&Packet, STK_MAGIC, LPC_STK_STACK_MALLOC);
 }
 
-EXPORT E_STATUS caStackFill(HANDLE hTask, E_TASK_PERMISSION Permission)
+EXPORT E_STATUS caStackFill(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission)
 {
     LPC_REQUEST_PACKET Packet;
 
     memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
 
     Packet.u0.hParam = hTask;
-    Packet.u1.dParam = Permission;
+    Packet.u1.pParam = lpParam;
+    Packet.u2.dParam = Permission;
     
-    return caSystemCall(&Packet, STM_MAGIC, LPC_STK_STACK_FILL);
+    return caSystemCall(&Packet, STK_MAGIC, LPC_STK_STACK_INIT);
 }
 
 EXPORT E_STATUS caStackFree(HANDLE hTask, E_TASK_PERMISSION Permission)
@@ -59,5 +60,5 @@ EXPORT E_STATUS caStackFree(HANDLE hTask, E_TASK_PERMISSION Permission)
     Packet.u0.hParam = hTask;
     Packet.u1.dParam = Permission;
     
-    return caSystemCall(&Packet, STM_MAGIC, LPC_STK_STACK_FREE);
+    return caSystemCall(&Packet, STK_MAGIC, LPC_STK_STACK_FREE);
 }

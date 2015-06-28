@@ -626,6 +626,11 @@
               <FileType>5</FileType>
               <FilePath>..\..\source\system\core\stack\kstack.h</FilePath>
             </File>
+            <File>
+              <FileName>ktentry.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\system\core\ktentry.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -880,6 +885,11 @@
               <FileName>castack.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libcal\castack.c</FilePath>
+            </File>
+            <File>
+              <FileName>utentry.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libcal\utentry.c</FilePath>
             </File>
           </Files>
         </Group>

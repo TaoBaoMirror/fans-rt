@@ -18,9 +18,11 @@
 #include <fatypes.h>
 
 
-STATIC CHAR g_SystemCoreTaskStack[CONFIG_CORE_STACK_SIZE];
+STATIC RW_DATA CHAR g_SystemCoreTaskStack[CONFIG_CORE_STACK_SIZE];
 
 PUBLIC LPVOID CORE_GetCoreStackButtom(VOID)
 {
-    return g_SystemCoreTaskStack + CONFIG_CORE_STACK_SIZE;
+    SIZE_T Adjust = ((DWORD)(g_SystemCoreTaskStack + CONFIG_CORE_STACK_SIZE) % sizeof(U64));
+
+    return g_SystemCoreTaskStack + CONFIG_CORE_STACK_SIZE - Adjust;
 }

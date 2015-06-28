@@ -19,7 +19,7 @@
 
 #include "kmem.h"
 
-BYTE g_OnChipRegion[CONFIG_MEM_ONCHIP_LENGTH] __attribute__((at(CONFIG_MEM_ONCHIP_ADDRESS)));
+STATIC BYTE RW_DATA g_OnChipRegion[CONFIG_MEM_ONCHIP_LENGTH] __attribute__((at(CONFIG_MEM_ONCHIP_ADDRESS)));
 
 PUBLIC E_STATUS CORE_ScanMemoryRegion(VOID)
 {

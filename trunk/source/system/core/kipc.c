@@ -23,20 +23,6 @@
 #include "kcore.h"
 #include "kdebug.h"
 
-typedef struct tagIPC_BASE_OBJECT IPC_BASE_OBJECT;
-typedef struct tagIPC_BASE_OBJECT * PIPC_BASE_OBJECT;
-typedef struct tagIPC_BASE_OBJECT FAR * LPIPC_BASE_OBJECT;
-
-struct tagIPC_BASE_OBJECT{
-    KOBJECT_HEADER      Header;
-    LIST_HEAD           WaitQueue;
-};
-
-#define     GetIPCWaitQueue(lpObject)               (&(((LPIPC_BASE_OBJECT)(lpObject))->WaitQueue))
-#define     GetFirstWaitNode(lpObject)              LIST_NEXT_NODE(GetIPCWaitQueue(lpObject))
-#define     GetFirstWaitTask(lpObject)              GetContextByIPCNode(GetFirstWaitNode(lpObject))
-
-
 #define     IPC_MallocEvent                         IPC_DummyOperation
 #define     IPC_TakeEvent                           IPC_DummyOperation
 
@@ -112,7 +98,7 @@ STATIC E_STATUS IPC_WaitEvent(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
     
     if (TRUE != GetEventSignal(lpHeader))
     {
-        CORE_TaskAttach2WaitQueue(GetIPCWaitQueue(lpHeader), WaitTime);
+        CORE_TaskAttach2WaitQueue(lpHeader, WaitTime);
     }
     
     return STATE_TIME_OUT;
@@ -296,7 +282,7 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
         GetObjectName(lpHeader), GetContextTaskName(lpOnwerContext));
 
     CORE_PriorityUpsideCheck(lpOnwerContext);
-    CORE_TaskAttach2WaitQueue(GetIPCWaitQueue(lpHeader), WaitTime);
+    CORE_TaskAttach2WaitQueue(lpHeader, WaitTime);
 
     return STATE_TIME_OUT;
 }
@@ -457,6 +443,16 @@ DEFINE_CLASS(SET_MAGIC, SemsetClass, sizeof(IPC_SEMSET_OBJECT),
             IPC_PostSemset,
             IPC_ResetSemset,
             IPC_FreeSemset);
+
+EXPORT E_STATUS CORE_DetachIPCObject(LPLIST_HEAD lpQueueNode)
+{
+    if (NULL != lpQueueNode)
+    {
+        return CORE_DetachObject((LPKOBJECT_HEADER)GetHeaderByWaitQueue(lpQueueNode));
+    }
+    
+    return STATE_INVALID_PARAMETER;
+}
 
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
 {

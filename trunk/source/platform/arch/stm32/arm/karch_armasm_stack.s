@@ -3,6 +3,7 @@
     EXPORT  CORE_BootStackLength
     EXPORT  CORE_HeapAddress
     EXPORT  CORE_HeapLength
+    EXPORT  M3_StackInitialize
     IMPORT  __user_initial_stackheap
 
     PRESERVE8
@@ -36,6 +37,14 @@ CORE_HeapLength PROC
     BL      __user_initial_stackheap
     SUB     R0, R2, R0
     POP     {R1-R3, PC}
+    ENDP
+    
+M3_StackInitialize PROC
+    MOV     R4,     LR
+    BL      __user_initial_stackheap
+    MSR     MSP,    R2
+    MOV     LR,     R4
+    BX      LR
     ENDP
 ALIGN   
         ENDIF

@@ -114,7 +114,7 @@ FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lp
         goto lable0;
     }
     
-    if (STATE_SUCCESS != caStackFill(hTask, TASK_PERMISSION_USER))
+    if (STATE_SUCCESS != caStackFill(hTask, &TaskParam, TASK_PERMISSION_USER))
     {
         LOG_ERROR(TRUE, "Fill user stack for task '%s' failed.", TaskName);
         goto lable1;
@@ -126,7 +126,7 @@ FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lp
         goto lable1;
     }
 
-    if (STATE_SUCCESS != caStackFill(hTask, TASK_PERMISSION_CORE))
+    if (STATE_SUCCESS != caStackFill(hTask, &TaskParam, TASK_PERMISSION_CORE))
     {
         LOG_ERROR(TRUE, "Fill user stack for task '%s' failed.", TaskName);
         goto lable2;

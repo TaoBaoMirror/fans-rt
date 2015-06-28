@@ -34,37 +34,46 @@ struct tagKSTACK_HEADER{
     LPSTR                   Buffer[CONFIG_DEFAULT_STACK_SIZE - sizeof(KOBJECT_HEADER)];
 };
 
-#define     SetStackObjectMagic(lpHeader)         SetObjectMagic(GetContextHeader(lpHeader), STK_MAGIC, STK_MAGIC)
-#define     GetStackObjectHandle(lpHeader)        GetObjectHandle(GetContextHeader(lpHeader))
+#define     GetStackObjectHeader(lpHeader)          (&(lpHeader)->Header)
+#define     SetStackObjectMagic(lpHeader)           SetObjectMagic(GetContextHeader(lpHeader), STK_MAGIC, STK_MAGIC)
+#define     GetStackObjectHandle(lpHeader)          GetObjectHandle(GetContextHeader(lpHeader))
 
 
 EXPORT VOID CORE_SetTaskStackPosition(LPVOID StackPosition)
 {
     LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
     LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCurrentTask);
-    E_TASK_PERMISSION TaskPermission = GetContextPermission(lpCurrentTask);
+    
+//    CORE_INFOR(TRUE, "Task '%s' save stack user position 0x%p.", GetContextTaskName(lpCurrentTask), StackPosition);
 
-    SetStackPosition(GetArchSD(lpArchContext, TaskPermission), StackPosition);
+    SetStackPosition(GetArchUserSD(lpArchContext), StackPosition);
 }
 
 EXPORT LPVOID CORE_GetTaskStackPosition(VOID)
 {
     LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
     LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCurrentTask);
-    E_TASK_PERMISSION TaskPermission = GetContextPermission(lpCurrentTask);
 
-    return GetStackPosition(GetArchSD(lpArchContext, TaskPermission));
+    return GetStackPosition(GetArchUserSD(lpArchContext));
 }
 
-EXPORT LPVOID CORE_GetCoreStackPosition(LPVOID StackPosition)
+EXPORT VOID CORE_SetCoreStackPosition(LPVOID StackPosition)
+{
+    LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
+    LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCurrentTask);
+    
+//    CORE_INFOR(TRUE, "Task '%s' save stack core position 0x%p.", GetContextTaskName(lpCurrentTask), StackPosition);
+    
+    SetStackPosition(GetArchCoreSD(lpArchContext), StackPosition);
+}
+
+EXPORT LPVOID CORE_GetCoreStackPosition(VOID)
 {
     LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
     LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCurrentTask);
     
     return GetStackPosition(GetArchCoreSD(lpArchContext));
 }
-
-
 
 #define     OBJ_MallocStack                         OBJ_DummyOperation
 #define     OBJ_ActiveStack                         OBJ_DummyOperation
@@ -97,13 +106,19 @@ DEFINE_CLASS(STK_MAGIC, StackClass, CONFIG_DEFAULT_STACK_SIZE,
             OBJ_FreeStack);
 
 
-PUBLIC E_STATUS CORE_CreateStackForTask(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission)
+PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission)
 {
     LPKSTACK_HEADER lpHeader = NULL;
+    LPARCH_CONTEXT lpArchContext = NULL;
     LPTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpCoreContext = lpTaskContext;
-    LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCoreContext);
 
+    if (NULL == lpTaskContext)
+    {
+        CORE_ERROR(TRUE, "Invalid task context.");
+        return STATE_INVALID_TASK;
+    }
+    
     if (NULL == lpTaskParam || Permission >= TASK_PERMISSION_MAX)
     {
         CORE_ERROR(TRUE, "Invalid parameter TaskParam(%P) or Permission(%u).",
@@ -118,15 +133,21 @@ PUBLIC E_STATUS CORE_CreateStackForTask(LPVOID lpTaskContext, LPVOID lpParam, E_
         return STATE_INVALID_STATE;
     }
 
+    lpArchContext = GetContextArchParameter(lpCoreContext);
     /* 任务权限和堆栈权限不一致的情况: 普通任务创建内核堆栈和内核任务创建普通堆栈 */
     if (GetContextPermission(lpCoreContext) != Permission)
     {
         /* 内核任务不需要创建用户堆栈 */
         if (TASK_PERMISSION_CORE == GetContextPermission(lpCoreContext))
         {
+            SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
+            SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
+            CORE_INFOR(TRUE, "Task '%s' no need malloc core stack.",
+                GetContextTaskName(lpCoreContext), Permission, lpHeader);
             return STATE_SUCCESS;
         }
-        /* 普通任务创建内核堆栈 */
+        /*else 普通任务创建内核堆栈 */
+        
         if (TRUE == CORE_CpuSupportGlobalCoreStack())
         {
             /* CPU 支持全局内核堆栈 */
@@ -135,7 +156,7 @@ PUBLIC E_STATUS CORE_CreateStackForTask(LPVOID lpTaskContext, LPVOID lpParam, E_
         }
         else
         {
-            /* CPU 不支持全局内核堆栈，每个任务一个独立的内核s堆栈 */
+            /* CPU 不支持全局内核堆栈，每个任务一个独立的内核堆栈 */
             lpHeader = (LPVOID)CORE_MallocNoNameObject(STK_MAGIC, lpTaskParam);
             SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_DEFAULT_STACK_SIZE);
         }
@@ -173,16 +194,25 @@ PUBLIC E_STATUS CORE_CreateStackForTask(LPVOID lpTaskContext, LPVOID lpParam, E_
         return CORE_GetError();
     }
     
+    CORE_DEBUG(TRUE, "Task '%s' malloc stack(%d) buffer 0x%p.",
+        GetContextTaskName(lpCoreContext), Permission, lpHeader);
+    
     return STATE_SUCCESS;
 }
 
-PUBLIC E_STATUS CORE_FillTaskStack(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission)
+PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission)
 {
     LPKSTACK_HEADER lpHeader =  NULL;
+    LPARCH_CONTEXT lpArchContext = NULL;
     LPTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpCoreContext = lpTaskContext;
-    LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCoreContext);
 
+    if (NULL == lpTaskContext)
+    {
+        CORE_ERROR(TRUE, "Invalid task context.");
+        return STATE_INVALID_TASK;
+    }
+    
     if (NULL == lpTaskParam || Permission >= TASK_PERMISSION_MAX)
     {
         CORE_ERROR(TRUE, "Invalid parameter TaskParam(%P) or Permission(%u).",
@@ -196,7 +226,8 @@ PUBLIC E_STATUS CORE_FillTaskStack(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_
             GetObjectState(GetContextHeader(lpCoreContext)));
         return STATE_INVALID_STATE;
     }
-    
+
+    lpArchContext = GetContextArchParameter(lpCoreContext);
     lpHeader = GetStackBuffer(GetArchSD(lpArchContext, Permission));
     
     if (NULL != lpHeader)
@@ -208,77 +239,128 @@ PUBLIC E_STATUS CORE_FillTaskStack(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_
         if (0 != CORE_GetGlobalTaskCount() && GetContextPermission(lpCoreContext) == Permission)
         {
             lpStackPosition = CORE_FillStack(lpStackPosition, lpTaskParam->fnTaskMain,
-                  lpTaskParam->lpArgument, GetContextHandle(lpCoreContext));
+                              lpTaskParam->lpArgument, lpTaskContext,
+                              GetContextHandle(lpCoreContext), Permission);
         }
 
         SetStackHandle(GetArchSD(lpArchContext, Permission), GetStackObjectHandle(lpHeader));
         SetStackPosition(GetArchSD(lpArchContext, Permission), lpStackPosition);
         SetStackObjectMagic(lpHeader);
         
+        CORE_DEBUG(TRUE, "Task '%s' fill stack(%d) buffer 0x%p buttom 0x%p position 0x%p.",
+            GetContextTaskName(lpCoreContext), Permission, lpHeader,
+            lpStackBuffer + StackCapacity, lpStackPosition);
+        
         return STATE_SUCCESS;
     }
+    else
+    {
+        if (TASK_PERMISSION_CORE == GetContextPermission(lpCoreContext) && 
+            TASK_PERMISSION_USER == Permission)
+        {
+            CORE_DEBUG(TRUE, "Task '%s' no need fill user stack.", GetContextTaskName(lpCoreContext));
+            
+            return STATE_SUCCESS;
+        }
+    }
 
-    CORE_ERROR(TRUE, "No task stack buffer found.");
+    CORE_ERROR(TRUE, "No task stack buffer found, permission is %d.", Permission);
 
     return STATE_INVALID_STACK;
 }
 
 PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permission)
 {
+    E_STATUS Result = STATE_SUCCESS;
     LPTASK_CONTEXT lpCoreContext = lpTaskContext;
-    
+    LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCoreContext);
+
     if (Permission >= TASK_PERMISSION_MAX)
     {
         return STATE_INVALID_PARAMETER;
     }
 
-    if (GetContextPermission(lpCoreContext) != Permission)
+    if (KOBJECT_STATE_FREE == GetObjectState(GetContextHeader(lpCoreContext)))
     {
-        return STATE_SUCCESS;
+        CORE_ERROR(TRUE, "Task state(%u) invalid.",
+            GetObjectState(GetContextHeader(lpCoreContext)));
+        return STATE_INVALID_STATE;
     }
     
-    return STATE_SUCCESS;
+    do
+    {
+        LPKSTACK_HEADER lpHeader = GetStackBuffer(GetArchSD(lpArchContext, Permission));
+
+        if (TASK_PERMISSION_USER == GetContextPermission(lpCoreContext))
+        {
+            if (TASK_PERMISSION_CORE == Permission)
+            {
+                if (TRUE == CORE_CpuSupportGlobalCoreStack())
+                {
+                    /* 普通任务释放内核栈，并且CPU支持全局内核栈 */
+                    /* 则不会分配内核栈，直接使用全局内核栈，不能释放 */
+                    break;
+                }
+            }
+        }
+        else /* 内核任务 */ if (TASK_PERMISSION_USER == Permission)
+        {
+            /* 内核任务不会分配用户栈，所以直接返回成功 */
+            break;
+        }
+
+        Result = STATE_INVALID_OBJECT;
+        /*释放场景:*/
+        /*1.普通任务释放用户栈 */
+        /*2.普通任务释放内核栈，并且CPU不支持全局内核栈 */
+        if (NULL != lpHeader)
+        {
+            SetObjectHandle(GetStackObjectHeader(lpHeader),
+                    GetStackHandle(GetArchSD(lpArchContext, Permission)));
+            SetObjectState(GetStackObjectHeader(lpHeader), KOBJECT_STATE_ACTIVE);
+            
+            initSelfHashNode(GetStackObjectHeader(lpHeader));
+
+            Result = CORE_FreeObject(GetStackObjectHeader(lpHeader));
+        }
+ 
+    } while(0);
+
+    SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
+    SetStackHandle(GetArchSD(lpArchContext, Permission), INVALID_HANDLE_VALUE);
+    SetStackPosition(GetArchSD(lpArchContext, Permission), NULL);
+    SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
+
+    return Result;
 }
 
 STATIC E_STATUS SVC_MallocStack(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
     
-    lpTaskContext = Handle2TaskContext(lpPacket->u0.hParam);
-    
-    if (NULL == lpTaskContext)
-    {
-        return STATE_INVALID_PARAMETER;
-    }
-
-    return CORE_CreateStackForTask(lpTaskContext, lpPacket->u1.pParam, (E_TASK_PERMISSION) lpPacket->u2.dParam);
+    return CORE_StackMalloc(Handle2TaskContext(lpPacket->u0.hParam),
+               lpPacket->u1.pParam, (E_TASK_PERMISSION) lpPacket->u2.dParam);
 }
 
-STATIC E_STATUS SVC_FillStack(LPVOID lpPrivate, LPVOID lpParam)
+STATIC E_STATUS SVC_InitStack(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPTASK_CONTEXT lpTaskContext;
     LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    
-    lpTaskContext = Handle2TaskContext(lpPacket->u0.hParam);
-    
-    if (NULL == lpTaskContext)
-    {
-        return STATE_INVALID_PARAMETER;
-    }
 
-    return CORE_FillTaskStack(lpTaskContext, lpPacket->u1.pParam, (E_TASK_PERMISSION)lpPacket->u2.dParam);
+    return CORE_StackInit(Handle2TaskContext(lpPacket->u0.hParam),
+               lpPacket->u1.pParam, (E_TASK_PERMISSION)lpPacket->u2.dParam);
 }
 
 STATIC E_STATUS SVC_FreeStack(LPVOID lpPrivate, LPVOID lpParam)
 {
-    return STATE_NOT_IMPLEMENTED;
+    LPLPC_REQUEST_PACKET lpPacket = lpParam;
+    return CORE_StackFree(Handle2TaskContext(lpPacket->u0.hParam),
+              (E_TASK_PERMISSION)lpPacket->u1.dParam);
 }
 
 
 STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_MallocStack,                    /* 01. LPC_STK_STACK_MALLOC */
-    SVC_FillStack,                      /* 02. LPC_STK_STACK_FILL */
+    SVC_InitStack,                      /* 02. LPC_STK_STACK_INIT */
     SVC_FreeStack,                      /* 03. LPC_STK_STACK_FREE */
 };
 

@@ -256,8 +256,8 @@ struct tagKOBJECT_HEADER{
             ((lpdName[0] == (lpHeader)->un.daName[0]) && (lpdName[1] == (lpHeader)->un.daName[1]))
 #define     DumpObjectName(lpHeader, lpdName)                                                       \
             do {                                                                                    \
-                lpdName[0] = (lpHeader)->un.daName[0];                                              \
-                lpdName[1] = (lpHeader)->un.daName[1];                                              \
+                (lpdName)[0] = (lpHeader)->un.daName[0];                                            \
+                (lpdName)[1] = (lpHeader)->un.daName[1];                                            \
             } while(0)
 #define     SetObjectName(lpHeader, lpdName)                                                        \
             do {                                                                                    \
@@ -278,6 +278,7 @@ struct tagKOBJECT_HEADER{
             } while(0)
 
 #define     GetObjecctByHashNode(lpNode)    OBJECT_ENTRY(lpNode, HashNode)
+#define     initSelfHashNode(lpHeader)      LIST_HEAD_INIT(&lpHeader->HashNode)
 
             
 #ifdef __cplusplus
@@ -295,9 +296,8 @@ extern "C" {
     EXPORT E_STATUS CORE_WaitObject(LPKOBJECT_HEADER lpHeader, DWORD WaitTime);
     EXPORT E_STATUS CORE_PostObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
     EXPORT E_STATUS CORE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
+    EXPORT E_STATUS CORE_DetachObject(LPKOBJECT_HEADER lpHeader);
     EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader);
-    EXPORT E_STATUS CORE_FreeObjectByID(LPKOBJECT_HEADER lpHeader, DWORD Magic, KOBJTABLE_ID_T Tid, KCONTAINER_ID_T Pid);
-    EXPORT E_STATUS CORE_CloseObject(LPKOBJECT_HEADER lpHeader);
 
 #ifdef __cplusplus
 }

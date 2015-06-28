@@ -73,6 +73,12 @@ typedef struct tagLPC_REQUEST_PACKET LPC_REQUEST_PACKET;
 typedef struct tagLPC_REQUEST_PACKET * PLPC_REQUEST_PACKET;
 typedef struct tagLPC_REQUEST_PACKET FAR * LPLPC_REQUEST_PACKET;
 
+#define     GetReqData(lpP)         ((LPLPC_REQUEST_PACKET)lpP)
+#define     REQpParam(lpP, uNid)    (((LPLPC_REQUEST_PACKET)lpP)->uNid.pParam)
+#define     REQhParam(lpP, uNid)    (((LPLPC_REQUEST_PACKET)lpP)->uNid.hParam)
+#define     REQdParam(lpP, uNid)    (((LPLPC_REQUEST_PACKET)lpP)->uNid.dParam)
+#define     REQlParam(lpP, uNid)    (((LPLPC_REQUEST_PACKET)lpP)->uNid.lParam)
+
 struct tagLPC_REQUEST_PACKET{
     union{
         VOLATILE DWORD                  ServiceID;

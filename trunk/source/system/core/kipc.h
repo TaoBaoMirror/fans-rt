@@ -6,6 +6,20 @@
 
 #include "kobject.h"
 
+typedef struct tagIPC_BASE_OBJECT IPC_BASE_OBJECT;
+typedef struct tagIPC_BASE_OBJECT * PIPC_BASE_OBJECT;
+typedef struct tagIPC_BASE_OBJECT FAR * LPIPC_BASE_OBJECT;
+
+struct tagIPC_BASE_OBJECT{
+    KOBJECT_HEADER      Header;
+    LIST_HEAD           WaitQueue;
+};
+#define     IPC_ENTRY(Ptr, Member)                  ((LPIPC_BASE_OBJECT)CONTAINER_OF(Ptr, IPC_BASE_OBJECT, Member))
+#define     GetHeaderByWaitQueue(Ptr)               IPC_ENTRY(Ptr, WaitQueue)
+#define     GetIPCWaitQueue(lpObject)               (&(((LPIPC_BASE_OBJECT)(lpObject))->WaitQueue))
+#define     GetFirstWaitNode(lpObject)              LIST_NEXT_NODE(GetIPCWaitQueue(lpObject))
+#define     GetFirstWaitTask(lpObject)              GetContextByIPCNode(GetFirstWaitNode(lpObject))
+
 #define         MARK_EVENT_SIGNAL_SHIFT         0x0
 #define         MARK_EVENT_SIGNAL_MASK          (1 << MARK_EVENT_SIGNAL_SHIFT)
 #define         MARK_EVENT_AUTO_SHIFT           0x1
@@ -52,5 +66,12 @@ struct tagSEMSET_ATTRIBUTE{
     DWORD               Mask:32;
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    EXPORT E_STATUS CORE_DetachIPCObject(LPLIST_HEAD lpQueueNode);
+#ifdef __cplusplus
+}
+#endif
 #endif
 

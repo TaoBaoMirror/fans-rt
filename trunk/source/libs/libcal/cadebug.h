@@ -80,6 +80,12 @@
                     Execute;                                            \
                 }                                                       \
             }while(0)
+#else
+
+#define     FANS_ASSERT(Condition, Execute, ...)                        \
+            do{                                                         \
+                if (!(Condition));                                      \
+            }while(0)
 
 #endif /* __DEBUG__ */
 

@@ -7,7 +7,7 @@
 
 enum{
     LPC_STK_STACK_MALLOC,
-    LPC_STK_STACK_FILL,
+    LPC_STK_STACK_INIT,
     LPC_STK_STACK_FREE,
 };
 
@@ -46,8 +46,8 @@ extern "C" {
 #define     CORE_GetBootStackCapacity()     CONFIG_BOOT_STACK_SIZE
 #define     CORE_GetIdleStackCapacity()     CONFIG_IDLE_STACK_SIZE
 
-    PUBLIC E_STATUS CORE_CreateStackForTask(LPVOID lpTaskContext, LPVOID lpTaskParam, E_TASK_PERMISSION Permission);
-    PUBLIC E_STATUS CORE_FillTaskStack(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission);
+    PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpTaskParam, E_TASK_PERMISSION Permission);
+    PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission);
     PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permission);
 #ifdef __cplusplus
 }
