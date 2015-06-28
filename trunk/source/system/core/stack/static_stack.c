@@ -80,6 +80,7 @@ EXPORT LPVOID CORE_GetCoreStackPosition(VOID)
 #define     OBJ_TakeStack                           OBJ_DummyOperation
 #define     OBJ_PostStack                           OBJ_DummyOperation
 #define     OBJ_ResetStack                          OBJ_DummyOperation
+#define     OBJ_DetachStack                         OBJ_DummyOperation
 
 STATIC E_STATUS OBJ_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
@@ -103,6 +104,7 @@ DEFINE_CLASS(STK_MAGIC, StackClass, CONFIG_DEFAULT_STACK_SIZE,
             OBJ_WaitObject,
             OBJ_PostStack,
             OBJ_ResetStack,
+            OBJ_DetachStack,
             OBJ_FreeStack);
 
 

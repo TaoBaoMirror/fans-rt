@@ -37,10 +37,79 @@
 #define     IPC_MallocSemset                        IPC_DummyOperation
 #define     IPC_TakeSemset                          IPC_DummyOperation
 #define     IPC_ResetSemset                         IPC_DummyOperation
+#define     IPC_DetachSemaphore                     IPC_DetachDefault
+#define     IPC_DetachSemset                        IPC_DetachDefault
+#define     IPC_DetachEvent                         IPC_DetachDefault
+/**
+ * Task insert to the IPC queue.
+ * @param The context of the task.
+ * @return VOID
+ * \par
+ * If need wait an IPC object, the task will be insert to IPC wait queue
+ * (Best appropriate priority in the queue).
+ *
+ * 如果需要等待一个 IPC 对象，任务需要插入到 IPC 对象的等待队列，插入队列
+ * 的位置根据队列中任务的优先级进行排列。
+ *
+ * date           author          notes
+ * 2015-06-13     JiangYong       first version
+ */
+STATIC VOID Insert2WaitQueue(LPLIST_HEAD lpHead, LPTASK_CONTEXT lpTaskContext)
+{
+    LPLIST_HEAD lpList = lpHead;
+    
+    LIST_FOR_EACH(lpList, lpHead)
+    {
+        LPTASK_CONTEXT lpWaitContext = GetContextBySleepNode(lpList);
+        
+        if (GetContextThisPriority(lpWaitContext) >
+            GetContextThisPriority(lpTaskContext))
+        {
+            break;
+        }
+    }
+
+    AttachIPCNode(lpList, lpTaskContext);
+    SetContextState(lpTaskContext, TASK_STATE_WAITING);
+}
+
+
+EXPORT VOID PriorityUpsideCheck(LPTASK_CONTEXT lpOnwerContext, LPTASK_CONTEXT lpCurrentTask)
+{
+    TASK_PRIORITY Priority = GetContextThisPriority(lpCurrentTask);
+
+    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS(),
+        "Current task context not found ?");
+    
+    /* 如果 onwer 的优先级大于当前任务优先级，则调整 onwer 的优先级，以防止优先级倒挂 */
+    if (Priority < GetContextThisPriority(lpOnwerContext))
+    {
+        CORE_SetThisPriority(lpOnwerContext, Priority);
+    }
+}
 
 STATIC E_STATUS IPC_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     return STATE_SUCCESS;
+}
+
+
+
+
+STATIC E_STATUS IPC_DetachDefault(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    if (NULL != lpParam)
+    {
+        LPTASK_CONTEXT lpTaskContext = lpParam;
+        DWORD dwFlags = CORE_DisableIRQ();
+ 
+        DetachIPCNode(lpTaskContext);
+        CORE_RestoreIRQ(dwFlags);
+ 
+        return STATE_SUCCESS;
+    }
+    
+    return STATE_INVALID_PARAMETER;
 }
 
 /************************************************************************************
@@ -86,6 +155,7 @@ STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     
     LIST_HEAD_INIT(GetIPCWaitQueue(lpHeader));
     SetEventMarks(lpHeader, lpAttribute->Value);
+    SetObjectState(lpHeader, KOBJECT_STATE_ACTIVE);
 
     return STATE_SUCCESS;
 }
@@ -93,19 +163,27 @@ STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS IPC_WaitEvent(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
 {
+    DWORD dwFlags = CORE_DisableIRQ();
+
     CORE_INFOR(TRUE, "wait event '%s', state '%d'...",
             GetObjectName(lpHeader), GetEventSignal(lpHeader));
-    
+
     if (TRUE != GetEventSignal(lpHeader))
     {
-        CORE_TaskAttach2WaitQueue(lpHeader, WaitTime);
+        LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTaskSafe();
+        CORE_TaskSuspend(lpCurrentTask, WaitTime);
+        Insert2WaitQueue(GetIPCWaitQueue(lpHeader), lpCurrentTask);
     }
+    
+    CORE_RestoreIRQ(dwFlags);
     
     return STATE_TIME_OUT;
 }
 
 STATIC E_STATUS IPC_PostEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
+    DWORD dwFlags = CORE_DisableIRQ();
+    
     if (FALSE == GetEventSignal(lpHeader))
     {
         LPLIST_HEAD lpList = NULL;
@@ -118,24 +196,30 @@ STATIC E_STATUS IPC_PostEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         
         LIST_FOR_EACH_SAFE(lpList, lpNode, GetIPCWaitQueue(lpHeader))
         {
-            LPTASK_CONTEXT lpContext = GetContextByIPCNode(lpList);
+            LPTASK_CONTEXT lpTaskContext = GetContextByIPCNode(lpList);
 
-            CORE_TaskWakeup(lpContext, STATE_SUCCESS);
+            CORE_TaskWakeup(lpTaskContext, STATE_SUCCESS);
             
             CORE_INFOR(TRUE, "Post '%s' and wakeup task '%s' ...",
-                GetObjectName(lpHeader), GetContextTaskName(lpContext));
+                GetObjectName(lpHeader), GetContextTaskName(lpTaskContext));
         }
 
         CORE_DEBUG(TRUE, "Event %s automatic is '%d', state is '%d' ...",
                 GetObjectName(lpHeader), GetEventAutomatic(lpHeader), GetEventSignal(lpHeader));
     }
     
+    CORE_RestoreIRQ(dwFlags);
+    
     return STATE_SUCCESS;
 }
 
 STATIC E_STATUS IPC_ResetEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
+    DWORD dwFlags = CORE_DisableIRQ();
+    
     SetEventSignal(lpHeader, FALSE);
+    
+    CORE_RestoreIRQ(dwFlags);
     
     return STATE_SUCCESS;
 }
@@ -143,6 +227,8 @@ STATIC E_STATUS IPC_ResetEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS IPC_FreeEvent(LPKOBJECT_HEADER lpHeader)
 {
+    DWORD dwFlags = CORE_DisableIRQ();
+    
     if (TRUE != GetEventSignal(lpHeader))
     {
         LPLIST_HEAD lpList = NULL;
@@ -150,20 +236,23 @@ STATIC E_STATUS IPC_FreeEvent(LPKOBJECT_HEADER lpHeader)
 
         LIST_FOR_EACH_SAFE(lpList, lpNode, GetIPCWaitQueue(lpHeader))
         {
-            LPTASK_CONTEXT lpContext = GetContextByIPCNode(lpList);
+            LPTASK_CONTEXT lpTaskContext = GetContextByIPCNode(lpList);
 
-            CORE_TaskWakeup(lpContext, STATE_REMOVED);
+            CORE_TaskWakeup(lpTaskContext, STATE_REMOVED);
             
             CORE_INFOR(TRUE, "Remove %s and wakeup task '%s' ...",
-                GetObjectName(lpHeader), GetContextTaskName(lpContext));
+                GetObjectName(lpHeader), GetContextTaskName(lpTaskContext));
         }
 
         CORE_DEBUG(TRUE, "Event %s automatic is '%d', state is '%d' ...",
                 GetObjectName(lpHeader), GetEventAutomatic(lpHeader), GetEventSignal(lpHeader));
     }
     
+    CORE_RestoreIRQ(dwFlags);
+    
     return STATE_SUCCESS;
 }
+
 
 DEFINE_CLASS(EVT_MAGIC, EventClass, sizeof(IPC_EVENT_OBJECT),
             IPC_MallocEvent,
@@ -172,6 +261,7 @@ DEFINE_CLASS(EVT_MAGIC, EventClass, sizeof(IPC_EVENT_OBJECT),
             IPC_WaitEvent,
             IPC_PostEvent,
             IPC_ResetEvent,
+            IPC_DetachEvent,
             IPC_FreeEvent);
 
 
@@ -244,13 +334,17 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         SetMutexAttribute(lpHeader, GetContextHandle(lpCurrentTask), 0);
         SetContextLockedMutex(lpCurrentTask, GetObjectHandle(lpHeader));
     }
+    
+    SetObjectState(lpHeader, KOBJECT_STATE_ACTIVE);
 
     return STATE_SUCCESS;
 }
 
 STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
 {
+    DWORD dwFlags;
     LPTASK_CONTEXT lpOnwerContext;
+    LPTASK_CONTEXT lpCurrentTask;
 
     CORE_DEBUG(TRUE, "Lock mutex '%s' by '%s', value is %d.",
         GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
@@ -269,20 +363,24 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
         return STATE_SUCCESS;
     }
 
+    dwFlags = CORE_DisableIRQ();
     lpOnwerContext = CORE_Handle2TaskContextCheck(GetMutexOnwer(lpHeader), FALSE);
 
-    CORE_ASSERT(lpOnwerContext, SYSTEM_CALL_OOPS(),
+    CORE_ASSERT(lpOnwerContext, CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
         "BUG: Mutex(%s) invalid onwer task context.", GetObjectName(lpHeader));
     
-    CORE_ASSERT(CORE_GetCurrentTask() != lpOnwerContext, SYSTEM_CALL_OOPS(),
+    CORE_ASSERT(CORE_GetCurrentTask() != lpOnwerContext, CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
         "BUG: Daed lock %s as task %s.", GetObjectName(lpHeader), GetContextTaskName(lpOnwerContext));
     
     CORE_ASSERT(GetContextLockedMutex(lpOnwerContext) == GetObjectHandle(lpHeader),
-        SYSTEM_CALL_OOPS(), "BUG: Mutex(%s) no lock as '%s', .",
+        CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(), "BUG: Mutex(%s) no lock as '%s', .",
         GetObjectName(lpHeader), GetContextTaskName(lpOnwerContext));
 
-    CORE_PriorityUpsideCheck(lpOnwerContext);
-    CORE_TaskAttach2WaitQueue(lpHeader, WaitTime);
+    lpCurrentTask = CORE_GetCurrentTask();
+    PriorityUpsideCheck(lpOnwerContext, lpCurrentTask);
+    Insert2WaitQueue(GetIPCWaitQueue(lpHeader), lpCurrentTask);
+    CORE_TaskSuspend(lpCurrentTask, WaitTime);
+    CORE_RestoreIRQ(dwFlags); 
 
     return STATE_TIME_OUT;
 }
@@ -323,7 +421,6 @@ STATIC E_STATUS IPC_UnlockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 STATIC E_STATUS IPC_FreeMutex(LPKOBJECT_HEADER lpHeader)
 {
     S16 Value = GetMutexValue(lpHeader);
-    
 
     if (Value <= 0)
     {
@@ -358,6 +455,22 @@ STATIC E_STATUS IPC_FreeMutex(LPKOBJECT_HEADER lpHeader)
     return STATE_SUCCESS;
 }
 
+STATIC E_STATUS IPC_DetachMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    if (NULL != lpParam)
+    {
+        LPTASK_CONTEXT lpTaskContext = lpParam;
+        DWORD dwFlags = CORE_DisableIRQ();
+ 
+        IncMutexValue(lpHeader);
+        DetachIPCNode(lpTaskContext);
+        CORE_RestoreIRQ(dwFlags);
+ 
+        return STATE_SUCCESS;
+    }
+
+    return STATE_INVALID_PARAMETER;
+}
 
 DEFINE_CLASS(MTX_MAGIC, MutexClass, sizeof(IPC_MUTEX_OBJECT),
             IPC_MallocMutex,
@@ -366,6 +479,7 @@ DEFINE_CLASS(MTX_MAGIC, MutexClass, sizeof(IPC_MUTEX_OBJECT),
             IPC_LockMutex,
             IPC_UnlockMutex,
             IPC_ResetMutex,
+            IPC_DetachMutex,
             IPC_FreeMutex);
 
 typedef struct tagIPC_SEMAPHORE_OBJECT IPC_SEMAPHORE_OBJECT;
@@ -404,6 +518,7 @@ DEFINE_CLASS(SEM_MAGIC, SemaphoreClass, sizeof(IPC_SEMAPHORE_OBJECT),
             IPC_WaitSemaphore,
             IPC_PostSemaphore,
             IPC_ResetSemaphore,
+            IPC_DetachSemaphore,
             IPC_FreeSemaphore);
 
 typedef struct tagIPC_SEMSET_OBJECT IPC_SEMSET_OBJECT;
@@ -442,17 +557,8 @@ DEFINE_CLASS(SET_MAGIC, SemsetClass, sizeof(IPC_SEMSET_OBJECT),
             IPC_WaitSemset,
             IPC_PostSemset,
             IPC_ResetSemset,
+            IPC_DetachSemset,
             IPC_FreeSemset);
-
-EXPORT E_STATUS CORE_DetachIPCObject(LPLIST_HEAD lpQueueNode)
-{
-    if (NULL != lpQueueNode)
-    {
-        return CORE_DetachObject((LPKOBJECT_HEADER)GetHeaderByWaitQueue(lpQueueNode));
-    }
-    
-    return STATE_INVALID_PARAMETER;
-}
 
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
 {

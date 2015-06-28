@@ -311,15 +311,13 @@ extern "C" {
     EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID);
     EXPORT LPTASK_CONTEXT CORE_GetCurrentTaskSafe(VOID);
     EXPORT E_TASK_PERMISSION CORE_GetCurrentPermission(VOID);
-    EXPORT VOID CORE_SetCurrentTaskLPCPacket(LPVOID lpPacket);
-    EXPORT E_STATUS CORE_TaskSuspend(LONG Timeout);
-    EXPORT E_STATUS CORE_TaskAttach2WaitQueue(LPVOID IPCObject, LONG Timeout);
+    EXPORT VOID CORE_SetCurrentTaskRequestPacket(LPVOID lpPacket);
+    EXPORT E_STATUS CORE_TaskSuspend(LPTASK_CONTEXT lpTaskContext, LONG Timeout);
     EXPORT E_STATUS CORE_TaskWakeup(LPTASK_CONTEXT lpTaskContext, E_STATUS Result);
     
     EXPORT E_STATUS CORE_TaskAttach(LPTASK_CONTEXT lpTaskContext);
     EXPORT E_STATUS CORE_TaskDetach(LPTASK_CONTEXT lpTaskContext);
-    EXPORT E_STATUS CORE_PriorityUpsideCheck(LPTASK_CONTEXT lpOnwerContext);
-    EXPORT E_STATUS CORE_SetTaskPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority);
+    EXPORT E_STATUS CORE_SetThisPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority);
     EXPORT E_STATUS CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext);   
 
     EXPORT CODE_TEXT E_STATUS CORE_IdleMain(LPVOID lpParam);

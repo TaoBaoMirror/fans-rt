@@ -163,7 +163,7 @@ STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
     E_STATUS Result = STATE_SUCCESS;
     DWORD dwFlags = CORE_DisableIRQ();
     
-    /* 任务 Cancel 标志必须被置位 */
+    /* 任务 Cancel 标志必须被置位，参考 Context2DetachState */
     if (TRUE != GetContextCancel(lpTaskContext))
     {
         CORE_RestoreIRQ(dwFlags);
@@ -199,6 +199,13 @@ STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
     return Result;
 }
 
+EXPORT E_STATUS DetachFromIPCQueue(LPTASK_CONTEXT lpTaskContext)
+{
+    LPKOBJECT_HEADER lpHeader = (LPVOID)GetHeaderByWaitQueue(GetIPCNode(lpTaskContext));
+    return CORE_DetachIPCQueue(lpHeader, lpTaskContext);
+}
+
+
 STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
 {
     E_STATUS Result = STATE_SUCCESS;
@@ -216,7 +223,7 @@ STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
     case TASK_STATE_SLEEP:
         break;
     case TASK_STATE_WAITING:
-        Result = CORE_DetachIPCObject(GetIPCNode(lpTaskContext));
+        Result = DetachFromIPCQueue(lpTaskContext);
         break;
     default: /*unknow*/
         Result = STATE_INVALID_STATE;
@@ -226,8 +233,6 @@ STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
     if (STATE_SUCCESS == Result)
     {
         Context2DetachState(lpTaskContext);
-        SetContextCancel(lpTaskContext, TRUE);
-        SetContextState(lpTaskContext, TASK_STATE_DETACH);
     }
 
     CORE_RestoreIRQ(dwFlags);
@@ -306,6 +311,7 @@ STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey
 #define     OBJ_TakeContext                         OBJ_DummyOperation
 #define     OBJ_PostContext                         OBJ_DummyOperation
 #define     OBJ_ResetContext                        OBJ_DummyOperation
+#define     OBJ_DetachContext                       OBJ_DummyOperation
 
 STATIC E_STATUS OBJ_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
@@ -381,12 +387,18 @@ STATIC E_STATUS OBJ_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS OBJ_ActiveContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
+    E_STATUS State;
     LPTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
     
     CORE_DEBUG(TRUE, "Active task '%s' ...", GetObjectName(lpHeader));
+    
+    if (STATE_SUCCESS == (State = AttachContext2System(lpTaskContext, lpTaskParam)))
+    {
+        SetObjectState(lpHeader, KOBJECT_STATE_ACTIVE);
+    }
 
-    return AttachContext2System(lpTaskContext, lpTaskParam);
+    return State;
 }
 
 STATIC E_STATUS OBJ_FreeContext(LPKOBJECT_HEADER lpHeader)
@@ -410,6 +422,7 @@ DEFINE_CLASS(TSK_MAGIC, TaskClass, sizeof(TASK_CONTEXT),
             OBJ_WaitContext,
             OBJ_PostContext,
             OBJ_ResetContext,
+            OBJ_DetachContext,
             OBJ_FreeContext);
 
 STATIC E_STATUS SVC_GetTaskError(LPVOID lpPrivate, LPVOID lpParam)
@@ -819,7 +832,10 @@ EXPORT_SYMBOL(CORE_CreatePriorityTask);
 
 EXPORT CODE_TEXT VOID CORE_CloseTask(LPTASK_CONTEXT lpTaskContext)
 {
-    AttachContext2Death(lpTaskContext);
+    if (lpTaskContext)
+    {
+        AttachContext2Death(lpTaskContext);
+    }
 }
 
 /**
@@ -942,7 +958,7 @@ EXPORT LPTASK_CONTEXT CORE_GetCurrentTaskSafe(VOID)
 }
 EXPORT_SYMBOL(CORE_GetCurrentTaskSafe);
 
-EXPORT VOID CORE_SetCurrentTaskLPCPacket(LPVOID lpPacket)
+EXPORT VOID CORE_SetCurrentTaskRequestPacket(LPVOID lpPacket)
 {
     DWORD dwFlags = CORE_DisableIRQ();
     
@@ -967,59 +983,26 @@ EXPORT E_STATUS CORE_TaskWakeup(LPTASK_CONTEXT lpTaskContext, E_STATUS Result)
     return State;
 }
 
-EXPORT E_STATUS CORE_TaskSuspend(LONG Timeout)
+EXPORT E_STATUS CORE_TaskSuspend(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
 {
     DWORD dwFlags = CORE_DisableIRQ();
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-
-    CORE_ASSERT(lpCurrentTask,
-        CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
-        "Current task context not found ?");
     
-    SuspendTask(GetCurrentTaskContext(), Timeout);
+    SuspendTask(lpTaskContext, Timeout);
 
     CORE_RestoreIRQ(dwFlags);
 
     return STATE_SUCCESS;
 }
 
-EXPORT E_STATUS CORE_TaskAttach2WaitQueue(LPVOID IPCObject, LONG Timeout)
-{
-    LPIPC_BASE_OBJECT Object = IPCObject;
-    DWORD dwFlags = CORE_DisableIRQ();
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
 
-    CORE_ASSERT(lpCurrentTask,
-        CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
-        "Current task context not found ?");
-    
-    SuspendTask(lpCurrentTask, Timeout);
-    
-    Insert2WaitQueue(GetIPCWaitQueue(Object), lpCurrentTask);
+EXPORT E_STATUS CORE_SetThisPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority)
+{
+    DWORD dwFlags = CORE_DisableIRQ();
+
+    SetTaskThisPriority(lpTaskContext, Priority);
     
     CORE_RestoreIRQ(dwFlags);
 
-    return STATE_SUCCESS;
-}
-
-EXPORT E_STATUS CORE_PriorityUpsideCheck(LPTASK_CONTEXT lpOnwerContext)
-{
-    DWORD dwFlags = CORE_DisableIRQ();
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    TASK_PRIORITY Priority = GetContextThisPriority(lpCurrentTask);
-
-    CORE_ASSERT(lpCurrentTask,
-        CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
-        "Current task context not found ?");
-    
-    /* 如果 onwer 的优先级大于当前任务优先级，则调整 onwer 的优先级，以防止优先级倒挂 */
-    if (Priority < GetContextThisPriority(lpOnwerContext))
-    {
-        SetTaskThisPriority(lpOnwerContext, Priority);
-    }
-    
-    CORE_RestoreIRQ(dwFlags);
-    
     return STATE_SUCCESS;
 }
 
