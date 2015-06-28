@@ -64,7 +64,6 @@ typedef struct tagCONTAINER_ATTRIBUTE{
     LPCSTR              lpContainerName;                            /**< 管理器名字 */
     BYTE                BlocksPrePool;                              /**< 每个POOL的BLOCK数量 */
     BYTE                TotalPools;                                 /**< 管理的POOL数量 */
-    BOOL                SearchForHash:1;                            /**< 使用HASH搜索 */
 #if (CONFIG_CORE_POOL_MAX > 8)
     BYTE                Reserved;
     MANA_MAP_T          ContainerBitmap;                            /**< 位图-记录空闲POOL */
@@ -114,8 +113,6 @@ typedef unsigned long KCONTAINER_ID_T;
 #define     SetTotalPools(lpM, Pools)               do {(lpM)->Attribute.TotalPools = (Pools);} while(0)
 #define     GetBlocksPrePool(lpM)                   ((lpM)->Attribute.BlocksPrePool)
 #define     SetBlocksPrePool(lpM, Blocks)           do {(lpM)->Attribute.BlocksPrePool = (Blocks);} while(0)
-#define     GetContainerSearchMode(lpM)             ((lpM)->Attribute.SearchForHash)
-#define     SetContainerSearchMode(lpM, bMode)      do {(lpM)->Attribute.SearchForHash = (bMode);} while(0)
 
 #if (CONFIG_CORE_POOL_MAX > 1)
 #define     GetContainerBitmap(lpM)                 ((lpM)->Attribute.ContainerBitmap)
@@ -143,9 +140,9 @@ typedef unsigned long KCONTAINER_ID_T;
 extern "C" {
 #endif
     typedef E_STATUS (CALLBACK *POOLHASHCHECK)(LPVOID lpResult, LPDWORD Hash);
-    EXPORT VOID CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
+    EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
                                         LPBYTE lpTable, BYTE Pools, BYTE BlockPrePool,
-                                        DWORD BytePreBlock, BOOL SearchForHash);
+                                        DWORD BytePreBlock, BOOL AllocForInit);
     EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager);
     EXPORT LPVOID CORE_PoolTakeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T Kid);
     PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T Kid);

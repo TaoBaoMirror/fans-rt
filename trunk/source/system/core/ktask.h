@@ -260,6 +260,11 @@ struct tagTASK_CONTEXT{
 #define     AttachSleep(lpHead, lpTC)                       LIST_INSERT_PREV(lpHead, &(lpTC)->Node.SleepNode)
 #define     DetachSleep(lpTC)                               LIST_REMOVE_NODE(&(lpTC)->Node.SleepNode)
 
+#define     GetContextByDeathNode(lpNode)                   TASK_ENTRY(lpNode, Node.ReadyNode)
+#define     GetDeathNode(lpTC)                              (&(lpTC)->Node.ReadyNode)
+#define     AttachDeath(lpHead, lpTC)                       LIST_INSERT_PREV(lpHead, &(lpTC)->Node.ReadyNode)
+#define     DetachDeath(lpTC)                               LIST_REMOVE_NODE(&(lpTC)->Node.ReadyNode)
+
 #define     TaskContextSystemNodeInit(lpTC)                 LIST_HEAD_INIT(&(lpTC)->SystemNode);
 #define     GetContextBySystemNode(lpNode)                  TASK_ENTRY(lpNode, SystemNode)
 #define     AttachSystem(lpHead, lpTC)                      LIST_INSERT_TAIL(lpHead, &(lpTC)->SystemNode)
@@ -269,6 +274,7 @@ struct tagTASK_CONTEXT{
 #define     GetSystemNode(lpTC)                             (&(lpTC)->SystemNode)
 
 #define     TaskContextIPCNodeInit(lpTC)                    LIST_HEAD_INIT(&(lpTC)->IPCNode);
+#define     GetIPCNode(lpTC)                                (&(lpTC)->IPCNode)
 #define     GetContextByIPCNode(lpNode)                     TASK_ENTRY(lpNode, IPCNode)
 #define     AttachIPCNode(lpHead, lpTC)                     LIST_INSERT_TAIL(lpHead, &(lpTC)->IPCNode)
 #define     DetachIPCNode(lpTC)                             LIST_REMOVE_NODE(&(lpTC)->IPCNode)
@@ -298,28 +304,35 @@ extern "C" {
     EXPORT DWORD CORE_GetGlobalTaskCount(VOID);
     EXPORT LPVOID CORE_GetTaskStackPosition(VOID);
     EXPORT VOID CORE_SetTaskStackPosition(LPVOID StackPosition);
-    EXPORT LPVOID CORE_GetCoreStackPosition(LPVOID StackPosition);
-    EXPORT LPVOID CORE_SwitchTask(LPVOID StackPosition);
+    EXPORT LPVOID CORE_GetCoreStackPosition(VOID);
+    EXPORT VOID CORE_SetCoreStackPosition(LPVOID StackPosition);
+    EXPORT E_TASK_PERMISSION CORE_SwitchTask(LPVOID CoreStack, LPVOID UserStack);
 
-    EXPORT DWORD CORE_GetInterruptLayer(VOID);
     EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID);
     EXPORT LPTASK_CONTEXT CORE_GetCurrentTaskSafe(VOID);
+    EXPORT E_TASK_PERMISSION CORE_GetCurrentPermission(VOID);
     EXPORT VOID CORE_SetCurrentTaskLPCPacket(LPVOID lpPacket);
     EXPORT E_STATUS CORE_TaskSuspend(LONG Timeout);
-    EXPORT E_STATUS CORE_TaskAttach2WaitQueue(LPLIST_HEAD lpWaitQueue, LONG Timeout);
+    EXPORT E_STATUS CORE_TaskAttach2WaitQueue(LPVOID IPCObject, LONG Timeout);
     EXPORT E_STATUS CORE_TaskWakeup(LPTASK_CONTEXT lpTaskContext, E_STATUS Result);
     
     EXPORT E_STATUS CORE_TaskAttach(LPTASK_CONTEXT lpTaskContext);
     EXPORT E_STATUS CORE_TaskDetach(LPTASK_CONTEXT lpTaskContext);
     EXPORT E_STATUS CORE_PriorityUpsideCheck(LPTASK_CONTEXT lpOnwerContext);
     EXPORT E_STATUS CORE_SetTaskPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority);
-    EXPORT E_STATUS CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext);    
+    EXPORT E_STATUS CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext);   
+
+    EXPORT CODE_TEXT E_STATUS CORE_IdleMain(LPVOID lpParam);
+    EXPORT CODE_TEXT VOID CORE_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, LPTASK_CONTEXT lpTaskContext);
+    EXPORT VOID CORE_TaskLeave(VOID);
 
 #define CORE_CreateTask(lpName, fnMain, lpArgument)                                         \
         CORE_CreatePriorityTask(lpName, fnMain, lpArgument, TASK_PRIORITY_NORMAL)
     EXPORT LPTASK_CONTEXT CORE_CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
                           LPVOID lpArgument, TASK_PRIORITY Priority);
     EXPORT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREATE_PARAM lpParam);
+    
+    EXPORT VOID CORE_CloseTask(LPTASK_CONTEXT lpTaskContext);
 #ifdef __cplusplus
 }
 #endif

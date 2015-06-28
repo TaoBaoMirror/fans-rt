@@ -28,13 +28,14 @@ PUBLIC LPVOID CORE_GetBootStackBuffer(VOID)
 
     PUBLIC LPVOID CORE_BootStackAddress(VOID);
     PUBLIC DWORD  CORE_BootStackLength(VOID);
-    PUBLIC LPVOID CORE_HeapAddress(VOID);
-    PUBLIC DWORD CORE_HeapLength(VOID);
+    PUBLIC LPBYTE CORE_HeapAddress(VOID);
+    PUBLIC SIZE_T CORE_HeapLength(VOID);
 
 PUBLIC LPVOID CORE_GetBootStackBuffer(VOID)
 {
     return CORE_BootStackAddress();
 }
+
 #endif          //__MICROLIB
 #else           //__ARM_CC
 #error "not support this complier..."

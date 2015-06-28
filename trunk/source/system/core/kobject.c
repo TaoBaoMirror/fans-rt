@@ -532,8 +532,6 @@ STATIC INLINE BYTE Class2Tid(SIZE_T Length)
 
 STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR lpName)
 {
-    DWORD dwFlags;
-    LPDWORD lpdName = (LPVOID) lpName;
     LPKOBJECT_HEADER lpHeader = NULL;
     LPCORE_CONTAINER lpManager = NULL;
     KCONTAINER_ID_T Pid = INVALID_CONTAINER_ID;
@@ -562,13 +560,19 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
     lpHeader = CORE_PoolTakeBlock(lpManager, Pid);
     
+    if (NULL == lpHeader)
+    {
+        CORE_ERROR(TRUE, "Can't found header for magic(0x%08x) pid(%d).", lpClass->Magic, Pid);
+        return NULL;
+    }
+    
     if (NULL != lpName)
     {
-        dwFlags = CORE_DisableIRQ();
+        DWORD dwFlags = CORE_DisableIRQ();
 
         Attach2HashList(GetObjectHash(lpName), lpHeader);
 
-        initNamedObject(lpHeader, lpClass->Magic, lpdName, Pid, GetSystemObjectSid(), Tid);
+        initNamedObject(lpHeader, lpClass->Magic, ((LPDWORD)lpName), Pid, GetSystemObjectSid(), Tid);
         
         CORE_RestoreIRQ(dwFlags);
     }
@@ -609,7 +613,7 @@ STATIC E_STATUS FreeObjectToPool(LPKOBJECT_HEADER lpHeader)
         GetObjectName(lpHeader), GetContainerName(lpManager), Pid, Eid);
 
     DetachHashList(lpHeader);
-    SetObjectHandle(lpHeader, 0);
+    SetObjectHandle(lpHeader, INVALID_HANDLE_VALUE);
 
     CORE_RestoreIRQ(dwFlags);
 
@@ -1021,6 +1025,13 @@ EXPORT E_STATUS CORE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 }
 
 
+
+EXPORT E_STATUS CORE_DetachObject(LPKOBJECT_HEADER lpHeader)
+{
+    return STATE_SUCCESS;
+}
+
+
 EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
 {
     E_STATUS State;
@@ -1037,7 +1048,7 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
     dwFlags = CORE_DisableIRQ();
     OldState = (KOBJECT_STATE) GetObjectState(lpHeader);
 
-    if (KOBJECT_STATE_FREE == OldState)
+    if (KOBJECT_STATE_FREE == OldState || KOBJECT_STATE_DEATH == OldState)
     {
         CORE_RestoreIRQ(dwFlags);
         CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
@@ -1076,61 +1087,26 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
     return State;
 }
 
-EXPORT E_STATUS CORE_FreeObjectByID(LPKOBJECT_HEADER lpHeader, DWORD Magic,
-    KOBJTABLE_ID_T Tid, KCONTAINER_ID_T Pid)
-{
-    KOBJCLASS_ID_T Cid = Magic2ClassID(Magic);
-    LPKCLASS_DESCRIPTOR lpClass = CID2ClassDescriptor(Cid);
-    
-    if (NULL == lpClass)
-    {
-        CORE_ERROR(TRUE, "No class(0x%08x) to free object(0x%P).", Magic, lpHeader);
-        return STATE_INVALID_CLASS;
-    }
-    
-    if (Magic != lpClass->Magic)
-    {
-        CORE_ERROR(TRUE, "Magic(0x%08x) not match for class(0x%08x) to free object(0x%P).",
-            Magic, lpClass->Magic, lpHeader);
-        return STATE_NOT_MATCH;
-    }
-    
-    if (Class2Tid(lpClass->ObjectSize) != Tid)
-    {
-        CORE_ERROR(TRUE, "Tid(0x%x) not match for class(0x%08x:"
-            " %u bytes) to free object(0x%P), name(%s).",
-            Tid, lpClass->Magic, lpClass->ObjectSize, lpHeader,
-            GetObjectName(lpHeader));
-        return STATE_INVALID_PARAMETER;
-    }
-    
-    ObjectRepair(lpHeader, Cid, Pid, Tid);
-
-    return CORE_FreeObject(lpHeader);
-}
-
 STATIC E_STATUS SVC_MallocObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPKOBJECT_HEADER lpHeader;
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-
-    lpHeader = CORE_MallocObject(lpPacket->u0.dParam, lpPacket->u1.pParam, lpPacket->u2.pParam);
+    LPKOBJECT_HEADER lpHeader = CORE_MallocObject(REQdParam(lpParam, u0),
+                                                  REQpParam(lpParam, u1),
+                                                  REQpParam(lpParam, u2));
     
     if (NULL == lpHeader)
     {
-        lpPacket->u1.hParam = INVALID_HANDLE_VALUE;
+        REQhParam(lpParam, u1) = INVALID_HANDLE_VALUE;
         return CORE_GetError();
     }
 
-    lpPacket->u1.hParam = GetObjectHandle(lpHeader);
+    REQhParam(lpParam, u1) = GetObjectHandle(lpHeader);
     
     return STATE_SUCCESS;
 }
 
 STATIC E_STATUS SVC_ActiveObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    E_STATUS State = CORE_ActiveObject(CORE_Handle2Header(lpPacket->u0.hParam), lpPacket->u1.pParam);
+    E_STATUS State = CORE_ActiveObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQpParam(lpParam, u1));
     
     CORE_SetError(State);
     
@@ -1139,18 +1115,15 @@ STATIC E_STATUS SVC_ActiveObject(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_TakeObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPKOBJECT_HEADER lpHeader;
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    
-    lpHeader = CORE_TakeObject(lpPacket->u0.pParam, lpPacket->u1.pParam);
+    LPKOBJECT_HEADER lpHeader = CORE_TakeObject(REQpParam(lpParam, u0), REQpParam(lpParam, u1));
     
     if (NULL == lpHeader)
     {
-        lpPacket->u1.hParam = INVALID_HANDLE_VALUE;
+        REQhParam(lpParam, u1) = INVALID_HANDLE_VALUE;
         return CORE_GetError();
     }
     
-    lpPacket->u1.hParam = GetObjectHandle(lpHeader);
+    REQhParam(lpParam, u1) = GetObjectHandle(lpHeader);
     
     return STATE_SUCCESS;
 }
@@ -1158,8 +1131,7 @@ STATIC E_STATUS SVC_TakeObject(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_WaitObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    E_STATUS State =  CORE_WaitObject(CORE_Handle2Header(lpPacket->u0.hParam), lpPacket->u1.dParam);
+    E_STATUS State =  CORE_WaitObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQdParam(lpParam, u1));
     
     CORE_SetError(State);
     
@@ -1168,8 +1140,7 @@ STATIC E_STATUS SVC_WaitObject(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_PostObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    E_STATUS State =  CORE_PostObject(CORE_Handle2Header(lpPacket->u0.hParam), lpPacket->u1.pParam);
+    E_STATUS State =  CORE_PostObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQpParam(lpParam, u1));
     
     CORE_SetError(State);
     
@@ -1178,8 +1149,7 @@ STATIC E_STATUS SVC_PostObject(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_ResetObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    E_STATUS State =  CORE_ResetObject(CORE_Handle2Header(lpPacket->u0.hParam), lpPacket->u1.pParam);  
+    E_STATUS State =  CORE_ResetObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQpParam(lpParam, u1));  
     
     CORE_SetError(State);
     
@@ -1188,8 +1158,7 @@ STATIC E_STATUS SVC_ResetObject(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_FreeObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    E_STATUS State =  CORE_FreeObject(CORE_Handle2Header(lpPacket->u0.hParam));  
+    E_STATUS State =  CORE_FreeObject(CORE_Handle2Header(REQhParam(lpParam, u0)));  
     
     CORE_SetError(State);
     
@@ -1199,13 +1168,10 @@ STATIC E_STATUS SVC_FreeObject(LPVOID lpPrivate, LPVOID lpParam)
 STATIC E_STATUS SVC_GetObjectName(LPVOID lpPrivate, LPVOID lpParam)
 {
     LPKOBJECT_HEADER lpHeader;
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPDWORD lpOutputName = lpPacket->u1.pParam;
-    SIZE_T BufferLength = lpPacket->u2.dParam;
 
-    lpHeader = TASK_SELF_HANDLE == lpPacket->u0.hParam
+    lpHeader = TASK_SELF_HANDLE == REQhParam(lpParam, u0)
              ? (LPVOID) CORE_GetCurrentTask()
-             : CORE_Handle2Header(lpPacket->u0.hParam);
+             : CORE_Handle2Header(REQhParam(lpParam, u0));
     
     if (NULL == lpHeader)
     {
@@ -1213,13 +1179,13 @@ STATIC E_STATUS SVC_GetObjectName(LPVOID lpPrivate, LPVOID lpParam)
         return STATE_INVALID_OBJECT;
     }
     
-    if (NULL == lpOutputName || BufferLength < OBJECT_NAME_MAX)
+    if (NULL == REQpParam(lpParam, u1) || REQdParam(lpParam, u2) < OBJECT_NAME_MAX)
     {
         CORE_SetError(STATE_INVALID_PARAMETER);
         return STATE_INVALID_PARAMETER;
     }
 
-    DumpObjectName(lpHeader, lpOutputName);
+    DumpObjectName(lpHeader, (LPDWORD)(REQpParam(lpParam, u1)));
 
     CORE_SetError(STATE_SUCCESS);
 
@@ -1243,6 +1209,7 @@ DEFINE_LPC_SERVICE(LPCService, SOM_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHand
 PUBLIC E_STATUS initCoreSystemObjectPoolManager(VOID)
 {
     DWORD i = 0;
+    E_STATUS Result = STATE_SUCCESS;
 
     CORE_INFOR(TRUE, "OBJECT0_CONTAINER: %d      OBJECT1_CONTAINER: %d.",
             sizeof(OBJECT0_CONTAINER), sizeof(OBJECT0_CONTAINER));
@@ -1260,67 +1227,76 @@ PUBLIC E_STATUS initCoreSystemObjectPoolManager(VOID)
     
 #if ((0 != CONFIG_OBJECT0_POOL_MAX) && (0 != CONFIG_OBJECT0_BLOCK_MAX))
     memset(OBJECT0_POOL_TABLE, 0, sizeof(OBJECT0_POOL_TABLE));
-    CORE_CreatePoolContainer(OBJECT0_POOL_TABLE,
+    Result = CORE_CreatePoolContainer(OBJECT0_POOL_TABLE,
             "Object0", OBJECT0_HEADER_TABLE,
             CONFIG_OBJECT0_POOL_MAX,
             CONFIG_OBJECT0_BLOCK_MAX,
             sizeof(OBJECT0_HEADER), TRUE);
+    
+    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),"Create pool failed !");
 #endif
 #if ((0 != CONFIG_OBJECT1_POOL_MAX) && (0 != CONFIG_OBJECT1_BLOCK_MAX))
     memset(OBJECT1_POOL_TABLE, 0, sizeof(OBJECT1_POOL_TABLE));
-    CORE_CreatePoolContainer(OBJECT1_POOL_TABLE,
+    Result = CORE_CreatePoolContainer(OBJECT1_POOL_TABLE,
             "Object1", OBJECT1_HEADER_TABLE,
             CONFIG_OBJECT1_POOL_MAX,
             CONFIG_OBJECT1_BLOCK_MAX,
             sizeof(OBJECT1_HEADER), TRUE);
+    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),"Create pool failed !");
 #endif
 #if ((0 != CONFIG_OBJECT2_POOL_MAX) && (0 != CONFIG_OBJECT2_BLOCK_MAX))
     memset(OBJECT2_POOL_TABLE, 0, sizeof(OBJECT2_POOL_TABLE));
-    CORE_CreatePoolContainer(OBJECT2_POOL_TABLE,
+    Result = CORE_CreatePoolContainer(OBJECT2_POOL_TABLE,
             "Object2", OBJECT2_HEADER_TABLE,
             CONFIG_OBJECT2_POOL_MAX,
             CONFIG_OBJECT2_BLOCK_MAX,
             sizeof(OBJECT2_HEADER), TRUE);
+    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),"Create pool failed !");
 #endif
 #if ((0 != CONFIG_OBJECT3_POOL_MAX) && (0 != CONFIG_OBJECT3_BLOCK_MAX))
     memset(OBJECT3_POOL_TABLE, 0, sizeof(OBJECT3_POOL_TABLE));
-    CORE_CreatePoolContainer(OBJECT3_POOL_TABLE,
+    Result = CORE_CreatePoolContainer(OBJECT3_POOL_TABLE,
             "Object3", OBJECT3_HEADER_TABLE,
             CONFIG_OBJECT3_POOL_MAX,
             CONFIG_OBJECT3_BLOCK_MAX,
             sizeof(OBJECT3_HEADER), TRUE);
+    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),"Create pool failed !");
 #endif
 #if ((0 != CONFIG_OBJECT4_POOL_MAX) && (0 != CONFIG_OBJECT4_BLOCK_MAX))
     memset(OBJECT4_POOL_TABLE, 0, sizeof(OBJECT4_POOL_TABLE));
-    CORE_CreatePoolContainer(OBJECT4_POOL_TABLE,
+    Result = CORE_CreatePoolContainer(OBJECT4_POOL_TABLE,
             "Object4", OBJECT4_HEADER_TABLE,
             CONFIG_OBJECT4_POOL_MAX,
             CONFIG_OBJECT4_BLOCK_MAX,
             sizeof(OBJECT4_HEADER), TRUE);
+    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),"Create pool failed !");
 #endif
 #if ((0 != CONFIG_OBJECT5_POOL_MAX) && (0 != CONFIG_OBJECT5_BLOCK_MAX))
     memset(OBJECT5_POOL_TABLE, 0, sizeof(OBJECT5_POOL_TABLE));
-    CORE_CreatePoolContainer(OBJECT5_POOL_TABLE,
+    Result = CORE_CreatePoolContainer(OBJECT5_POOL_TABLE,
             "Object5", OBJECT5_HEADER_TABLE,
             CONFIG_OBJECT5_POOL_MAX,
             CONFIG_OBJECT5_BLOCK_MAX,
-            sizeof(OBJECT5_HEADER), FALSE);
+            sizeof(OBJECT5_HEADER), TRUE);
+    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),"Create pool failed !");
 #endif
 #if ((0 != CONFIG_OBJECT6_POOL_MAX) && (0 != CONFIG_OBJECT6_BLOCK_MAX))
     memset(OBJECT6_POOL_TABLE, 0, sizeof(OBJECT6_POOL_TABLE));
-    CORE_CreatePoolContainer(OBJECT6_POOL_TABLE,
+    Result = CORE_CreatePoolContainer(OBJECT6_POOL_TABLE,
             "Object6", OBJECT6_HEADER_TABLE,
             CONFIG_OBJECT6_POOL_MAX,
             CONFIG_OBJECT6_BLOCK_MAX,
-            sizeof(OBJECT6_HEADER), FASLE);
+            sizeof(OBJECT6_HEADER), TRUE);
+    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),"Create pool failed !");
 #endif
 #if ((0 != CONFIG_OBJECT7_POOL_MAX) && (0 != CONFIG_OBJECT7_BLOCK_MAX))
     memset(OBJECT7_POOL_TABLE, 0, sizeof(OBJECT7_POOL_TABLE));
-    CORE_CreatePoolContainer(OBJECT7_POOL_TABLE,
+    Result = CORE_CreatePoolContainer(OBJECT7_POOL_TABLE,
             "Object7", OBJECT7_HEADER_TABLE,
             CONFIG_OBJECT7_POOL_MAX,
             CONFIG_OBJECT7_BLOCK_MAX,
-            sizeof(OBJECT7_HEADER), FALSE);
+            sizeof(OBJECT7_HEADER), TRUE);
+    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),"Create pool failed !");
 #endif
     LPC_INSTALL(&LPCService, "System object management(SOM) service starting");
     

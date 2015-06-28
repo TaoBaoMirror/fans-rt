@@ -35,33 +35,35 @@ typedef union tagSCHEDULER_FLAGS{
     BYTE                    Value;
 }SCHEDULER_FLAGS;
 
-STATIC  LIST_HEAD       g_SystemTaskTable;                                                  /**< 系统任务表 */
-STATIC  LIST_HEAD       g_TaskSuspendQueue;                                                 /**< 任务休眠队列 */
-STATIC  LIST_HEAD       g_TaskReadyQueue[CONFIG_TASK_PRIORITY_MAX];                         /**< 优先级就绪队列 */
-PUBLIC  VOLATILE        LPTASK_CONTEXT  g_CurrentContext        =       NULL;               /**< 当前任务上下文指针 */
+STATIC  LIST_HEAD       g_SystemTaskTable;                                                      /**< 系统任务表 */
+STATIC  LIST_HEAD       g_SystemDeathQueue;                                                     /**< 任务死亡队列 */
+STATIC  LIST_HEAD       g_TaskSuspendQueue;                                                     /**< 任务休眠队列 */
+STATIC  LIST_HEAD       g_TaskReadyQueue[CONFIG_TASK_PRIORITY_MAX];                             /**< 优先级就绪队列 */
+PUBLIC  VOLATILE        LPTASK_CONTEXT      g_CurrentContext        =       NULL;               /**< 当前任务上下文指针 */
 #if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
-STATIC  VOLATILE        LPTASK_CONTEXT  g_Switch2Context        =       NULL;               /**< 切换目标任务上下文指针  */
+STATIC  VOLATILE        LPTASK_CONTEXT      g_Switch2Context        =       NULL;               /**< 切换目标任务上下文指针  */
 #endif
 
 #if (CONFIG_PROFILER_CYCLE != 0)
-STATIC  VOLATILE        DWORD           g_SystemScheduleCount   =       0;                  /**< 任务调度次数 */
+STATIC  VOLATILE        DWORD               g_SystemScheduleCount   =       0;                  /**< 任务调度次数 */
 #endif
 
-STATIC  VOLATILE        E_STATUS        g_SystemGlobalError     =       STATE_SUCCESS;
-STATIC  VOLATILE        SCHEDULER_FLAGS g_SchedulerFlags        =       {FALSE, FALSE};
-STATIC  VOLATILE        TASK_PRIORITY   g_CurrentPriority       =       TASK_PRIORITY_IDLE; /**< 当前任务优先级 */
-STATIC  VOLATILE        BYTE            g_InterruptNestLayer    =       2;                  /**< 中断嵌套 */
+STATIC  VOLATILE        E_STATUS            g_SystemGlobalError     =       STATE_SUCCESS;
+STATIC  VOLATILE        SCHEDULER_FLAGS     g_SchedulerFlags        =       {FALSE, FALSE};
+STATIC  VOLATILE        E_TASK_PERMISSION   g_CurrentPermission     =       TASK_PERMISSION_USER;
+STATIC  VOLATILE        TASK_PRIORITY       g_CurrentPriority       =       TASK_PRIORITY_IDLE; /**< 当前任务优先级 */
+STATIC  VOLATILE        BYTE                g_InterruptNestLayer    =       2;                  /**< 中断嵌套 */
 
 #if (CONFIG_TASK_PRIORITY_MAX <= 8)
-STATIC  VOLATILE        BYTE            g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
+STATIC  VOLATILE        BYTE                g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
 #elif (CONFIG_TASK_PRIORITY_MAX <= 16)
-STATIC  VOLATILE        WORD            g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
+STATIC  VOLATILE        WORD                g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
 #elif (CONFIG_TASK_PRIORITY_MAX <= 32)
-STATIC  VOLATILE        DWORD           g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
+STATIC  VOLATILE        DWORD               g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
 #else
-STATIC  VOLATILE        BYTE            g_PriorityReadyBitmap0;                             /**< 0级任务就绪位图 */
-STATIC  VOLATILE        BYTE            g_PriorityReadyBitmap1[4];                          /**< 1级任务就绪位图 */
-STATIC  VOLATILE        BYTE            g_PriorityReadyBitmap2[32];                         /**< 2级任务就绪位图 */
+STATIC  VOLATILE        BYTE                g_PriorityReadyBitmap0;                             /**< 0级任务就绪位图 */
+STATIC  VOLATILE        BYTE                g_PriorityReadyBitmap1[4];                          /**< 1级任务就绪位图 */
+STATIC  VOLATILE        BYTE                g_PriorityReadyBitmap2[32];                         /**< 2级任务就绪位图 */
 #endif
 
 #define     GetContextPriorityReadyQueue(lpC)           (&g_TaskReadyQueue[GetContextThisPriority(lpC)])
@@ -266,6 +268,8 @@ STATIC VOID ScheduleBegin(VOID)
     {
         if (lpNewTask != GetSwitch2TaskContext())
         {
+ //           CORE_INFOR(TRUE, "Will be scheduling to task '%p', Priority is %d, %p, %p, old task is %p.",
+ //               lpNewTask, Priority, &g_TaskReadyQueue[Priority], LIST_FIRST_NODE(&g_TaskReadyQueue[Priority]), lpOldTask);
             SetSwitch2TaskContext(lpNewTask);
             CORE_ActiveSwitchIRQ();
         }
@@ -478,32 +482,21 @@ STATIC VOID Insert2WaitQueue(LPLIST_HEAD lpHead, LPTASK_CONTEXT lpTaskContext)
     }
 
     AttachIPCNode(lpList, lpTaskContext);
+    SetContextState(lpTaskContext, TASK_STATE_WAITING);
 }
 
 /**
- * The task detach from system.
+ * Task will be detach state.
  * @param The context of the task.
  * @return VOID
- * \par
- * If need kill any task, should be remove the task from the ready queue and the
- * system list and the IPC object, and clears the ready bitmap, and then set the
- * task state to detach.
- *
- * 删除任务需要将任务从就绪队列和系统链表以及IPC对象中摘除并清除就绪位图，然后设置
- * 任务为分离状态。
  *
  * date           author          notes
- * 2015-06-11     JiangYong       first version
+ * 2015-06-28     JiangYong       first version
  */
-STATIC VOID DetechFromSystem(LPTASK_CONTEXT lpTaskContext)
+STATIC VOID Context2DetachState(LPTASK_CONTEXT lpTaskContext)
 {
     DetachReady(lpTaskContext);
-    DetachIPCNode(lpTaskContext);
-    DetachSystem(lpTaskContext);
-    ClearTaskReadyBitmap(lpTaskContext);
-    SetContextState(lpTaskContext, TASK_STATE_DETACH);
 }
-
 /**
  * The slice handler for the scheduler.
  * \par
@@ -751,6 +744,7 @@ STATIC E_STATUS SetTaskThisPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY 
     switch(GetContextState(lpTaskContext))
     {
     case TASK_STATE_SLEEP:
+    case TASK_STATE_WAITING:
         SetContextThisPriority(lpTaskContext, Priority);
 #ifdef SYSTEM_HAVE_TICK64
         DetachSleep(lpTaskContext);

@@ -24,45 +24,6 @@
 #include "request.h"
 #include "cadebug.h"
 
-EXPORT CODE_TEXT E_STATUS caIdleEntry(LPVOID lpParam)
-{
-    LOG_DEBUG(TRUE, "System idle task working now ....");
-
-    do{
-        FW_SystemIdle();
-    }while(FALSE == caTestCancel());
-    
-    return STATE_SUCCESS;
-}
-
-/**
- * 任务入口函数
- * @param fnMain 任务主函数指针
- * @param lpArgument 任务入口参数
- * @param HANDLE hTask 任务句柄
- * @return VOID
- * \par
- *     新任务入口函数需要传入三个参数，在ARCH层实现的任务堆栈填充函数需要将这
- * 三个参数放入恰当的堆栈位置。
- */
-EXPORT CODE_TEXT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
-{
-    CHAR Name[OBJECT_NAME_MAX];
-
-    caGetObjectName(hTask, Name, OBJECT_NAME_MAX);
-    
-    LOG_DEBUG(TRUE, "Task 0x%08X name '%s' main 0x%P starting(%lld) now ...",
-        hTask, Name, fnMain, caGetTaskStartTick(hTask));
-
-    fnMain(lpArgument);
-    
-    caCloseTask(hTask);
-    
-    LOG_ERROR(TRUE, "BUG: ****The task has been died ****");
-    
-    while(1) caScheduleTimeout(1000);
-}
-
 EXPORT CODE_TEXT E_STATUS caGetError(VOID)
 {
     LPC_REQUEST_PACKET Packet;

@@ -42,9 +42,6 @@ extern "C" {
     EXPORT TASK_PRIORITY caGetPriority(HANDLE hTask);
     EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority);
     EXPORT E_STATUS caCloseTask(HANDLE hTask);
-    
-    EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
-    EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask);
 
     EXPORT SMLT_KEY_T caGetSmltKey(VOID);
     EXPORT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey);
@@ -68,8 +65,11 @@ extern "C" {
     EXPORT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam);
     EXPORT E_STATUS caFreeObject(HANDLE handle);
     EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);
-    EXPORT E_STATUS caStackFill(HANDLE hTask, E_TASK_PERMISSION Permission);
+    EXPORT E_STATUS caStackFill(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);
     EXPORT E_STATUS caStackFree(HANDLE hTask, E_TASK_PERMISSION Permission);
+    
+    EXPORT VOID USER_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask);
+    EXPORT VOID USER_TaskLeave(VOID);
 
     EXPORT LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType);
 

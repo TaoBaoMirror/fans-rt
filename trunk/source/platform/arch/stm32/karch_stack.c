@@ -18,26 +18,42 @@
 #include "ktask.h"
 #include "kdebug.h"
 
-EXPORT VOID caTaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask);
+#include "libcal.h"
 
-
-PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID Entry, LPVOID lpArgument, HANDLE hTask)
+PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID fnMain, LPVOID lpArgument,
+                LPVOID lpTaskContext, HANDLE hTask, E_TASK_PERMISSION Permission)
 {
+    LPVOID fnEntry;
+    LPVOID fnLeave;
+    DWORD TaskObject;
+    DWORD IRQLeaveR;
     LPDWORD StackPoint = Position;
+    
+    if (TASK_PERMISSION_CORE == Permission)
+    {
+        fnEntry = CORE_TaskEntry;
+        fnLeave = CORE_TaskLeave;
+        IRQLeaveR  = (DWORD) 0xfffffff9L;
+        TaskObject = (DWORD) lpTaskContext;
+    }
+    else
+    {
+        fnLeave = USER_TaskLeave;
+        fnEntry = USER_TaskEntry;
+        IRQLeaveR  = (DWORD) 0xfffffffdL;
+        TaskObject = (DWORD) hTask;
+    }
 
     *(--StackPoint)  = (DWORD)0x01000000L;             /* xPSR                                               */
-    *(--StackPoint)  = (DWORD)caTaskEntry;           /* R15  PC -->Entry Point                             */
-    *(--StackPoint)  = (DWORD)0;                       /* R14 (LR) (init value will cause fault if ever used)*/
+    *(--StackPoint)  = (DWORD)fnEntry;                 /* R15  PC -->Entry Point                             */
+    *(--StackPoint)  = (DWORD)fnLeave;                 /* R14 (LR) (init value will cause fault if ever used)*/
     *(--StackPoint)  = (DWORD)0x12121212L;             /* R12                                                */
     *(--StackPoint)  = (DWORD)0x03030303L;             /* R3                                                 */
-    *(--StackPoint)  = (DWORD)hTask;                   /* R2 : Task handle                                   */
+    *(--StackPoint)  = (DWORD)TaskObject;              /* R2 : Task object                                   */
     *(--StackPoint)  = (DWORD)lpArgument;              /* R1 : Argument                                      */
-    *(--StackPoint)  = (DWORD)Entry;                   /* R0 : Entry                                         */
-#if (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
-    *(--StackPoint)  = (DWORD)0xfffffffdL;             /* Remaining registers saved on process stack         */
-#else
-    *(--StackPoint)  = (DWORD)0xfffffff9L;             /* Remaining registers saved on process stack         */
-#endif
+    *(--StackPoint)  = (DWORD)fnMain;                  /* R0 : Main founction                                */
+    
+    *(--StackPoint)  = (DWORD)IRQLeaveR;               /* LR : The LR value for IRQ                          */
     *(--StackPoint)  = (DWORD)0x12121212L;             /* R12                                                */
     *(--StackPoint)  = (DWORD)0x11111111L;             /* R11                                                */
     *(--StackPoint)  = (DWORD)0x10101010L;             /* R10                                                */

@@ -17,6 +17,7 @@
 #include <fatypes.h>
 
 #include "klpc.h"
+#include "kipc.h"
 #include "ktask.h"
 #include "khash.h"
 #include "kpool.h"
@@ -31,8 +32,6 @@
 #define     IDLE_TASK_ID                1
 #define     MakeCoreStackHandle(id)                                                             \
             MakeCoreHandle(Magic2ClassID(STK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
-
-EXPORT E_STATUS caIdleEntry(LPVOID lpParam);
 
 STATIC DWORD g_SystemTaskCount = 0;
 
@@ -49,6 +48,7 @@ EXPORT LPTASK_CONTEXT CORE_Handle2TaskContextCheck(HANDLE hTask, BOOL Check)
 {
     return (LPTASK_CONTEXT) CORE_Handle2HeaderCheck(hTask, Check);
 }
+
 
 /************************************************************************************************
                                
@@ -96,7 +96,7 @@ STATIC VOID SetContextParam(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE_PARAM lp
 #endif
     SetContextSliceRemain(lpTaskContext, MILLI_SECOND_TO_TICK(lpTaskParam->SliceLength));
     SetContextSliceLength(lpTaskContext, MILLI_SECOND_TO_TICK(lpTaskParam->SliceLength));
-    SetContextMiscBits(lpTaskContext, 0, TASK_STATE_DETACH, FALSE, 0, 0);
+    SetContextMiscBits(lpTaskContext, 0, TASK_STATE_CREATE, FALSE, 0, 0);
     SetContextThisPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextInitPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextTaskError(lpTaskContext, STATE_SUCCESS);
@@ -160,6 +160,7 @@ STATIC E_STATUS AttachContext2System(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE
 
 STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
 {
+    E_STATUS Result = STATE_SUCCESS;
     DWORD dwFlags = CORE_DisableIRQ();
     
     /* 任务 Cancel 标志必须被置位 */
@@ -168,63 +169,71 @@ STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
         CORE_RestoreIRQ(dwFlags);
         return STATE_NOT_READY;
     }
-#if 0
-    /* 任务堆栈必须已删除 */
-    if (NULL != GetContextStackBuffer(lpTaskContext))
-    {
-        CORE_RestoreIRQ(dwFlags);
-        return STATE_SYSTEM_BUSY;
-    }
-#endif
+
     switch(GetContextState(lpTaskContext))
     {
+    case TASK_STATE_DEATH:
+        Result = STATE_REMOVED;
+        break;
     case TASK_STATE_READY:
     case TASK_STATE_WORKING:
     case TASK_STATE_SLEEP:
-        DecGlobalTaskContextCount();
-        DetechFromSystem(lpTaskContext);
+    case TASK_STATE_WAITING:
+        Result = STATE_SYSTEM_BUSY;
         break;
-    default: /*TASK_STATE_DETACH*/
-        ;
+    case TASK_STATE_DETACH:
+        DecGlobalTaskContextCount();
+        DetachSystem(lpTaskContext);
+        SetContextState(lpTaskContext, TASK_STATE_DEATH);
+    case TASK_STATE_CREATE:
+        DecGlobalTaskContextCount();
+        SetContextState(lpTaskContext, TASK_STATE_DEATH);
+        break;
+    default: /*unknow*/
+        Result = STATE_INVALID_STATE;
+        break;
     }
 
     CORE_RestoreIRQ(dwFlags);
 
-    return STATE_SUCCESS;
+    return Result;
 }
 
-STATIC E_STATUS CloseTaskContext(LPTASK_CONTEXT lpTaskContext)
+STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
 {
-#if 0
-    LPKOBJECT_HEADER lpStackHeader = GetContextStackBuffer(lpTaskContext);
-    
-    if (IsCoreHandle(GetContextHandle(lpTaskContext)))
+    E_STATUS Result = STATE_SUCCESS;
+    DWORD dwFlags = CORE_DisableIRQ();
+
+    switch(GetContextState(lpTaskContext))
     {
-        return STATE_SYSTEM_BUSY;
+    case TASK_STATE_CREATE:
+    case TASK_STATE_DETACH:
+    case TASK_STATE_DEATH:
+        Result = STATE_REMOVED;
+        break;
+    case TASK_STATE_READY:
+    case TASK_STATE_WORKING:
+    case TASK_STATE_SLEEP:
+        break;
+    case TASK_STATE_WAITING:
+        Result = CORE_DetachIPCObject(GetIPCNode(lpTaskContext));
+        break;
+    default: /*unknow*/
+        Result = STATE_INVALID_STATE;
+        break;
     }
     
-    SetContextCancel(lpTaskContext, TRUE);
-    
-    if (NULL != lpStackHeader)
+    if (STATE_SUCCESS == Result)
     {
-#if (CONFIG_DYNAMIC_STACK_ENABLE == FALSE)
-        KOBJTABLE_ID_T Tid = GetContextStackTid(lpTaskContext);
-        KCONTAINER_ID_T Pid = GetContextStackPid(lpTaskContext);
-        
-        CORE_FreeObjectByID(lpStackHeader, STK_MAGIC, Tid, Pid);
-#else
-#error "Not support dynamic stack !"
-#endif
-        SetContextStackBuffer(lpTaskContext, NULL);
+        Context2DetachState(lpTaskContext);
+        SetContextCancel(lpTaskContext, TRUE);
+        SetContextState(lpTaskContext, TASK_STATE_DETACH);
     }
-    
-    return CORE_FreeObject(GetContextHeader(lpTaskContext));
-#endif
-    CORE_ERROR(TRUE, "This function is not support !");
-    return STATE_SUCCESS;
+
+    CORE_RestoreIRQ(dwFlags);
+
+    return Result;
 }
-
-
 
 
 STATIC SMLT_KEY_T MallocSmltKey(LPTASK_CONTEXT lpTaskContext)
@@ -633,7 +642,7 @@ STATIC E_STATUS SVC_CloseTask(LPVOID lpPrivate, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
 
-    return CloseTaskContext(lpTaskContext);
+    return AttachContext2Death(lpTaskContext);
 }
 
 STATIC E_STATUS SVC_GetTaskInfo(LPVOID lpPrivate, LPVOID lpParam)
@@ -730,13 +739,13 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREA
 
     if (0 == GetGlobalTaskContextCount())
     {
-        if (STATE_SUCCESS != (State = CORE_CreateStackForTask(lpTaskContext, &TaskParam, TASK_PERMISSION_USER)))
+        if (STATE_SUCCESS != (State = CORE_StackMalloc(lpTaskContext, &TaskParam, TASK_PERMISSION_USER)))
         {
             CORE_ERROR(TRUE, "Malloc stack for task '%s' failed!", lpTaskName);
             goto lable0;
         }
         
-        if (STATE_SUCCESS != (State = CORE_FillTaskStack(lpTaskContext, &TaskParam, TASK_PERMISSION_USER)))
+        if (STATE_SUCCESS != (State = CORE_StackInit(lpTaskContext, &TaskParam, TASK_PERMISSION_USER)))
         {
             CORE_ERROR(TRUE, "Fill stack for task '%s' failed!", lpTaskName);
             goto lable1;
@@ -747,13 +756,13 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREA
         SetContextPermission(lpTaskContext, TASK_PERMISSION_CORE);
     }
 
-    if (STATE_SUCCESS != (State = CORE_CreateStackForTask(lpTaskContext, &TaskParam, TASK_PERMISSION_CORE)))
+    if (STATE_SUCCESS != (State = CORE_StackMalloc(lpTaskContext, &TaskParam, TASK_PERMISSION_CORE)))
     {
         CORE_ERROR(TRUE, "Malloc stack for task '%s' failed!", lpTaskName);
         goto lable1;
     }
     
-    if (STATE_SUCCESS != (State = CORE_FillTaskStack(lpTaskContext, &TaskParam, TASK_PERMISSION_CORE)))
+    if (STATE_SUCCESS != (State = CORE_StackInit(lpTaskContext, &TaskParam, TASK_PERMISSION_CORE)))
     {
         CORE_ERROR(TRUE, "Fill stack for task '%s' failed!", lpTaskName);
         goto lable2;
@@ -761,6 +770,7 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREA
 
     if (STATE_SUCCESS == (State = CORE_ActiveObject(GetContextHeader(lpTaskContext), &TaskParam)))
     {
+        CORE_ERROR(TRUE, "Crete task '%s' context '0x%p' successfully!", lpTaskName, lpTaskContext);
         return lpTaskContext;
     }
 
@@ -771,7 +781,7 @@ lable2:
 lable1:
     CORE_StackFree(lpTaskContext, TASK_PERMISSION_USER);
 lable0:
-    CloseTaskContext(lpTaskContext);
+    CORE_FreeObject(GetContextHeader(lpTaskContext));;
     CORE_SetError(State);
     
     return NULL;
@@ -807,55 +817,10 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreatePriorityTask(LPCSTR __IN lpTaskName, 
 }
 EXPORT_SYMBOL(CORE_CreatePriorityTask);
 
-/************************************************************************************************
-                               Some stack object functions
-************************************************************************************************/
-PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
+EXPORT CODE_TEXT VOID CORE_CloseTask(LPTASK_CONTEXT lpTaskContext)
 {
-    DWORD CpuID = 0;
-    E_STATUS State;
-
-    CORE_INFOR(TRUE, "ArchContext offset of TaskContext is %d.", OFFSET_OF(TASK_CONTEXT, ArchContext));
-    CORE_INFOR(TRUE, "Max priority is %d, Show the size of tss type for debug:", CONFIG_TASK_PRIORITY_MAX);
-    CORE_INFOR(TRUE, "POOL_MAP_T: %d  MANA_MAP_T: %d  TASK_CONTEXT: %d   KOBJECT_HEADER: %d",
-        sizeof(POOL_MAP_T), sizeof(MANA_MAP_T), sizeof(TASK_CONTEXT), sizeof(KOBJECT_HEADER));
-    CORE_INFOR(TRUE, "TASK_STATUS: %d  TIME_SLICE_T: %d", sizeof(TASK_STATUS), sizeof(TIME_SLICE_T));
-    
-    SystemSchedulerInitialize();
-
-    /* 注册Task context对象类 */
-    State = CORE_RegisterClass(&TaskClass);
-
-    CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
-        "Register task context class failed, result = %d !", State);
-
-    LPC_INSTALL(&LPCService, "Task Schedule(TSK) service starting");
-
-    if (NULL == CORE_CreateTask(BOOT_TASK_NAME, NULL, NULL))
-    {
-        CORE_ERROR(TRUE, "Create boot task failed, result = %d !", CORE_GetError());
-        SYSTEM_CALL_OOPS();
-    }
-
-    for (CpuID = 0; CpuID < CORE_GetCPUNumbers(); CpuID ++)
-    {
-        CHAR IdleTaskName[OBJECT_NAME_MAX];
-
-        memset(IdleTaskName, 0, sizeof(IdleTaskName));
-        snprintf(IdleTaskName, OBJECT_NAME_MAX - 1, "%s%02d", IDLE_TASK_NAME, CpuID);
-        
-        if (NULL == CORE_CreatePriorityTask(IdleTaskName, caIdleEntry, NULL, TASK_PRIORITY_IDLE))
-        {
-            CORE_ERROR(TRUE, "Create idle task(%s) failed, result = %d !", IdleTaskName, CORE_GetError());
-        }
-    }
-        
-    ScheduleStartup();
-    Sleep(100);
-
-    return STATE_SUCCESS;
+    AttachContext2Death(lpTaskContext);
 }
-
 
 /**
  * 进入IRQ中断临界状态
@@ -889,31 +854,31 @@ EXPORT DWORD CORE_LeaveIRQ(VOID)
 #if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
 /**
  * 切换任务(硬件任务切换中断，硬件内核堆栈)
- * @param StackPosition 当前任务用户栈指针
- * @return LPVOID 新任务用户栈指针
+ * @param CoreStack 当前任务内核栈指针
+ * @param UserStack 当前任务用户栈指针
+ * @return E_TASK_PERMISSION 目标任务的权限级别
  * \par
  *     保存当前任务用户栈指针并返回新任务用户栈指针，调整当前优先级为新任务
  * 优先级更，改当前任务上下文指针为新任务指针，并设置新任务为WORKING状态。
  */
-EXPORT LPVOID CORE_SwitchTask(LPVOID StackPosition)
+EXPORT E_TASK_PERMISSION CORE_SwitchTask(LPVOID CoreStack, LPVOID UserStack)
 {
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
     LPTASK_CONTEXT lpSwitch2Task = GetSwitch2TaskContext();
-    LPARCH_CONTEXT lpCurrentArch = GetContextArchParameter(lpCurrentTask);
-    LPARCH_CONTEXT lpSwitch2Arch = GetContextArchParameter(lpSwitch2Task);
-    
-    SetStackPosition(GetArchUserSD(lpCurrentArch), StackPosition);
+ 
+//    CORE_INFOR(TRUE, "Current task '0x%p' switch 2 task '%p'.", lpCurrentTask, lpSwitch2Task);
+    CORE_SetCoreStackPosition(CoreStack);
+    CORE_SetTaskStackPosition(UserStack);
     SetCurrentPriority(GetContextThisPriority(lpSwitch2Task));
     SetContextState(lpSwitch2Task, TASK_STATE_WORKING);
     SetCurrentTaskContext(lpSwitch2Task);
-    StackPosition = GetStackPosition(GetArchUserSD(lpSwitch2Arch));
     
     if (INVALID_TICK == GetContextStartTick(lpSwitch2Task))
     {
         SetContextStartTick(lpSwitch2Task, CORE_GetSystemTick());
     }
     
-    return StackPosition;
+    return GetContextPermission(lpSwitch2Task);
 }
 #endif
 
@@ -952,6 +917,11 @@ EXPORT E_STATUS CORE_GetError(VOID)
     return State;
 }
 EXPORT_SYMBOL(CORE_GetError);
+
+EXPORT E_TASK_PERMISSION CORE_GetCurrentPermission(VOID)
+{
+    return GetContextPermission(GetCurrentTaskContext());
+}
 
 EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID)
 {
@@ -1013,8 +983,9 @@ EXPORT E_STATUS CORE_TaskSuspend(LONG Timeout)
     return STATE_SUCCESS;
 }
 
-EXPORT E_STATUS CORE_TaskAttach2WaitQueue(LPLIST_HEAD lpWaitQueue, LONG Timeout)
+EXPORT E_STATUS CORE_TaskAttach2WaitQueue(LPVOID IPCObject, LONG Timeout)
 {
+    LPIPC_BASE_OBJECT Object = IPCObject;
     DWORD dwFlags = CORE_DisableIRQ();
     LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
 
@@ -1024,13 +995,12 @@ EXPORT E_STATUS CORE_TaskAttach2WaitQueue(LPLIST_HEAD lpWaitQueue, LONG Timeout)
     
     SuspendTask(lpCurrentTask, Timeout);
     
-    Insert2WaitQueue(lpWaitQueue, lpCurrentTask);
+    Insert2WaitQueue(GetIPCWaitQueue(Object), lpCurrentTask);
     
     CORE_RestoreIRQ(dwFlags);
 
     return STATE_SUCCESS;
 }
-
 
 EXPORT E_STATUS CORE_PriorityUpsideCheck(LPTASK_CONTEXT lpOnwerContext)
 {
@@ -1065,11 +1035,48 @@ EXPORT E_STATUS CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext)
     return STATE_SUCCESS;
 }
 
-EXPORT DWORD CORE_GetInterruptLayer(VOID)
+PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
 {
-    DWORD dwFlags = CORE_DisableIRQ();
-    DWORD Layer = GetInterruptNestLayer();
-    CORE_RestoreIRQ(dwFlags);
+    DWORD CpuID = 0;
+    E_STATUS State;
 
-    return Layer;
+    CORE_INFOR(TRUE, "ArchContext offset of TaskContext is %d.", OFFSET_OF(TASK_CONTEXT, ArchContext));
+    CORE_INFOR(TRUE, "Max priority is %d, Show the size of tss type for debug:", CONFIG_TASK_PRIORITY_MAX);
+    CORE_INFOR(TRUE, "POOL_MAP_T: %d  MANA_MAP_T: %d  TASK_CONTEXT: %d   KOBJECT_HEADER: %d",
+        sizeof(POOL_MAP_T), sizeof(MANA_MAP_T), sizeof(TASK_CONTEXT), sizeof(KOBJECT_HEADER));
+    CORE_INFOR(TRUE, "TASK_STATUS: %d  TIME_SLICE_T: %d", sizeof(TASK_STATUS), sizeof(TIME_SLICE_T));
+    
+    SystemSchedulerInitialize();
+
+    /* 注册Task context对象类 */
+    State = CORE_RegisterClass(&TaskClass);
+
+    CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
+        "Register task context class failed, result = %d !", State);
+
+    LPC_INSTALL(&LPCService, "Task Schedule(TSK) service starting");
+
+    if (NULL == CORE_CreateTask(BOOT_TASK_NAME, NULL, NULL))
+    {
+        CORE_ERROR(TRUE, "Create boot task failed, result = %d !", CORE_GetError());
+        SYSTEM_CALL_OOPS();
+    }
+
+    for (CpuID = 0; CpuID < CORE_GetCPUNumbers(); CpuID ++)
+    {
+        CHAR IdleTaskName[OBJECT_NAME_MAX];
+
+        memset(IdleTaskName, 0, sizeof(IdleTaskName));
+        snprintf(IdleTaskName, OBJECT_NAME_MAX - 1, "%s%02d", IDLE_TASK_NAME, CpuID);
+        
+        if (NULL == CORE_CreatePriorityTask(IdleTaskName, CORE_IdleMain, NULL, TASK_PRIORITY_IDLE))
+        {
+            CORE_ERROR(TRUE, "Create idle task(%s) failed, result = %d !", IdleTaskName, CORE_GetError());
+        }
+    }
+
+    ScheduleStartup();
+
+    return STATE_SUCCESS;
 }
+

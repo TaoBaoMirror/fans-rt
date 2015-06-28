@@ -30,9 +30,11 @@ STATIC CODE_TEXT E_STATUS FansMain(LPMODULE_HEADER CONST lpModule)
         }
         else
         {
-            LOG_ERROR(TRUE, "%s .... [SUCCESS]", g_TestCase[i].lpTestName);
+            LOG_INFOR(TRUE, "%s .... [SUCCESS]", g_TestCase[i].lpTestName);
         }
     }
+
+    LOG_INFOR(TRUE, "The all testcase finished !");
     
     return STATE_SUCCESS;
 }
