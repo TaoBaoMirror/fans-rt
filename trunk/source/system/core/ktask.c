@@ -185,6 +185,7 @@ STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
         DecGlobalTaskContextCount();
         DetachSystem(lpTaskContext);
         SetContextState(lpTaskContext, TASK_STATE_DEATH);
+        break;
     case TASK_STATE_CREATE:
         DecGlobalTaskContextCount();
         SetContextState(lpTaskContext, TASK_STATE_DEATH);

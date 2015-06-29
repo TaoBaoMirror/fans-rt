@@ -199,7 +199,7 @@ PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T K
     
     if (POL_MAGIC != GetPoolMagic(lpCorePool))
     {
-        CORE_DEBUG(TRUE, "Invalid pool magic %p.", lpCorePool);
+        CORE_INFOR(TRUE, "Invalid pool magic %p.", lpCorePool);
         return STATE_SYSTEM_FAULT;
     }
 

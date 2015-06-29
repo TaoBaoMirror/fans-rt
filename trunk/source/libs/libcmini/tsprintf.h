@@ -121,13 +121,6 @@ STATIC CODE_TEXT int fa_p_itoa(ULL_TYPE number, STRING_CHAR_T * buffer, size_t l
         *(string--) = prefix;
         count ++;
     }
-#if 0
-    else if(subsidiary)
-    {
-        *(string--) = prefix;
-        count ++;
-    }
-#endif
 
     return count;
 }
@@ -188,9 +181,9 @@ STATIC CODE_TEXT int fa_p_show_string(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_
     return scale - old_scale;
 }
 
-
-STATIC CODE_TEXT int fa_p_show_number(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
-    int precision, size_t max_length, int scale, SLL_TYPE number, int flags)
+#ifdef LIBC_STATIC_FUNCTION
+STATIC CODE_TEXT void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+    int precision, size_t length, int scale, SLL_TYPE number, int flags)
 {
     int width = 0;
     int radix = 10;
@@ -254,10 +247,76 @@ STATIC CODE_TEXT int fa_p_show_number(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_
 
     string = buffer + (N_BUFFER_SIZE - count - 1);
     
-    return fa_p_show_string(fnPut, lpPrivate, type, width, max_length, scale, string, flags, ' ', ' ');
+    *(result) = fa_p_show_string(fnPut, lpPrivate, type, width, length, scale, string, flags, ' ', ' ');
 }
+#else
+#define fa_p_show_number(result, fnPut, lpPrivate, type, precision, length, scale, number, flags)               \
+    do{                                                                                                         \
+        int width = 0;                                                                                          \
+        int radix = 10;                                                                                         \
+        int count = 0;                                                                                          \
+        int prefix = 0;                                                                                         \
+        STRING_CHAR_T fill = (flags & F_ZERO) ? '0' : ' ';                                                      \
+        STRING_CHAR_T * string;                                                                                 \
+        ULL_TYPE unumber = (ULL_TYPE) number;                                                                   \
+        const STRING_CHAR_T * charset = lcharset;                                                               \
+        STRING_CHAR_T buffer[N_BUFFER_SIZE];                                                                    \
+                                                                                                                \
+        switch (type)                                                                                           \
+        {                                                                                                       \
+        case 'd':                                                                                               \
+        case 'i':                                                                                               \
+            radix = 10;                                                                                         \
+            unumber = abs(number);                                                                              \
+            if (number < 0)                                                                                     \
+                prefix = '-';                                                                                   \
+            else if (flags & F_PLUS)                                                                            \
+                prefix = '+';                                                                                   \
+            else if (flags & F_SPACE)                                                                           \
+                prefix = ' ';                                                                                   \
+            break;                                                                                              \
+        case 'u':                                                                                               \
+            radix = 10;                                                                                         \
+            if (flags & F_PLUS)                                                                                 \
+                prefix = '+';                                                                                   \
+            else if (flags & F_SPACE)                                                                           \
+                prefix = ' ';                                                                                   \
+            break;                                                                                              \
+        case 'o':                                                                                               \
+            radix = 8;                                                                                          \
+            break;                                                                                              \
+        case 'x':                                                                                               \
+            charset = lcharset;                                                                                 \
+            radix = 16;                                                                                         \
+            break;                                                                                              \
+        case 'X':                                                                                               \
+            charset = ucharset;                                                                                 \
+            radix = 16;                                                                                         \
+            break;                                                                                              \
+        }                                                                                                       \
+                                                                                                                \
+        if (precision >= N_BUFFER_SIZE-1)                                                                       \
+        {                                                                                                       \
+            precision = N_BUFFER_SIZE-1;                                                                        \
+        }                                                                                                       \
+                                                                                                                \
+        if ('0' != fill)                                                                                        \
+        {                                                                                                       \
+            width = precision;                                                                                  \
+            precision = 0;                                                                                      \
+        }                                                                                                       \
+                                                                                                                \
+        count = fa_p_itoa(unumber, buffer, N_BUFFER_SIZE, precision, charset, radix, prefix);                   \
+                                                                                                                \
+        string = buffer + (N_BUFFER_SIZE - count - 1);                                                          \
+                                                                                                                \
+        *(result) = fa_p_show_string(fnPut, lpPrivate, type, width, length, scale, string, flags, ' ', ' ');    \
+    } while(0)
+#endif
 
-STATIC CODE_TEXT int fa_p_show_address(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+
+#ifdef LIBC_STATIC_FUNCTION
+STATIC CODE_TEXT void fa_p_show_address(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int width, size_t max_length, int scale, SLL_TYPE number, int flags)
 {
     int count = 0;
@@ -280,8 +339,34 @@ STATIC CODE_TEXT int fa_p_show_address(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING
     
     string = buffer + (N_BUFFER_SIZE - count - 1);
     
-    return fa_p_show_string(fnPut, lpPrivate, type, width, max_length, scale, string, flags, prefix, ' ');
+    *(result) = fa_p_show_string(fnPut, lpPrivate, type, width, max_length, scale, string, flags, prefix, ' ');
 }
+#else
+#define fa_p_show_address(result, fnPut, lpPrivate, type, width, length, scale, number, flags)                  \
+    do{                                                                                                         \
+        int count = 0;                                                                                          \
+        STRING_CHAR_T * string;                                                                                 \
+        const STRING_CHAR_T * charset = lcharset;                                                               \
+        STRING_CHAR_T prefix = ' ';                                                                             \
+        STRING_CHAR_T buffer[N_BUFFER_SIZE];                                                                    \
+                                                                                                                \
+        if ('P' == type)                                                                                        \
+        {                                                                                                       \
+            charset = ucharset;                                                                                 \
+        }                                                                                                       \
+                                                                                                                \
+        if (flags & F_ZERO)                                                                                     \
+        {                                                                                                       \
+            prefix = '0';                                                                                       \
+        }                                                                                                       \
+                                                                                                                \
+        count = fa_p_itoa((ULL_TYPE) number, buffer, N_BUFFER_SIZE, sizeof(void*) * 2, charset, 16, 0);         \
+                                                                                                                \
+        string = buffer + (N_BUFFER_SIZE - count - 1);                                                          \
+                                                                                                                \
+        *(result) = fa_p_show_string(fnPut, lpPrivate, type, width, length, scale, string, flags, prefix, ' '); \
+    } while(0)
+#endif
 
 #define IEEE754_MANTISSA_MAGIC      0x0010000000000000LL
 #define IEEE754_MANTISSA_MASK       0x000fffffffffffffLL   /* 尾数 */
@@ -301,28 +386,29 @@ STATIC CODE_TEXT int fa_p_show_address(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING
 #define IEEE754_DECIMAL_BASE        5000000000000000LL
 #define IEEE754_DEFAULT_PRECISION   6
 
+#ifdef LIBC_STATIC_FUNCTION
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 
-STATIC CODE_TEXT ULL_TYPE fa_p_decpart(ULL_TYPE number)
+STATIC CODE_TEXT void fa_p_decpart(ULL_TYPE * result, ULL_TYPE number)
 {
     int Bits;
+    ULL_TYPE dec_value = 0ULL;
     ULL_TYPE base = IEEE754_DECIMAL_BASE;
-    ULL_TYPE result = 0ULL;
 
     for (Bits = MAX_BITS_WIDTH - 1; Bits > 0; Bits --)
     {
         if (0 != ((number >> Bits) & 0x1))
         {
-            result += base;
+            dec_value += base;
         }
 
         base >>= 1;
     }
 
-    return result;
+    *(result) = dec_value;
 }
 
-STATIC CODE_TEXT int fa_p_ftoa(int shift, ULL_TYPE mantissa, STRING_CHAR_T * buffer, int length,
+STATIC CODE_TEXT void fa_p_ftoa(int * result, int shift, ULL_TYPE mantissa, STRING_CHAR_T * buffer, int length,
                     int precision, const STRING_CHAR_T * charset, int prefix)
 {
     int carry = 0;
@@ -339,7 +425,7 @@ STATIC CODE_TEXT int fa_p_ftoa(int shift, ULL_TYPE mantissa, STRING_CHAR_T * buf
     
     int_count = fa_p_itoa(int_part, int_buffer, length/2, 0, charset, 10, prefix);
     
-    dec_part = fa_p_decpart(dec_part);
+    fa_p_decpart(&dec_part, dec_part);
     
     dec_count = fa_p_itoa(dec_part, dec_buffer, length/2, 16, charset, 10, 0);
 
@@ -402,11 +488,11 @@ STATIC CODE_TEXT int fa_p_ftoa(int shift, ULL_TYPE mantissa, STRING_CHAR_T * buf
         }
     }
 
-    return int_count;
+    *(result) = int_count;
 }
 
-STATIC CODE_TEXT int fa_p_show_float(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
-    int width, int precision, size_t max_length, int scale, FLL_TYPE fnumber, int flags)
+STATIC CODE_TEXT void fa_p_get_float(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+    int width, int precision, size_t length, int scale, FLL_TYPE fnumber, int flags)
 {
     int sign;
     int count = 0;
@@ -424,17 +510,151 @@ STATIC CODE_TEXT int fa_p_show_float(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_C
 
     sign = IEEE754_SIGN(un.unumber);                            /* 符号 */
     int_shift = IEEE754_INT_SHIFT(un.unumber);                  /* 整数部分位移 */
-    mantissa = (ULL_TYPE) IEEE754_MANTISSA(un.unumber);    /* 尾数 */
+    mantissa = (ULL_TYPE) IEEE754_MANTISSA(un.unumber);    		/* 尾数 */
 
     if (sign) prefix = '-';
     else if (flags & F_PLUS) prefix = '+';
     
-    count = fa_p_ftoa(int_shift, mantissa, buffer, sizeof(buffer), precision, lcharset, prefix);
+    fa_p_ftoa(&count, int_shift, mantissa, buffer, sizeof(buffer), precision, lcharset, prefix);
 
     string = buffer + (N_BUFFER_SIZE/2 - count - 1);
 
-    return fa_p_show_string(fnPut, lpPrivate, type, width, max_length, scale, string, flags, ' ', ' ');
+    *(result) = fa_p_show_string(fnPut, lpPrivate, type, width, length, scale, string, flags, ' ', ' ');
 }
+#endif
+#else
+
+#define	fa_p_decpart(result, number)                                                            \
+	do{																					        \
+	    int Bits;                                                                               \
+	    ULL_TYPE dec_value = 0ULL;                                                              \
+        ULL_TYPE base = IEEE754_DECIMAL_BASE;                                                   \
+	    for (Bits = MAX_BITS_WIDTH - 1; Bits > 0; Bits --)                                      \
+	    {                                                                                       \
+	        if (0 != ((number >> Bits) & 0x1))                                                  \
+	        {                                                                                   \
+	            dec_value += base;                                                              \
+	        }                                                                                   \
+                                                                                                \
+	        base >>= 1;                                                                         \
+	    }                                                                                       \
+                                                                                                \
+	    *(result) = dec_value;                                                                  \
+	} while(0)
+
+#define fa_p_ftoa(result, shift, mantissa, buffer, length, precision, charset, prefix)          \
+    do{                                                                                         \
+        int carry = 0;                                                                          \
+        int int_count = 0;                                                                      \
+        int dec_count = 0;                                                                      \
+        int position;                                                                           \
+        int decimal_shift = 64 - shift;                                                         \
+        STRING_CHAR_T * dec_offset;                                                             \
+        STRING_CHAR_T * int_buffer = buffer;                                                    \
+        STRING_CHAR_T * dec_buffer = int_buffer + length/2;                                     \
+                                                                                                \
+        ULL_TYPE int_part = (mantissa >> shift);                                                \
+        ULL_TYPE dec_part = (mantissa << decimal_shift);                                        \
+                                                                                                \
+        int_count = fa_p_itoa(int_part, int_buffer, length/2, 0, charset, 10, prefix);          \
+                                                                                                \
+        fa_p_decpart(&dec_part, dec_part);                                                      \
+                                                                                                \
+        dec_count = fa_p_itoa(dec_part, dec_buffer, length/2, 16, charset, 10, 0);              \
+                                                                                                \
+        dec_offset = int_buffer + (length - dec_count - 1);                                     \
+                                                                                                \
+        *(--dec_offset) = '.';                                                                  \
+                                                                                                \
+        tscpy(dec_buffer - 1, dec_offset);                                                      \
+                                                                                                \
+        if (0 == precision)                                                                     \
+        {                                                                                       \
+            position = length/2 + IEEE754_DEFAULT_PRECISION - 1;                                \
+        }                                                                                       \
+        else if (precision > IEEE754_DECIMAL_LENGTH)                                            \
+        {                                                                                       \
+            position = length/2 + IEEE754_DECIMAL_LENGTH - 1;                                   \
+        }                                                                                       \
+        else                                                                                    \
+        {                                                                                       \
+            position = length/2 + precision - 1;                                                \
+        }                                                                                       \
+                                                                                                \
+        if (position < length/2 + IEEE754_DECIMAL_LENGTH - 1)                                   \
+        {                                                                                       \
+            if (buffer[position + 1] > '4')                                                     \
+            {                                                                                   \
+                carry = 1;                                                                      \
+            }                                                                                   \
+            buffer[position + 1] = '\0';                                                        \
+        }                                                                                       \
+                                                                                                \
+        while(carry)                                                                            \
+        {                                                                                       \
+            if (buffer[position] == '.')                                                        \
+            {                                                                                   \
+                position --;                                                                    \
+            }                                                                                   \
+            else if (buffer[position] >= '0' && buffer[position] <= '9')                        \
+            {                                                                                   \
+                buffer[position] ++;                                                            \
+                                                                                                \
+                if (buffer[position] > '9')                                                     \
+                {                                                                               \
+                    buffer[position] = '0';                                                     \
+                    carry = 1;                                                                  \
+                }                                                                               \
+                else                                                                            \
+                {                                                                               \
+                    carry = 0;                                                                  \
+                }                                                                               \
+                                                                                                \
+                position --;                                                                    \
+            }                                                                                   \
+            else                                                                                \
+            {                                                                                   \
+                buffer[position - 1] = buffer[position];                                        \
+                buffer[position] = '1';                                                         \
+                carry = 0;                                                                      \
+                int_count ++;                                                                   \
+            }                                                                                   \
+        }                                                                                       \
+                                                                                                \
+        *(result) = int_count;                                                                  \
+                                                                                                \
+    } while(0)
+
+#define fa_p_get_float(result, fnPut, lpPrivate, type, width, precision, length, scale, fnumber, flags)     \
+    do{                                                                                                     \
+        int sign;                                                                                           \
+        int count = 0;                                                                                      \
+        int prefix = 0;                                                                                     \
+        int int_shift;                                                                                      \
+        ULL_TYPE mantissa;                                                                                  \
+        STRING_CHAR_T * string;                                                                             \
+        STRING_CHAR_T buffer[N_BUFFER_SIZE];                                                                \
+        union {                                                                                             \
+            FLL_TYPE    fnumber;                                                                            \
+            ULL_TYPE    unumber;                                                                            \
+        }un;                                                                                                \
+                                                                                                            \
+        un.fnumber = fnumber;                                                                               \
+                                                                                                            \
+        sign = IEEE754_SIGN(un.unumber);                            /* 符号 */                              \
+        int_shift = IEEE754_INT_SHIFT(un.unumber);                  /* 整数部分位移 */                      \
+        mantissa = (ULL_TYPE) IEEE754_MANTISSA(un.unumber);    		/* 尾数 */                              \
+                                                                                                            \
+        if (sign) prefix = '-';                                                                             \
+        else if (flags & F_PLUS) prefix = '+';                                                              \
+                                                                                                            \
+        fa_p_ftoa(&count, int_shift, mantissa, buffer, sizeof(buffer), precision, lcharset, prefix);        \
+                                                                                                            \
+        string = buffer + (N_BUFFER_SIZE/2 - count - 1);                                                    \
+                                                                                                            \
+        *(result) = fa_p_show_string(fnPut, lpPrivate, type, width, length, scale, string, flags, ' ', ' ');\
+    } while(0)
+
 #endif
 
 
@@ -561,10 +781,11 @@ PUBLIC CODE_TEXT int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t leng
                     number = (((ULL_TYPE)number) & UINT_MAX);
                 }
             }
-          
-            result = fa_p_show_number(fnPut, lpPrivate, *format, 
-                                    precision ? precision : width,
-                                    length, count, (SLL_TYPE) number, flags);
+
+            precision = precision ? precision : width;
+            
+            fa_p_show_number(&result, fnPut, lpPrivate, *format, 
+                            precision, length, count, (SLL_TYPE) number, flags);
             
             if (EOF == result)
             {
@@ -596,9 +817,9 @@ PUBLIC CODE_TEXT int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t leng
                 number &= 0xffffffff;
             }
 
-            result = fa_p_show_address(fnPut, lpPrivate, *format, 
-                                precision ? precision : width,
-                                length, count, number, flags);
+            fa_p_show_address(&result, fnPut, lpPrivate, *format, 
+                        precision ? precision : width,
+                        length, count, number, flags);
             
             if (EOF == result)
             {
@@ -613,7 +834,7 @@ PUBLIC CODE_TEXT int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t leng
         case 'f':
             fnumber = (FLL_TYPE)(va_arg (args, FLL_TYPE));
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-            result = fa_p_show_float(fnPut, lpPrivate, *format, 
+            fa_p_get_float(&result, fnPut, lpPrivate, *format, 
                                 width, precision,
                                 length, count, fnumber, flags);
 

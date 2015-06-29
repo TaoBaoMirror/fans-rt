@@ -29,7 +29,6 @@
 
 STATIC BOOL DebugEnable = TRUE;
 STATIC DWORD DebugLevelMask = DEBUG_LOG_MASK;
-
 EXTERN CONST CHAR * CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1];
 
 EXPORT LPSTR kDebugLevel2String(E_LOG_LEVEL emLevel)
@@ -67,62 +66,20 @@ EXPORT BOOL kDebugGetState(VOID)
 }
 EXPORT_SYMBOL(kDebugGetState);
 
-static int put_debug_char(INT Ch, LPVOID lpPrivate)
-{
-    if ('\n' == Ch)
-    {
-        CORE_DebugWriteByte('\r');
-    }
-
-    CORE_DebugWriteByte(Ch);
-
-    return Ch;
-}
-
-
-EXPORT INT kDebugVPrintf(BOOL Enter, CONST CHAR * Format, va_list Vargs)
-{
-    INT Length;
-
-    Length = fa_vxnprintf(put_debug_char, NULL, ~0, Format, Vargs);
-
-    if (TRUE == Enter)
-    {
-        put_debug_char('\n', NULL);
-        Length ++;
-    }
-    
-    return Length;
-}
-EXPORT_SYMBOL(kDebugVPrintf);
-
-
-EXPORT INT kDebugPrintf(BOOL Enter, CONST CHAR * Format,...)
-{
-    INT Length;
-    VA_LIST Vargs;
-
-    va_start (Vargs, Format);
-    Length = kDebugVPrintf(Enter, Format, Vargs);
-    va_end(Vargs);
-
-    return Length;
-}
-EXPORT_SYMBOL(kDebugPrintf);
-
-
 EXPORT INT kDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG_LEVEL emLevel, CONST CHAR * Format, ...)
 {
     INT Length;
     va_list vargs;
-    
-    
-    Length = kDebugPrintf(FALSE, "[%016llu][%04d][%s][%s] ", 
+
+    Length = kprintf("[%016llu][%04d][%s][%s] ", 
             CORE_GetSystemTick(), Line, kDebugLevel2String(emLevel), Function);
     
     va_start (vargs, Format);
-    Length += kDebugVPrintf(Enter, Format, vargs);
+    Length += kvprintf(Format, vargs);
+    if (Enter) Length += kprintf("\n");
     va_end(vargs);
+    
+    if (LOG_LEVEL_FATAL == emLevel) SYSTEM_CALL_OOPS();
     
     return Length;
 }
@@ -139,7 +96,7 @@ EXPORT VOID kDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
         return;
     }
 
-    kDebugPrintf(FALSE, "Show buffer(%p) is:", lpBuffer);
+    kprintf("Show buffer(%p) is:", lpBuffer);
     
     for (Scale = 0; Scale < Length; Scale ++)
     {
@@ -147,7 +104,7 @@ EXPORT VOID kDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
         
         if (0 ==(Scale & 0xf))
         {
-            kDebugPrintf(FALSE, "\n%08X:", Scale);
+            kprintf("\n%08X:", Scale);
         }
         else if (0 == (Scale & 0x7))
         {
@@ -158,10 +115,10 @@ EXPORT VOID kDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
             Separator = ' ';
         }
         
-        kDebugPrintf(FALSE, "%c%02X", Separator, lpData[Scale] & 0xff);
+        kprintf("%c%02X", Separator, lpData[Scale] & 0xff);
     }
 
-    kDebugPrintf(FALSE, "\n");
+    kprintf("\n");
 }
 
 STATIC E_STATUS SVC_WriteByte(LPVOID lpPrivate, LPVOID lpParam)
@@ -175,7 +132,7 @@ STATIC E_STATUS SVC_WriteByte(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_WriteData(LPVOID lpPrivate, LPVOID lpParam)
 {
-    kDebugPrintf(FALSE, "%s %s() %d not support.", __FILE__, __FUNCTION__, __LINE__);
+    kprintf("%s %s() %d not support.", __FILE__, __FUNCTION__, __LINE__);
     SYSTEM_CALL_OOPS();
 
     return STATE_SUCCESS;

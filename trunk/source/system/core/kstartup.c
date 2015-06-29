@@ -52,6 +52,9 @@ STATIC VOID ShowSystemInformation(VOID)
         sizeof(BYTE), sizeof(WORD), sizeof(DWORD), sizeof(QWORD), sizeof(SIZE_T), sizeof(LPVOID));
     CORE_INFOR(TRUE, "BOOL: %d  FLOAT:%d  DOUBLE:%d", sizeof(BOOL), sizeof(float), sizeof(double));
     CORE_INFOR(TRUE, "Hardware tick max value is %d.", FW_GetTickBase());
+    CORE_INFOR(TRUE, "The integer printf test: %8d, %08d, %lld, %03lld",
+            12345678, 123, 20150630011218ll, 2013ll);
+    CORE_INFOR(TRUE, "The float printf test: %f, %.2f, %.3f", 3.141592f, 3.141592f, 3.141592f);
 }
 
 PUBLIC VOID CORE_Starting(VOID)
