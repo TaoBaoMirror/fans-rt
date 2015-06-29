@@ -22,12 +22,12 @@
 #include "karch.h"
 #include "kcore.h"
 
-PUBLIC VOID M3_StackInitialize(VOID);
+PUBLIC VOID CORE_InitArchFirst(VOID);
 
 int main(VOID)
 {
     CORE_DisableIRQ();
-    M3_StackInitialize();
+    CORE_InitArchFirst();
     CORE_Starting();
     return 0;
 }

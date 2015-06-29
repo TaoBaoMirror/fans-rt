@@ -13,6 +13,7 @@
 #ifndef __K_CORE_H
 #define __K_CORE_H
 
+#include <stdarg.h>
 #include <fadefs.h>
 #include <faerror.h>
 #include <fatypes.h>
@@ -46,8 +47,10 @@
 extern "C" {
 #endif
     EXPORT VOID kSystemOops(VOID);
-    EXPORT E_STATUS kprintf(CONST CHAR * Format,...);
-    EXPORT E_STATUS kwprintf(CONST WCHAR * Format,...);
+    EXPORT int kprintf(CONST CHAR * Format,...);
+    EXPORT int kvprintf(CONST CHAR * Format, va_list vargs);
+    EXPORT int kwprintf(CONST WCHAR * Format,...);
+    EXPORT TICK CORE_GetSystemTick(VOID);
     PUBLIC VOID CORE_Starting(VOID);
 #ifdef __cplusplus
 }

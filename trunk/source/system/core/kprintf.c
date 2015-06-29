@@ -34,27 +34,33 @@ static int put_kernel_char(INT Ch, LPVOID lpPrivate)
     return Ch;
 }
 
-
-EXPORT E_STATUS kprintf(CONST CHAR * Format,...)
+EXPORT int kvprintf(CONST CHAR * Format, va_list vargs)
 {
+    return fa_vxnprintf(put_kernel_char, NULL, ~0, Format, vargs);
+}
+
+EXPORT int kprintf(CONST CHAR * Format,...)
+{
+    int length;
     va_list vargs;
 
     va_start (vargs, Format);
-    (void) fa_vxnprintf(put_kernel_char, NULL, ~0, Format, vargs);
+    length = fa_vxnprintf(put_kernel_char, NULL, ~0, Format, vargs);
     va_end(vargs);
 
-    return STATE_SUCCESS;
+    return length;
 }
 EXPORT_SYMBOL(kprintf);
 
-EXPORT E_STATUS kwprintf(CONST WCHAR * Format,...)
+EXPORT int kwprintf(CONST WCHAR * Format,...)
 {
+    int length;
     va_list vargs;
 
     va_start (vargs, Format);
-    (void) fa_wvxnprintf(put_kernel_char, NULL, ~0, Format, vargs);
+    length = fa_wvxnprintf(put_kernel_char, NULL, ~0, Format, vargs);
     va_end(vargs);
 
-    return STATE_SUCCESS;
+    return length;
 }
 EXPORT_SYMBOL(kwprintf);

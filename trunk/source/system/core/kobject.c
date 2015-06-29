@@ -664,7 +664,7 @@ STATIC E_STATUS FreeObjectToPool(LPKOBJECT_HEADER lpHeader)
         return STATE_INVALID_STATE;
     }
     
-    CORE_ERROR(TRUE, "Free object(0x%08x) state is detach.", lpHeader);
+    CORE_DEBUG(TRUE, "Free object(0x%08x) state is detach.", lpHeader);
 
     DetachObject(lpHeader);
 
@@ -1012,7 +1012,7 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
 
     if (STATE_SUCCESS == (Result = lpClass->fnFreeObject(lpHeader)))
     {   
-        CORE_INFOR(TRUE, "Object '%s' call free in the class '%s' successfully.",
+        CORE_DEBUG(TRUE, "Object '%s' call free in the class '%s' successfully.",
             GetObjectName(lpHeader), lpClass->ClassName);
         
         if (STATE_SUCCESS == (Result = FreeObjectToPool(lpHeader)))
@@ -1023,8 +1023,8 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
 
     SetObjectStateSafe(lpHeader, State);
 
-    CORE_ERROR(TRUE, "Object '%s' call free in the class '%s' failed.",
-            GetObjectName(lpHeader), lpClass->ClassName);
+    CORE_ERROR(TRUE, "Object '%s' call free in the class '%s' failed result %d.",
+            GetObjectName(lpHeader), lpClass->ClassName, Result);
 
     return Result;
 }
