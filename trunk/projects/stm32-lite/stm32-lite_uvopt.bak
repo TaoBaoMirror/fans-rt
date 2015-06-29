@@ -548,8 +548,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>127</TopLine>
-      <CurrentLine>128</CurrentLine>
+      <TopLine>99</TopLine>
+      <CurrentLine>114</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kdebug.c</PathWithFileName>
       <FilenameWithoutPath>kdebug.c</FilenameWithoutPath>
@@ -626,10 +626,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>51</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>113</TopLine>
-      <CurrentLine>116</CurrentLine>
+      <TopLine>99</TopLine>
+      <CurrentLine>108</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\klpc.c</PathWithFileName>
       <FilenameWithoutPath>klpc.c</FilenameWithoutPath>
@@ -706,10 +706,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>48</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>987</TopLine>
-      <CurrentLine>995</CurrentLine>
+      <TopLine>347</TopLine>
+      <CurrentLine>348</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kobject.c</PathWithFileName>
       <FilenameWithoutPath>kobject.c</FilenameWithoutPath>
@@ -740,8 +740,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>166</TopLine>
-      <CurrentLine>170</CurrentLine>
+      <TopLine>190</TopLine>
+      <CurrentLine>192</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kpool.c</PathWithFileName>
       <FilenameWithoutPath>kpool.c</FilenameWithoutPath>
@@ -834,10 +834,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>30</ColumnNumber>
+      <ColumnNumber>44</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>420</TopLine>
-      <CurrentLine>425</CurrentLine>
+      <TopLine>955</TopLine>
+      <CurrentLine>961</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\ktask.c</PathWithFileName>
       <FilenameWithoutPath>ktask.c</FilenameWithoutPath>
@@ -914,10 +914,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>28</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>580</TopLine>
-      <CurrentLine>560</CurrentLine>
+      <TopLine>25</TopLine>
+      <CurrentLine>36</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kipc.c</PathWithFileName>
       <FilenameWithoutPath>kipc.c</FilenameWithoutPath>
@@ -962,10 +962,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>12</ColumnNumber>
+      <ColumnNumber>4</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>195</TopLine>
-      <CurrentLine>107</CurrentLine>
+      <TopLine>139</TopLine>
+      <CurrentLine>123</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\stack\static_stack.c</PathWithFileName>
       <FilenameWithoutPath>static_stack.c</FilenameWithoutPath>
@@ -996,7 +996,7 @@
       <Focus>0</Focus>
       <ColumnNumber>60</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>28</TopLine>
+      <TopLine>31</TopLine>
       <CurrentLine>38</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\ktentry.c</PathWithFileName>
@@ -1788,7 +1788,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>13</TopLine>
+      <TopLine>34</TopLine>
       <CurrentLine>51</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\libs\libcal\utentry.c</PathWithFileName>
@@ -1860,7 +1860,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>4</TopLine>
+      <TopLine>39</TopLine>
       <CurrentLine>46</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\platform\arch\stm32\karch_stack.c</PathWithFileName>

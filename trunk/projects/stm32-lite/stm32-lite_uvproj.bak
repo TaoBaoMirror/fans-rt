@@ -886,6 +886,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libcal\castack.c</FilePath>
             </File>
+            <File>
+              <FileName>utentry.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libcal\utentry.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
