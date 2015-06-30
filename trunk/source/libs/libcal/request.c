@@ -33,7 +33,7 @@
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-PUBLIC CODE_TEXT E_STATUS caSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE FunctionID)
+PUBLIC RO_CODE E_STATUS caSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE FunctionID)
 {
     if (NULL == lpPacket)
     {
@@ -56,7 +56,7 @@ PUBLIC CODE_TEXT E_STATUS caSystemCall(LPLPC_REQUEST_PACKET lpPacket, DWORD Serv
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caInstallLPC(CONST LPC_SERVICE * lpService)
+EXPORT RO_CODE E_STATUS caInstallLPC(CONST LPC_SERVICE * lpService)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -74,7 +74,7 @@ EXPORT_SYMBOL(caInstallLPC);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caUnstallLPC(CONST LPC_SERVICE * lpService)
+EXPORT RO_CODE E_STATUS caUnstallLPC(CONST LPC_SERVICE * lpService)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -93,7 +93,7 @@ EXPORT_SYMBOL(caUnstallLPC);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caInstallIRQ(LPIRQ_SERVICE lpHandler)
+EXPORT RO_CODE E_STATUS caInstallIRQ(LPIRQ_SERVICE lpHandler)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -111,7 +111,7 @@ EXPORT_SYMBOL(caInstallIRQ);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caUnstallIRQ(LPIRQ_SERVICE lpHandler)
+EXPORT RO_CODE E_STATUS caUnstallIRQ(LPIRQ_SERVICE lpHandler)
 {
     LPC_REQUEST_PACKET Packet;
     

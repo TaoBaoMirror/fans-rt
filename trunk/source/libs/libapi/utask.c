@@ -33,7 +33,7 @@
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
+FANSAPI RO_CODE HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
 {
     HANDLE hTask;
     TASK_CREATE_PARAM TaskParam;
@@ -161,7 +161,7 @@ EXPORT_SYMBOL(CreateTaskEx);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
+FANSAPI RO_CODE HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
                                   LPVOID lpArgument, TASK_PRIORITY Priority)
 {
     TASK_CREATE_PARAM TaskParam;
@@ -186,7 +186,7 @@ EXPORT_SYMBOL(CreatePriorityTask);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS KillTask(HANDLE hTask)
+FANSAPI RO_CODE E_STATUS KillTask(HANDLE hTask)
 {
     if (INVALID_HANDLE_VALUE == hTask)
     {
@@ -204,7 +204,7 @@ EXPORT_SYMBOL(KillTask);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS TaskExit(VOID)
+FANSAPI RO_CODE E_STATUS TaskExit(VOID)
 {
     return caCloseTask(TASK_SELF_HANDLE);
 }
@@ -220,7 +220,7 @@ FANSAPI CODE_TEXT E_STATUS TaskExit(VOID)
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS Sleep(LONG Timeout)
+FANSAPI RO_CODE E_STATUS Sleep(LONG Timeout)
 {
     if (Timeout <= 0)
     {
@@ -242,7 +242,7 @@ EXPORT_SYMBOL(Sleep);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS TaskStartup(HANDLE hTask)
+FANSAPI RO_CODE E_STATUS TaskStartup(HANDLE hTask)
 {
     return caTaskWakeup(hTask);
 }
@@ -257,7 +257,7 @@ EXPORT_SYMBOL(TaskStartup);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS SetError(E_STATUS State)
+FANSAPI RO_CODE E_STATUS SetError(E_STATUS State)
 {
     return caSetError(State);
 }
@@ -270,7 +270,7 @@ EXPORT_SYMBOL(SetError)
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS GetError(VOID)
+FANSAPI RO_CODE E_STATUS GetError(VOID)
 {
     return caGetError();
 }
@@ -283,7 +283,7 @@ EXPORT_SYMBOL(GetError)
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT HANDLE GetCurrentTask(VOID)
+FANSAPI RO_CODE HANDLE GetCurrentTask(VOID)
 {
     return caGetCurrentTask();
 }
@@ -297,7 +297,7 @@ EXPORT_SYMBOL(GetCurrentTask);
  * date           author          notes
  * 2015-06-17     JiangYong       new function
  */
-FANSAPI CODE_TEXT TICK GetTaskStartTick(HANDLE hTask)
+FANSAPI RO_CODE TICK GetTaskStartTick(HANDLE hTask)
 {
     if (INVALID_HANDLE_VALUE == hTask)
     {
@@ -316,7 +316,7 @@ FANSAPI CODE_TEXT TICK GetTaskStartTick(HANDLE hTask)
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS PostCancel(HANDLE hTask)
+FANSAPI RO_CODE E_STATUS PostCancel(HANDLE hTask)
 {
     if (INVALID_HANDLE_VALUE == hTask)
     {
@@ -335,7 +335,7 @@ EXPORT_SYMBOL(PostCancel);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT BOOL TestCancel(VOID)
+FANSAPI RO_CODE BOOL TestCancel(VOID)
 {
     return caTestCancel();
 }
@@ -350,7 +350,7 @@ EXPORT_SYMBOL(TestCancel);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS SetPriority(HANDLE hTask, TASK_PRIORITY Priority)
+FANSAPI RO_CODE E_STATUS SetPriority(HANDLE hTask, TASK_PRIORITY Priority)
 {
     if (INVALID_HANDLE_VALUE == hTask)
     {
@@ -369,7 +369,7 @@ EXPORT_SYMBOL(SetPriority);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT TASK_PRIORITY GetPriority(HANDLE hTask)
+FANSAPI RO_CODE TASK_PRIORITY GetPriority(HANDLE hTask)
 {
     if (INVALID_HANDLE_VALUE == hTask)
     {
@@ -390,7 +390,7 @@ EXPORT_SYMBOL(GetPriority);
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI CODE_TEXT TASK_STATUS GetTaskState(HANDLE hTask)
+FANSAPI RO_CODE TASK_STATUS GetTaskState(HANDLE hTask)
 {
     if (INVALID_HANDLE_VALUE == hTask)
     {
@@ -410,7 +410,7 @@ EXPORT_SYMBOL(GetTaskState);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI CODE_TEXT SMLT_KEY_T GetSmltKey(VOID)
+FANSAPI RO_CODE SMLT_KEY_T GetSmltKey(VOID)
 {
     return caGetSmltKey();
 }
@@ -424,7 +424,7 @@ EXPORT_SYMBOL(GetSmltKey);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS PutSmltKey(SMLT_KEY_T SmtKey)
+FANSAPI RO_CODE E_STATUS PutSmltKey(SMLT_KEY_T SmtKey)
 {
     return caPutSmltKey(SmtKey);
 }
@@ -439,7 +439,7 @@ EXPORT_SYMBOL(PutSmltKey);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS GetSmltValue(SMLT_KEY_T SmtKey, LPDWORD lpValue)
+FANSAPI RO_CODE E_STATUS GetSmltValue(SMLT_KEY_T SmtKey, LPDWORD lpValue)
 {
     return caGetSmltValue(SmtKey, lpValue);
 }
@@ -454,7 +454,7 @@ EXPORT_SYMBOL(GetSmltValue);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI CODE_TEXT E_STATUS SetSmltValue(SMLT_KEY_T SmtKey, DWORD Value)
+FANSAPI RO_CODE E_STATUS SetSmltValue(SMLT_KEY_T SmtKey, DWORD Value)
 {
     return caSetSmltValue(SmtKey, Value);
 }
@@ -472,7 +472,7 @@ EXPORT_SYMBOL(caSetSmltValue);
  *        作    者: 姜勇
  *        修改内容: 创建函数
  *******************************************************************************************/
-FANSAPI CODE_TEXT E_STATUS GetTaskInformation(HANDLE hTask, LPTASK_INFOR lpTaskInfor)
+FANSAPI RO_CODE E_STATUS GetTaskInformation(HANDLE hTask, LPTASK_INFOR lpTaskInfor)
 {
     return STATE_NOT_IMPLEMENTED;
 }
@@ -490,7 +490,7 @@ EXPORT_SYMBOL(GetTaskInformation);
  *        作    者: 姜勇
  *        修改内容: 创建函数
  *******************************************************************************************/
-FANSAPI CODE_TEXT HANDLE EnumerationNextTask(HANDLE hTask)
+FANSAPI RO_CODE HANDLE EnumerationNextTask(HANDLE hTask)
 {
     return INVALID_HANDLE_VALUE;
 }

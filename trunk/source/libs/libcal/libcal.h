@@ -55,7 +55,7 @@ extern "C" {
 #if (CONFIG_PROFILER_CYCLE != 0)
     EXPORT E_STATUS ntSystemProfiler(VOID);
 #endif
-    EXPORT CODE_TEXT E_STATUS caGetObjectName(HANDLE handle,
+    EXPORT RO_CODE E_STATUS caGetObjectName(HANDLE handle,
                                 CHAR Name[OBJECT_NAME_MAX], SIZE_T Length);
     EXPORT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam);
     EXPORT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam);

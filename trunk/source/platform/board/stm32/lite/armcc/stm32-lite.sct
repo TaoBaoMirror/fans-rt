@@ -6,10 +6,17 @@ LR_IROM1 0x08000000 0x0000D000  {    ; load region size_region
   ER_IROM1 0x08000000 0x0000D000  {  ; load address = execution address
    *.o (RESET, +First)
    *(InRoot$$Sections)
+   *.o (.CoreText, +RO)
+   *.o (.UserText, +RO)
+   *.o (.CoreROdata, +RO)
+   *.o (.UserROdata, +RO)
    .ANY (+RO)
   }
   RW_IRAM1 0x20000000 0x00005000  {  ; RW data
+   *.o (.UserRWdata, +RW +ZI)
+   *.o (.CoreRWdata, +RW +ZI)
    .ANY (+RW +ZI)
+   
   }
 }
 

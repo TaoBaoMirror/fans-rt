@@ -17,9 +17,9 @@
 #include <faerror.h>
 #include <fatypes.h>
 
-STATIC CHAR g_SystemIdleTaskStack[CONFIG_IDLE_STACK_SIZE];
+STATIC CHAR RW_CORE_DATA g_SystemIdleTaskStack[CONFIG_IDLE_STACK_SIZE];
 
-PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID)
+PUBLIC RO_CORE_CODE LPVOID CORE_GetIdleStackBuffer(DWORD CpuID)
 {
     if (0 != CpuID)
     {

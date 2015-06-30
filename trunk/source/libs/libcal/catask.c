@@ -24,7 +24,7 @@
 #include "request.h"
 #include "cadebug.h"
 
-EXPORT CODE_TEXT E_STATUS caGetError(VOID)
+EXPORT RO_CODE E_STATUS caGetError(VOID)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -33,7 +33,7 @@ EXPORT CODE_TEXT E_STATUS caGetError(VOID)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_TASKERROR);
 }
 
-EXPORT CODE_TEXT E_STATUS caSetError(E_STATUS emCode)
+EXPORT RO_CODE E_STATUS caSetError(E_STATUS emCode)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -44,7 +44,7 @@ EXPORT CODE_TEXT E_STATUS caSetError(E_STATUS emCode)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SET_TASKERROR);
 }
 
-EXPORT CODE_TEXT HANDLE caGetCurrentTask(VOID)
+EXPORT RO_CODE HANDLE caGetCurrentTask(VOID)
 {
     E_STATUS Result;
     LPC_REQUEST_PACKET Packet;
@@ -60,7 +60,7 @@ EXPORT CODE_TEXT HANDLE caGetCurrentTask(VOID)
     return Packet.u0.hParam;
 }
 
-EXPORT CODE_TEXT TASK_STATUS caGetTaskState(HANDLE hTask)
+EXPORT RO_CODE TASK_STATUS caGetTaskState(HANDLE hTask)
 {
     E_STATUS Result;
     LPC_REQUEST_PACKET Packet;
@@ -76,7 +76,7 @@ EXPORT CODE_TEXT TASK_STATUS caGetTaskState(HANDLE hTask)
     return (TASK_STATUS) Packet.u0.dParam;
 }
 
-EXPORT CODE_TEXT E_STATUS caScheduleTimeout(LONG Timeout)
+EXPORT RO_CODE E_STATUS caScheduleTimeout(LONG Timeout)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -87,7 +87,7 @@ EXPORT CODE_TEXT E_STATUS caScheduleTimeout(LONG Timeout)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_SCHEDULE_TIMEOUT);
 }
 
-EXPORT CODE_TEXT E_STATUS caTaskWakeup(HANDLE hTask)
+EXPORT RO_CODE E_STATUS caTaskWakeup(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -98,7 +98,7 @@ EXPORT CODE_TEXT E_STATUS caTaskWakeup(HANDLE hTask)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_WAKE_UP);
 }
 
-EXPORT CODE_TEXT BOOL caTestCancel(VOID)
+EXPORT RO_CODE BOOL caTestCancel(VOID)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -111,7 +111,7 @@ EXPORT CODE_TEXT BOOL caTestCancel(VOID)
     return Packet.u0.dParam;
 }
 
-EXPORT CODE_TEXT E_STATUS caPostCancel(HANDLE hTask)
+EXPORT RO_CODE E_STATUS caPostCancel(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -122,7 +122,7 @@ EXPORT CODE_TEXT E_STATUS caPostCancel(HANDLE hTask)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_POST_CANCEL);
 }
 
-EXPORT CODE_TEXT TICK caGetTaskStartTick(HANDLE hTask)
+EXPORT RO_CODE TICK caGetTaskStartTick(HANDLE hTask)
 {
     TICK Tick = (TICK) 0;
     LPC_REQUEST_PACKET Packet;
@@ -145,7 +145,7 @@ EXPORT CODE_TEXT TICK caGetTaskStartTick(HANDLE hTask)
     return Tick;
 }
 
-EXPORT CODE_TEXT TASK_PRIORITY caGetPriority(HANDLE hTask)
+EXPORT RO_CODE TASK_PRIORITY caGetPriority(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -162,7 +162,7 @@ EXPORT CODE_TEXT TASK_PRIORITY caGetPriority(HANDLE hTask)
     return (TASK_PRIORITY) Packet.u1.dParam;
 }
 
-EXPORT CODE_TEXT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
+EXPORT RO_CODE E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -175,7 +175,7 @@ EXPORT CODE_TEXT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority)
 }
 EXPORT_SYMBOL(caSetPriority);
 
-EXPORT CODE_TEXT E_STATUS caCloseTask(HANDLE hTask)
+EXPORT RO_CODE E_STATUS caCloseTask(HANDLE hTask)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -187,7 +187,7 @@ EXPORT CODE_TEXT E_STATUS caCloseTask(HANDLE hTask)
 }
 
 
-EXPORT CODE_TEXT SMLT_KEY_T caGetSmltKey(VOID)
+EXPORT RO_CODE SMLT_KEY_T caGetSmltKey(VOID)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -201,7 +201,7 @@ EXPORT CODE_TEXT SMLT_KEY_T caGetSmltKey(VOID)
     return (SMLT_KEY_T) Packet.u0.dParam;
 }
 
-EXPORT CODE_TEXT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey)
+EXPORT RO_CODE E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -212,7 +212,7 @@ EXPORT CODE_TEXT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey)
     return caSystemCall(&Packet, STM_MAGIC, LPC_TSS_PUT_SMLTKEY);
 }
 
-EXPORT CODE_TEXT E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue)
+EXPORT RO_CODE E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
@@ -234,7 +234,7 @@ EXPORT CODE_TEXT E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue)
     return State;
 }
 
-EXPORT CODE_TEXT E_STATUS caSetSmltValue(SMLT_KEY_T SmltKey, DWORD Value)
+EXPORT RO_CODE E_STATUS caSetSmltValue(SMLT_KEY_T SmltKey, DWORD Value)
 {
     LPC_REQUEST_PACKET Packet;
 

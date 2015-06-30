@@ -39,7 +39,7 @@ STATIC E_STATUS CloseTaskContext(LPTASK_CONTEXT lpTaskContext)
 }
 
 
-EXPORT CODE_TEXT E_STATUS CORE_IdleMain(LPVOID lpParam)
+EXPORT RO_CODE E_STATUS CORE_IdleMain(LPVOID lpParam)
 {
     LPTASK_CONTEXT lpIdleContext = lpParam;
     CORE_DEBUG(TRUE, "System idle task working now ....");
@@ -62,7 +62,7 @@ EXPORT CODE_TEXT E_STATUS CORE_IdleMain(LPVOID lpParam)
  *     新任务入口函数需要传入三个参数，在ARCH层实现的任务堆栈填充函数需要将这
  * 三个参数放入恰当的堆栈位置。
  */
-EXPORT CODE_TEXT VOID CORE_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, LPTASK_CONTEXT lpTaskContext)
+EXPORT RO_CODE VOID CORE_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, LPTASK_CONTEXT lpTaskContext)
 {
     CORE_ASSERT(fnMain, , "The task main function is NULL.");
     CORE_ASSERT(lpTaskContext, , "The task context object is NULL.");

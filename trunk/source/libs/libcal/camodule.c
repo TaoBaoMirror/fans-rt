@@ -26,7 +26,7 @@
 
 STATIC CONST RO_DATA MODULE_HEADER * g_SystemModuleArray[CONFIG_SYSTEM_MODULES] = {NULL};
 
-EXPORT CODE_TEXT E_STATUS RegisterModule(LPMODULE_HEADER lpModule)
+EXPORT RO_CODE E_STATUS RegisterModule(LPMODULE_HEADER lpModule)
 {
     DWORD Id, Who = SIZEOF_ARRAY(g_SystemModuleArray);
     
@@ -73,7 +73,7 @@ EXPORT CODE_TEXT E_STATUS RegisterModule(LPMODULE_HEADER lpModule)
 EXPORT_SYMBOL(RegisterModule);
 
 
-EXPORT CODE_TEXT E_STATUS ProbeModule(LPTSTR lpModuleName)
+EXPORT RO_CODE E_STATUS ProbeModule(LPTSTR lpModuleName)
 {
     DWORD Id;
 
@@ -105,7 +105,7 @@ EXPORT CODE_TEXT E_STATUS ProbeModule(LPTSTR lpModuleName)
 EXPORT_SYMBOL(ProbeModule);
 #else
 
-EXPORT CODE_TEXT E_STATUS initSystemApplicationModulesStartup(VOID)
+EXPORT RO_CODE E_STATUS initSystemApplicationModulesStartup(VOID)
 {
     DWORD Id;
 

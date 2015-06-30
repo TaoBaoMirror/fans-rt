@@ -149,6 +149,9 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
             Pid, GetPoolBitmap(lpCorePool));
         return INVALID_CONTAINER_ID;
     }
+    
+    CORE_INFOR(TRUE, "Malloc pool 0x%P id %d for container '%s' ...",
+            lpCorePool, Pid, GetContainerName(lpManager));
 
     SubPoolBitmap(lpCorePool, 1 << Bid);
     SetContainerBitmap(lpManager, Pid, TRUE && GetPoolBitmap(lpCorePool));
@@ -199,7 +202,8 @@ PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T K
     
     if (POL_MAGIC != GetPoolMagic(lpCorePool))
     {
-        CORE_INFOR(TRUE, "Invalid pool magic %p.", lpCorePool);
+        CORE_INFOR(TRUE, "Container %s pool %p id %u magic invalid.",
+            GetContainerName(lpManager), lpCorePool, Pid);
         return STATE_SYSTEM_FAULT;
     }
 

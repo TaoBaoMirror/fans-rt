@@ -24,7 +24,7 @@
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI CODE_TEXT HANDLE TakeObject(LPCTSTR lpCTName)
+FANSAPI RO_CODE HANDLE TakeObject(LPCTSTR lpCTName)
 {
     CHAR caName[OBJECT_NAME_MAX];
 
@@ -60,7 +60,7 @@ FANSAPI CODE_TEXT HANDLE TakeObject(LPCTSTR lpCTName)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI CODE_TEXT HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
+FANSAPI RO_CODE HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
 {
     HANDLE hEvent;
     EVENT_ATTRIBUTE Attribute;
@@ -113,7 +113,7 @@ FANSAPI CODE_TEXT HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Sign
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI CODE_TEXT E_STATUS PostEvent(HANDLE handle)
+FANSAPI RO_CODE E_STATUS PostEvent(HANDLE handle)
 {
     return caPostObject(handle, NULL);
 }
@@ -133,7 +133,7 @@ FANSAPI CODE_TEXT E_STATUS PostEvent(HANDLE handle)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI CODE_TEXT E_STATUS ResetEvent(HANDLE handle)
+FANSAPI RO_CODE E_STATUS ResetEvent(HANDLE handle)
 {
     return caResetObject(handle, NULL);
 }
@@ -157,7 +157,7 @@ FANSAPI CODE_TEXT E_STATUS ResetEvent(HANDLE handle)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI CODE_TEXT HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
+FANSAPI RO_CODE HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 {
     HANDLE hMutex;
     MUTEX_ATTRIBUTE Attribute;
@@ -210,7 +210,7 @@ FANSAPI CODE_TEXT HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI CODE_TEXT E_STATUS MutexUnlock(HANDLE hMutex)
+FANSAPI RO_CODE E_STATUS MutexUnlock(HANDLE hMutex)
 {
     return caPostObject(hMutex, NULL);
 }
@@ -231,7 +231,7 @@ FANSAPI CODE_TEXT E_STATUS MutexUnlock(HANDLE hMutex)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI CODE_TEXT E_STATUS MutexLock(HANDLE hMutex)
+FANSAPI RO_CODE E_STATUS MutexLock(HANDLE hMutex)
 {
     return caWaitObject(hMutex, WAIT_INFINITE);
 }

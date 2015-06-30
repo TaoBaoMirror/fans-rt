@@ -25,7 +25,7 @@
 #include "cadebug.h"
 
 
-EXPORT CODE_TEXT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission)
+EXPORT RO_CODE E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission)
 {
     LPC_REQUEST_PACKET Packet;
 
