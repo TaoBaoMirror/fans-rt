@@ -15,7 +15,7 @@
 #include <fatypes.h>
 #include <stddef.h>
 
-EXPORT CODE_TEXT void * malloc(size_t length)
+EXPORT RO_CODE void * malloc(size_t length)
 {
     return NULL;
 }

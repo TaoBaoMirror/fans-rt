@@ -699,7 +699,7 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
 
 DEFINE_LPC_SERVICE(LPCService, STM_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHandlers);
 
-EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
+EXPORT RO_CODE LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
 {
     E_STATUS State;
     TASK_CREATE_PARAM TaskParam;
@@ -784,7 +784,7 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREA
 
     if (STATE_SUCCESS == (State = CORE_ActiveObject(GetContextHeader(lpTaskContext), &TaskParam)))
     {
-        CORE_ERROR(TRUE, "Crete task '%s' context '0x%p' successfully!", lpTaskName, lpTaskContext);
+        CORE_INFOR(TRUE, "Crete task '%s' context '0x%p' successfully!", lpTaskName, lpTaskContext);
         return lpTaskContext;
     }
 
@@ -814,7 +814,7 @@ EXPORT_SYMBOL(CORE_CreateTaskEx);
  * date           author          notes
  * 2015-06-21     JiangYong       new function
  */
-EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
+EXPORT RO_CODE LPTASK_CONTEXT CORE_CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
                                   LPVOID lpArgument, TASK_PRIORITY Priority)
 {
     TASK_CREATE_PARAM TaskParam;
@@ -831,7 +831,7 @@ EXPORT CODE_TEXT LPTASK_CONTEXT CORE_CreatePriorityTask(LPCSTR __IN lpTaskName, 
 }
 EXPORT_SYMBOL(CORE_CreatePriorityTask);
 
-EXPORT CODE_TEXT VOID CORE_CloseTask(LPTASK_CONTEXT lpTaskContext)
+EXPORT RO_CODE VOID CORE_CloseTask(LPTASK_CONTEXT lpTaskContext)
 {
     if (lpTaskContext)
     {
@@ -1042,7 +1042,7 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
 
     if (NULL == CORE_CreateTask(BOOT_TASK_NAME, NULL, NULL))
     {
-        CORE_ERROR(TRUE, "Create boot task failed, result = %d !", CORE_GetError());
+        CORE_ERROR(TRUE, "Create boot task failed, result %d !", CORE_GetError());
         SYSTEM_CALL_OOPS();
     }
 

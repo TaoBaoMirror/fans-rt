@@ -32,7 +32,7 @@
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT LPVOID caPageMalloc(SIZE_T Length)
+EXPORT RO_CODE LPVOID caPageMalloc(SIZE_T Length)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -56,7 +56,7 @@ EXPORT_SYMBOL(caPageMalloc);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caPageFree(LPVOID lpPageAddress)
+EXPORT RO_CODE E_STATUS caPageFree(LPVOID lpPageAddress)
 {
     LPC_REQUEST_PACKET Packet;
     
@@ -74,7 +74,7 @@ EXPORT_SYMBOL(caPageFree);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT DWORD caGetSystemFreePages(BYTE RegionID)
+EXPORT RO_CODE DWORD caGetSystemFreePages(BYTE RegionID)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;
@@ -100,7 +100,7 @@ EXPORT_SYMBOL(caGetSystemFreePages);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caGetMmsInformation(LPMMS_INFOR lpInfor)
+EXPORT RO_CODE E_STATUS caGetMmsInformation(LPMMS_INFOR lpInfor)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -135,7 +135,7 @@ EXPORT_SYMBOL(caGetMmsInformation);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caShowMmsInformation(VOID)
+EXPORT RO_CODE E_STATUS caShowMmsInformation(VOID)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -164,7 +164,7 @@ EXPORT_SYMBOL(caShowMmsInformation);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
+EXPORT RO_CODE E_STATUS caShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
 {
 #if (CONFIG_MEM_DEBUG_ENABLE == FALSE)
     return STATE_NOT_SUPPORT;
@@ -195,7 +195,7 @@ EXPORT_SYMBOL(caShowMmsRegionSection);
  * date           author          notes
  * 2015-01-18     JiangYong       first version
  */
-EXPORT CODE_TEXT E_STATUS caCreateMMRegion(LPVOID lpAddress, SIZE_T Length)
+EXPORT RO_CODE E_STATUS caCreateMMRegion(LPVOID lpAddress, SIZE_T Length)
 {
     E_STATUS State;
     LPC_REQUEST_PACKET Packet;

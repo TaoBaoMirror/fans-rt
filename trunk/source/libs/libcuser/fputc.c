@@ -17,12 +17,12 @@
 #include <fadefs.h>
 #include "libcmini.h"
 
-EXPORT CODE_TEXT int fputc(int ch, FILE * stream)
+EXPORT RO_CODE int fputc(int ch, FILE * stream)
 {
     return ch;
 }
 
-EXPORT CODE_TEXT int wfputc(int ch, FILE * stream)
+EXPORT RO_CODE int wfputc(int ch, FILE * stream)
 {
     return ch;
 }

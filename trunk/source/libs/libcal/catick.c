@@ -22,7 +22,7 @@
 #include "libcal.h"
 #include "cadebug.h"
 
-EXPORT CODE_TEXT TICK caGetSystemTick(VOID)
+EXPORT RO_CODE TICK caGetSystemTick(VOID)
 {
     TICK Tick;
     E_STATUS State;

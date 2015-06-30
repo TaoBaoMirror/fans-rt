@@ -171,7 +171,7 @@ typedef struct
   */
 #define HDMI_CEC_OPCODE_ACTIVE_SOURCE                       ((uint8_t) 0x82)
 #define HDMI_CEC_OPCODE_IMAGE_VIEW_ON                       ((uint8_t) 0x04)
-#define HDMI_CEC_OPCODE_TEXT_VIEW_ON                        ((uint8_t) 0x0D)
+#define HDMI_CEC_OPRO_CODE_VIEW_ON                        ((uint8_t) 0x0D)
 #define HDMI_CEC_OPCODE_INACTIVE_SOURCE                     ((uint8_t) 0x9D)
 #define HDMI_CEC_OPCODE_REQUEST_ACTIVE_SOURCE               ((uint8_t) 0x85)
 #define HDMI_CEC_OPCODE_ROUTING_CHANGE                      ((uint8_t) 0x80)

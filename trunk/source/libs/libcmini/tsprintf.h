@@ -61,10 +61,19 @@ typedef unsigned long ULL_TYPE;
 
 typedef double FLL_TYPE;
 
-STATIC CONST RO_DATA STRING_CHAR_T * lcharset = _TEXT("0123456789abcdef");
-STATIC CONST RO_DATA STRING_CHAR_T * ucharset = _TEXT("0123456789ABCDEF");
+STATIC CONST RO_USER_DATA STRING_CHAR_T g_CharsetLowLetterTable[] = {
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 
+    'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 
+    'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+};
 
-STATIC CODE_TEXT ULL_TYPE __std_ulldiv_mod(ULL_TYPE divisor,ULL_TYPE dividend, ULL_TYPE * remainder)
+STATIC CONST RO_USER_DATA STRING_CHAR_T g_CharsetCapLetterTable[] = {
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 
+    'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 
+    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+};
+
+STATIC RO_CODE ULL_TYPE __std_ulldiv_mod(ULL_TYPE divisor,ULL_TYPE dividend, ULL_TYPE * remainder)
 {
     unsigned Bits = MAX_BITS_WIDTH;
     ULL_TYPE business = 0;
@@ -84,7 +93,7 @@ STATIC CODE_TEXT ULL_TYPE __std_ulldiv_mod(ULL_TYPE divisor,ULL_TYPE dividend, U
 }
 
 
-STATIC CODE_TEXT int fa_p_itoa(ULL_TYPE number, STRING_CHAR_T * buffer, size_t length,
+STATIC RO_CODE int fa_p_itoa(ULL_TYPE number, STRING_CHAR_T * buffer, size_t length,
                     int precision, const STRING_CHAR_T * charset, int radix, int prefix)
 {
     int count = 0;
@@ -125,7 +134,7 @@ STATIC CODE_TEXT int fa_p_itoa(ULL_TYPE number, STRING_CHAR_T * buffer, size_t l
     return count;
 }
 
-STATIC CODE_TEXT int fa_p_show_string(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+STATIC RO_CODE int fa_p_show_string(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int width, size_t max_length, int scale, STRING_CHAR_T * string, int flags,
     STRING_CHAR_T prefix, STRING_CHAR_T suffix)
 {
@@ -182,7 +191,7 @@ STATIC CODE_TEXT int fa_p_show_string(FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_
 }
 
 #ifdef LIBC_STATIC_FUNCTION
-STATIC CODE_TEXT void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+STATIC RO_CODE void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int precision, size_t length, int scale, SLL_TYPE number, int flags)
 {
     int width = 0;
@@ -192,7 +201,7 @@ STATIC CODE_TEXT void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpP
     STRING_CHAR_T fill = (flags & F_ZERO) ? '0' : ' ';
     STRING_CHAR_T * string;
     ULL_TYPE unumber = (ULL_TYPE) number;
-    const STRING_CHAR_T * charset = lcharset;
+    const STRING_CHAR_T * charset = g_CharsetLowLetterTable;
     STRING_CHAR_T buffer[N_BUFFER_SIZE];
     
     switch (type)
@@ -223,11 +232,11 @@ STATIC CODE_TEXT void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpP
         radix = 8;
         break;
     case 'x':
-        charset = lcharset;
+        charset = g_CharsetLowLetterTable;
         radix = 16;
         break;
     case 'X':
-        charset = ucharset;
+        charset = g_CharsetCapLetterTable;
         radix = 16;
         break;
     }
@@ -259,7 +268,7 @@ STATIC CODE_TEXT void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpP
         STRING_CHAR_T fill = (flags & F_ZERO) ? '0' : ' ';                                                      \
         STRING_CHAR_T * string;                                                                                 \
         ULL_TYPE unumber = (ULL_TYPE) number;                                                                   \
-        const STRING_CHAR_T * charset = lcharset;                                                               \
+        const STRING_CHAR_T * charset = g_CharsetLowLetterTable;                                                               \
         STRING_CHAR_T buffer[N_BUFFER_SIZE];                                                                    \
                                                                                                                 \
         switch (type)                                                                                           \
@@ -286,11 +295,11 @@ STATIC CODE_TEXT void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpP
             radix = 8;                                                                                          \
             break;                                                                                              \
         case 'x':                                                                                               \
-            charset = lcharset;                                                                                 \
+            charset = g_CharsetLowLetterTable;                                                                                 \
             radix = 16;                                                                                         \
             break;                                                                                              \
         case 'X':                                                                                               \
-            charset = ucharset;                                                                                 \
+            charset = g_CharsetCapLetterTable;                                                                                 \
             radix = 16;                                                                                         \
             break;                                                                                              \
         }                                                                                                       \
@@ -316,18 +325,18 @@ STATIC CODE_TEXT void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpP
 
 
 #ifdef LIBC_STATIC_FUNCTION
-STATIC CODE_TEXT void fa_p_show_address(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+STATIC RO_CODE void fa_p_show_address(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int width, size_t max_length, int scale, SLL_TYPE number, int flags)
 {
     int count = 0;
     STRING_CHAR_T * string;
-    const STRING_CHAR_T * charset = lcharset;
+    const STRING_CHAR_T * charset = g_CharsetLowLetterTable;
     STRING_CHAR_T prefix = ' ';
     STRING_CHAR_T buffer[N_BUFFER_SIZE];
     
     if ('P' == type)
     {
-        charset = ucharset;
+        charset = g_CharsetCapLetterTable;
     }
     
     if (flags & F_ZERO)
@@ -346,13 +355,13 @@ STATIC CODE_TEXT void fa_p_show_address(int * result, FNPUTCHAR fnPut, LPVOID lp
     do{                                                                                                         \
         int count = 0;                                                                                          \
         STRING_CHAR_T * string;                                                                                 \
-        const STRING_CHAR_T * charset = lcharset;                                                               \
+        const STRING_CHAR_T * charset = g_CharsetLowLetterTable;                                                               \
         STRING_CHAR_T prefix = ' ';                                                                             \
         STRING_CHAR_T buffer[N_BUFFER_SIZE];                                                                    \
                                                                                                                 \
         if ('P' == type)                                                                                        \
         {                                                                                                       \
-            charset = ucharset;                                                                                 \
+            charset = g_CharsetCapLetterTable;                                                                                 \
         }                                                                                                       \
                                                                                                                 \
         if (flags & F_ZERO)                                                                                     \
@@ -389,7 +398,7 @@ STATIC CODE_TEXT void fa_p_show_address(int * result, FNPUTCHAR fnPut, LPVOID lp
 #ifdef LIBC_STATIC_FUNCTION
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 
-STATIC CODE_TEXT void fa_p_decpart(ULL_TYPE * result, ULL_TYPE number)
+STATIC RO_CODE void fa_p_decpart(ULL_TYPE * result, ULL_TYPE number)
 {
     int Bits;
     ULL_TYPE dec_value = 0ULL;
@@ -408,7 +417,7 @@ STATIC CODE_TEXT void fa_p_decpart(ULL_TYPE * result, ULL_TYPE number)
     *(result) = dec_value;
 }
 
-STATIC CODE_TEXT void fa_p_ftoa(int * result, int shift, ULL_TYPE mantissa, STRING_CHAR_T * buffer, int length,
+STATIC RO_CODE void fa_p_ftoa(int * result, int shift, ULL_TYPE mantissa, STRING_CHAR_T * buffer, int length,
                     int precision, const STRING_CHAR_T * charset, int prefix)
 {
     int carry = 0;
@@ -491,7 +500,7 @@ STATIC CODE_TEXT void fa_p_ftoa(int * result, int shift, ULL_TYPE mantissa, STRI
     *(result) = int_count;
 }
 
-STATIC CODE_TEXT void fa_p_get_float(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
+STATIC RO_CODE void fa_p_get_float(int * result, FNPUTCHAR fnPut, LPVOID lpPrivate, STRING_CHAR_T type,
     int width, int precision, size_t length, int scale, FLL_TYPE fnumber, int flags)
 {
     int sign;
@@ -515,7 +524,7 @@ STATIC CODE_TEXT void fa_p_get_float(int * result, FNPUTCHAR fnPut, LPVOID lpPri
     if (sign) prefix = '-';
     else if (flags & F_PLUS) prefix = '+';
     
-    fa_p_ftoa(&count, int_shift, mantissa, buffer, sizeof(buffer), precision, lcharset, prefix);
+    fa_p_ftoa(&count, int_shift, mantissa, buffer, sizeof(buffer), precision, g_CharsetLowLetterTable, prefix);
 
     string = buffer + (N_BUFFER_SIZE/2 - count - 1);
 
@@ -648,7 +657,7 @@ STATIC CODE_TEXT void fa_p_get_float(int * result, FNPUTCHAR fnPut, LPVOID lpPri
         if (sign) prefix = '-';                                                                             \
         else if (flags & F_PLUS) prefix = '+';                                                              \
                                                                                                             \
-        fa_p_ftoa(&count, int_shift, mantissa, buffer, sizeof(buffer), precision, lcharset, prefix);        \
+        fa_p_ftoa(&count, int_shift, mantissa, buffer, sizeof(buffer), precision, g_CharsetLowLetterTable, prefix);        \
                                                                                                             \
         string = buffer + (N_BUFFER_SIZE/2 - count - 1);                                                    \
                                                                                                             \
@@ -661,7 +670,7 @@ STATIC CODE_TEXT void fa_p_get_float(int * result, FNPUTCHAR fnPut, LPVOID lpPri
 #if (BUILD_CHAR_WIDTH  != 1)
 #define fa_vxnprintf        fa_wvxnprintf
 #endif
-PUBLIC CODE_TEXT int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t length, const STRING_CHAR_T * format, va_list args)
+PUBLIC RO_USER_CODE int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t length, const STRING_CHAR_T * format, va_list args)
 {
     int ch;
     int result = 0;
@@ -817,9 +826,10 @@ PUBLIC CODE_TEXT int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t leng
                 number &= 0xffffffff;
             }
 
+            precision = precision ? precision : width;
+
             fa_p_show_address(&result, fnPut, lpPrivate, *format, 
-                        precision ? precision : width,
-                        length, count, number, flags);
+                        precision, length, count, number, flags);
             
             if (EOF == result)
             {
@@ -931,7 +941,7 @@ PUBLIC CODE_TEXT int fa_vxnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t leng
 #define fa_xnprintf fa_wxnprintf
 #endif
 
-EXPORT CODE_TEXT int fa_xnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t size, const STRING_CHAR_T * format, ...)
+EXPORT RO_CODE int fa_xnprintf(FNPUTCHAR fnPut, LPVOID lpPrivate, size_t size, const STRING_CHAR_T * format, ...)
 {
     int length;
     va_list vargs;
@@ -956,7 +966,7 @@ struct tagSTRING_BUFFER
 };
 
 
-STATIC CODE_TEXT int put_string_char(int ch, LPVOID lpPrivate)
+STATIC RO_CODE int put_string_char(int ch, LPVOID lpPrivate)
 {
     LPSTRING_BUFFER string = lpPrivate;
     
@@ -972,7 +982,7 @@ STATIC CODE_TEXT int put_string_char(int ch, LPVOID lpPrivate)
 #undef vsnprintf
 #define vsnprintf wvsnprintf
 #endif
-EXPORT CODE_TEXT int vsnprintf(STRING_CHAR_T * buffer, size_t count, const STRING_CHAR_T * format, va_list vargs)
+EXPORT RO_CODE int vsnprintf(STRING_CHAR_T * buffer, size_t count, const STRING_CHAR_T * format, va_list vargs)
 {
     STRING_BUFFER String;
 
@@ -987,7 +997,7 @@ EXPORT CODE_TEXT int vsnprintf(STRING_CHAR_T * buffer, size_t count, const STRIN
 #undef vsprintf
 #define vsprintf wvsprintf
 #endif
-EXPORT CODE_TEXT int vsprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format, va_list vargs)
+EXPORT RO_CODE int vsprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format, va_list vargs)
 {
     return vsnprintf(buffer, ~0, format, vargs);
 }
@@ -996,7 +1006,7 @@ EXPORT CODE_TEXT int vsprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * form
 #undef sprintf
 #define sprintf wsprintf
 #endif
-EXPORT CODE_TEXT int sprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format,...)
+EXPORT RO_CODE int sprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * format,...)
 {
     va_list vargs;
     int string_length;
@@ -1012,7 +1022,7 @@ EXPORT CODE_TEXT int sprintf(STRING_CHAR_T * buffer, const STRING_CHAR_T * forma
 #undef snprintf
 #define snprintf wsnprintf
 #endif
-EXPORT CODE_TEXT int snprintf(STRING_CHAR_T * buffer,size_t count, const STRING_CHAR_T * format,...)
+EXPORT RO_CODE int snprintf(STRING_CHAR_T * buffer,size_t count, const STRING_CHAR_T * format,...)
 {
     int length;
     va_list vargs;

@@ -320,8 +320,8 @@ extern "C" {
     EXPORT E_STATUS CORE_SetThisPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority);
     EXPORT E_STATUS CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext);   
 
-    EXPORT CODE_TEXT E_STATUS CORE_IdleMain(LPVOID lpParam);
-    EXPORT CODE_TEXT VOID CORE_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, LPTASK_CONTEXT lpTaskContext);
+    EXPORT RO_CODE E_STATUS CORE_IdleMain(LPVOID lpParam);
+    EXPORT RO_CODE VOID CORE_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, LPTASK_CONTEXT lpTaskContext);
     EXPORT VOID CORE_TaskLeave(VOID);
 
 #define CORE_CreateTask(lpName, fnMain, lpArgument)                                         \

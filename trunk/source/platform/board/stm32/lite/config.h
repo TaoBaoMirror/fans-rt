@@ -54,20 +54,20 @@
 #define     CONFIG_OBJECT4_POOL_MAX             0
 #define     CONFIG_OBJECT4_BLOCK_MAX            0
 
-#define     CONFIG_OBJECT5_POOL_MAX             1           /**< The max pools for 1024 bytes class */
-#define     CONFIG_OBJECT5_BLOCK_MAX            8           /**< The max blocks for 1024 bytes class */
+#define     CONFIG_OBJECT5_POOL_MAX             0           /**< The max pools for 1024 bytes class */
+#define     CONFIG_OBJECT5_BLOCK_MAX            0           /**< The max blocks for 1024 bytes class */
 
-#define     CONFIG_OBJECT6_POOL_MAX             0           /**< The max pools for 2048 bytes class */
-#define     CONFIG_OBJECT6_BLOCK_MAX            0           /**< The max blocks for 2048 bytes class */
+#define     CONFIG_OBJECT6_POOL_MAX             1           /**< The max pools for 2048 bytes class */
+#define     CONFIG_OBJECT6_BLOCK_MAX            4           /**< The max blocks for 2048 bytes class */
 
 #define     CONFIG_OBJECT7_POOL_MAX             0           /**< The max pools for 4096 bytes class */
 #define     CONFIG_OBJECT7_BLOCK_MAX            0           /**< The max blocks for 4096 bytes class */
 
 #define     CONFIG_BUILD_MINI_MEMORY            TRUE
-#define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
+#define     CONFIG_DEFAULT_STACK_SIZE           2048        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
-#define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */
-#define     CONFIG_CORE_STACK_SIZE              1024        /**< 内核的堆栈长度 */
+#define     CONFIG_IDLE_STACK_SIZE              2048        /**< 空闲任务的堆栈长度 */
+#define     CONFIG_CORE_STACK_SIZE              2048        /**< 内核的堆栈长度 */
 #ifndef     CONFIG_ARCH_SUPPORT_KSTACK
 #define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU 是否支持内核堆栈 */
 #endif

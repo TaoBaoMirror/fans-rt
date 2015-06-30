@@ -33,7 +33,7 @@
  *     新任务入口函数需要传入三个参数，在ARCH层实现的任务堆栈填充函数需要将这
  * 三个参数放入恰当的堆栈位置。
  */
-EXPORT CODE_TEXT VOID USER_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
+EXPORT RO_CODE VOID USER_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, HANDLE hTask)
 {
     FANS_ASSERT(fnMain, , "The task main function is NULL.");
     FANS_ASSERT(INVALID_HANDLE_VALUE != hTask, , "The task object handle is invalid.");

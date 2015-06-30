@@ -196,7 +196,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         return CORE_GetError();
     }
     
-    CORE_DEBUG(TRUE, "Task '%s' malloc stack(%d) buffer 0x%p.",
+    CORE_INFOR(TRUE, "Task '%s' malloc stack(%d) buffer 0x%p.",
         GetContextTaskName(lpCoreContext), Permission, lpHeader);
     
     return STATE_SUCCESS;
@@ -249,7 +249,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         SetStackPosition(GetArchSD(lpArchContext, Permission), lpStackPosition);
         SetStackObjectMagic(lpHeader);
         
-        CORE_DEBUG(TRUE, "Task '%s' fill stack(%d) buffer 0x%p buttom 0x%p position 0x%p.",
+        CORE_INFOR(TRUE, "Task '%s' fill stack(%d) buffer 0x%p buttom 0x%p position 0x%p.",
             GetContextTaskName(lpCoreContext), Permission, lpHeader,
             lpStackBuffer + StackCapacity, lpStackPosition);
         

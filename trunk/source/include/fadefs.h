@@ -173,25 +173,29 @@
 #define	SECTION_CODE16	        __attribute__ ((section(".code16")))
 #define	SECTION_CODE32	        __attribute__ ((section(".code32")))
 #define	SECTION_TEXT	        __attribute__ ((section(".text")))
-#define SECTION_CORE_TEXT       __attribute__ ((section(".CoreText")))
-#define SECTION_CORE_RW_DATA    __attribute__ ((section(".CoreRWdata")))
-#define SECTION_CORE_RO_DATA    __attribute__ ((section(".CoreROdata")))
-#define SECTION_USER_TEXT       __attribute__ ((section(".UserText")))
-#define SECTION_USER_RW_DATA    __attribute__ ((section(".UserRWdata")))
-#define SECTION_USER_RO_DATA    __attribute__ ((section(".UserROdata")))
+#define RO_CORE_CODE            __attribute__ ((section(".CoreText")))
+#define RW_CORE_DATA            __attribute__ ((section(".CoreRWdata")))
+#define RO_CORE_DATA            __attribute__ ((section(".CoreROdata")))
+#define RO_USER_CODE            __attribute__ ((section(".UserText")))
+#define RW_USER_DATA            __attribute__ ((section(".UserRWdata")))
+#define RO_USER_DATA            __attribute__ ((section(".UserROdata")))
 
 #ifndef BUILD_SECTION_MODE
 #include <facore.h>
 #endif
 
-#ifdef BUILD_CORE_SECTION
-#define RW_DATA                 SECTION_CORE_RW_DATA
-#define RO_DATA                 SECTION_CORE_RO_DATA
-#define CODE_TEXT               SECTION_CORE_TEXT
+#if defined(BUILD_CORE_SECTION)
+#define RW_DATA                 RW_CORE_DATA
+#define RO_DATA                 RO_CORE_DATA
+#define RO_CODE                 RO_CORE_CODE
+#elif defined(BUILD_CORE_SECTION)
+#define RW_DATA                 RW_USER_DATA
+#define RO_DATA                 RO_USER_DATA
+#define RO_CODE                 RO_USER_CODE
 #else
-#define RW_DATA                 SECTION_USER_RW_DATA
-#define RO_DATA                 SECTION_USER_RO_DATA
-#define CODE_TEXT               SECTION_USER_TEXT
+#define RW_DATA
+#define RO_DATA
+#define RO_CODE
 #endif
 
 BUILD_CODE_TYPE_SET_FOR_8086
