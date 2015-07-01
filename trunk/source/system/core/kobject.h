@@ -148,11 +148,11 @@ typedef unsigned long KOBJTABLE_ID_T;
 #define     OBJECT_USR_BITS         1
 
 typedef struct tagHANDLE_BITS{
-    HANDLE              ObjectSid: OBJECT_SID_BITS;                /**< 唯一识别码 */
-    HANDLE              ObjectPid: OBJECT_PID_BITS;                /**< Pool id for manager*/
+    HANDLE              ObjectSid: OBJECT_SID_BITS;                /**< Object sn */
+    HANDLE              ObjectPid: OBJECT_PID_BITS;                /**< Pool id */
     HANDLE              ObjectTid: OBJECT_TID_BITS;                /**< Table id */
     HANDLE              ObjectCid: OBJECT_CID_BITS;                /**< Class id */
-    HANDLE              ObjectState: OBJECT_STS_BITS;              /**< 对象状态 */
+    HANDLE              ObjectState: OBJECT_STS_BITS;              /**< Object state*/
     HANDLE              ObjectUser: OBJECT_USR_BITS;
 }HANDLE_BITS;
 

@@ -726,7 +726,7 @@ EXPORT RO_CODE LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREATE
     if (TASK_PRIORITY_IDLE == TaskParam.Priority)
     {
         TaskParam.SliceLength = TASK_SLICE_INFINITE;
-        TaskParam.StackSize = CORE_GetIdleStackCapacity();
+        TaskParam.StackSize = CONFIG_IDLE_STACK_SIZE;
     }
     else
     {

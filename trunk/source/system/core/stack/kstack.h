@@ -22,7 +22,7 @@ struct tagSTACK_DESCRIPTOR{
 #if (FALSE == CONFIG_DYNAMIC_STACK_ENABLE)
     HANDLE                  StackHandle;
 #else
-    DWORD                   ArchReserved;
+    DWORD                   Reserved;
 #endif
 };
 
@@ -43,9 +43,6 @@ struct tagSTACK_DESCRIPTOR{
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define     CORE_GetBootStackCapacity()     CONFIG_BOOT_STACK_SIZE
-#define     CORE_GetIdleStackCapacity()     CONFIG_IDLE_STACK_SIZE
-
     PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpTaskParam, E_TASK_PERMISSION Permission);
     PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission);
     PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permission);

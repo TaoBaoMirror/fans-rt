@@ -65,7 +65,7 @@
 
 #define     CONFIG_BUILD_MINI_MEMORY            TRUE
 #define     CONFIG_DEFAULT_STACK_SIZE           2048        /**< 默认的堆栈长度 */
-#define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
+#define     CONFIG_BOOT_STACK_SIZE              1024        /**< 引导任务的堆栈长度 */
 #define     CONFIG_IDLE_STACK_SIZE              2048        /**< 空闲任务的堆栈长度 */
 #define     CONFIG_CORE_STACK_SIZE              2048        /**< 内核的堆栈长度 */
 #ifndef     CONFIG_ARCH_SUPPORT_KSTACK

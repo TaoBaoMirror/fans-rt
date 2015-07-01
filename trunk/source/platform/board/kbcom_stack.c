@@ -29,3 +29,9 @@ PUBLIC RO_CORE_CODE LPVOID CORE_GetIdleStackBuffer(DWORD CpuID)
     return g_SystemIdleTaskStack;
 }
 
+PUBLIC RO_CORE_CODE SIZE_T CORE_GetIdleStackLength(VOID)
+{
+    SIZE_T Adjust = ((DWORD)g_SystemIdleTaskStack % sizeof(U64));
+    return Adjust ? (CONFIG_IDLE_STACK_SIZE - Adjust) : CONFIG_IDLE_STACK_SIZE;
+}
+
