@@ -168,7 +168,7 @@
 #else
 #define	BUILD_CODE_TYPE_SET_FOR_8086
 #endif
-
+#if 1
 #define SECTION(x)		        __attribute__ ((section(x)))
 #define	SECTION_CODE16	        __attribute__ ((section(".code16")))
 #define	SECTION_CODE32	        __attribute__ ((section(".code32")))
@@ -179,7 +179,14 @@
 #define RO_USER_CODE            __attribute__ ((section(".UserText")))
 #define RW_USER_DATA            __attribute__ ((section(".UserRWdata")))
 #define RO_USER_DATA            __attribute__ ((section(".UserROdata")))
-
+#else
+#define RO_CORE_CODE
+#define RW_CORE_DATA
+#define RO_CORE_DATA
+#define RO_USER_CODE
+#define RW_USER_DATA
+#define RO_USER_DATA
+#endif
 #ifndef BUILD_SECTION_MODE
 #include <facore.h>
 #endif

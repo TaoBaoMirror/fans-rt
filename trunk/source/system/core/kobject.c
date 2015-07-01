@@ -641,13 +641,13 @@ STATIC INLINE VOID DetachObject(LPKOBJECT_HEADER lpHeader)
 {
     DWORD dwFlags = CORE_DisableIRQ();
     DetachHashList(lpHeader);
-    SetObjectHandle(lpHeader, INVALID_HANDLE_VALUE);
     CORE_RestoreIRQ(dwFlags);
 }
 
 STATIC E_STATUS FreeObjectToPool(LPKOBJECT_HEADER lpHeader)
 {
     KOBJECT_STATE State;
+    KCONTAINER_ID_T Pid;
     LPCORE_CONTAINER lpManager = KObject2Container(lpHeader);
 
     if (NULL == lpManager)
@@ -666,9 +666,11 @@ STATIC E_STATUS FreeObjectToPool(LPKOBJECT_HEADER lpHeader)
     
     CORE_DEBUG(TRUE, "Free object(0x%08x) state is detach.", lpHeader);
 
+    Pid = GetObjectPid(lpHeader);
+    SetObjectHandle(lpHeader, INVALID_HANDLE_VALUE);
     DetachObject(lpHeader);
 
-    return CORE_PoolFreeBlock(lpManager, GetObjectPid(lpHeader));
+    return CORE_PoolFreeBlock(lpManager, Pid);
 }
 
 /***************************************************************************************
@@ -1012,7 +1014,7 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
 
     if (STATE_SUCCESS == (Result = lpClass->fnFreeObject(lpHeader)))
     {   
-        CORE_DEBUG(TRUE, "Object '%s' call free in the class '%s' successfully.",
+        CORE_INFOR(TRUE, "Object '%s' call free in the class '%s' successfully.",
             GetObjectName(lpHeader), lpClass->ClassName);
         
         if (STATE_SUCCESS == (Result = FreeObjectToPool(lpHeader)))

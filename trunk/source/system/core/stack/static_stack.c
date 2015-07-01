@@ -43,8 +43,6 @@ EXPORT VOID CORE_SetTaskStackPosition(LPVOID StackPosition)
 {
     LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
     LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCurrentTask);
-    
-//    CORE_INFOR(TRUE, "Task '%s' save stack user position 0x%p.", GetContextTaskName(lpCurrentTask), StackPosition);
 
     SetStackPosition(GetArchUserSD(lpArchContext), StackPosition);
 }
@@ -61,9 +59,7 @@ EXPORT VOID CORE_SetCoreStackPosition(LPVOID StackPosition)
 {
     LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
     LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCurrentTask);
-    
-//    CORE_INFOR(TRUE, "Task '%s' save stack core position 0x%p.", GetContextTaskName(lpCurrentTask), StackPosition);
-    
+
     SetStackPosition(GetArchCoreSD(lpArchContext), StackPosition);
 }
 
@@ -153,8 +149,10 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         if (TRUE == CORE_CpuSupportGlobalCoreStack())
         {
             /* CPU 支持全局内核堆栈 */
-            lpHeader = CORE_GetCoreStackButtom();
-            SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_CORE_STACK_SIZE);
+            lpHeader = CORE_GetCoreStackBuffer();
+            SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetCoreStackLength());
+            CORE_INFOR(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                Permission, lpHeader, GetContextTaskName(lpCoreContext));
         }
         else
         {
@@ -167,13 +165,15 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
     {
         /* Boot 任务创建普通堆栈(BOOT任务为普通任务)*/
         lpHeader = CORE_GetBootStackBuffer();
-        SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetBootStackCapacity());
+        SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetBootStackLength());
+        CORE_INFOR(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+            Permission, lpHeader, GetContextTaskName(lpCoreContext));
     }
     else if (TASK_PRIORITY_IDLE == GetContextThisPriority(lpCoreContext))
     {
         /* Idle 任务创建内核堆栈(Idle任务为内核任务)*/
         lpHeader = CORE_GetIdleStackBuffer(TASK_BOOTSTARTUP_CPUID);
-        SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetIdleStackCapacity());
+        SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetIdleStackLength());
     }
     else
     {
@@ -196,7 +196,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         return CORE_GetError();
     }
     
-    CORE_INFOR(TRUE, "Task '%s' malloc stack(%d) buffer 0x%p.",
+    CORE_INFOR(TRUE, "Task '%s' malloc stack(%d) buffer 0x%P.",
         GetContextTaskName(lpCoreContext), Permission, lpHeader);
     
     return STATE_SUCCESS;

@@ -43,7 +43,8 @@ STATIC E_STATUS CreatePool(LPCORE_POOL lpCorePool)
     
     if (NULL == lpContainer)
     {
-        CORE_DEBUG(TRUE, "Malloc %d bytes to create pool failed, container is 0x%p !", Length, lpContainer);
+        CORE_DEBUG(TRUE, "Malloc %d bytes to create pool failed, container is 0x%p !",
+                Length, lpContainer);
         
         return STATE_OUT_OF_MEMORY;
     }
@@ -68,9 +69,6 @@ EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpNa
     SetContainerName(lpManager, lpName);
     SetTotalPools(lpManager, Pools);
     SetBlocksPrePool(lpManager, BlockPrePool);
-    
-    CORE_INFOR(TRUE, "Create manager '%s', have pools %d, entries pre pool %d.",
-            GetContainerName(lpManager), GetTotalPools(lpManager), GetBlocksPrePool(lpManager));
     
     for (Pid = 0; Pid < CONFIG_CORE_POOL_MAX; Pid ++)
     {
@@ -103,6 +101,10 @@ EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpNa
                 return Result;
             }
         }
+        
+        CORE_INFOR(TRUE, "Create pool %d(0x%P) for '%s'(0x%P), have blocks %d.",
+                            Pid, lpCorePool, GetContainerName(lpManager), 
+                            lpManager, GetBlocksPrePool(lpManager));
     }
     
     return STATE_SUCCESS;
@@ -112,6 +114,7 @@ EXPORT_SYMBOL(CORE_CreatePoolContainer)
 EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
 {
     BYTE Pid, Bid;
+    KCONTAINER_ID_T Kid;
     LPCORE_POOL lpCorePool = NULL;
 
     Pid = GetFreePoolID(lpManager);
@@ -150,13 +153,17 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
         return INVALID_CONTAINER_ID;
     }
     
-    CORE_INFOR(TRUE, "Malloc pool 0x%P id %d for container '%s' ...",
-            lpCorePool, Pid, GetContainerName(lpManager));
+
 
     SubPoolBitmap(lpCorePool, 1 << Bid);
     SetContainerBitmap(lpManager, Pid, TRUE && GetPoolBitmap(lpCorePool));
     
-    return GetContainerID(lpManager, Pid, Bid);
+    Kid = GetContainerID(lpManager, Pid, Bid);
+
+    CORE_INFOR(TRUE, "Malloc pool 0x%P Pid %u, Bid %u, Kid %u, for container '%s' ...",
+            lpCorePool, Pid, Bid, Kid, GetContainerName(lpManager));
+    
+    return Kid;
 }
 EXPORT_SYMBOL(CORE_PoolMallocMapFast)
 
@@ -202,8 +209,8 @@ PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T K
     
     if (POL_MAGIC != GetPoolMagic(lpCorePool))
     {
-        CORE_INFOR(TRUE, "Container %s pool %p id %u magic invalid.",
-            GetContainerName(lpManager), lpCorePool, Pid);
+        CORE_INFOR(TRUE, "Container %s(0x%P) pool %p Pid %u, Bid %u, Kid %u magic invalid.",
+            GetContainerName(lpManager), lpManager, lpCorePool, Pid, Bid, Kid);
         return STATE_SYSTEM_FAULT;
     }
 

@@ -25,8 +25,12 @@ extern "C" {
     PUBLIC VOID CORE_DebugWriteByte(DWORD Data);
     PUBLIC LPCSTR CORE_GetIRQNameString(DWORD IrqID);
 
+#define     CORE_GetBootStackLength()     CONFIG_BOOT_STACK_SIZE
+#define     CORE_GetIdleStackLength()     CONFIG_IDLE_STACK_SIZE
+    
     PUBLIC VOID CORE_ActiveSwitchIRQ(VOID);
-    PUBLIC LPVOID CORE_GetCoreStackButtom(VOID);
+    PUBLIC LPVOID CORE_GetCoreStackBuffer(VOID);
+    PUBLIC SIZE_T CORE_GetCoreStackLength(VOID);
     PUBLIC LPVOID CORE_GetBootStackBuffer(VOID);
     PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID);
     PUBLIC E_STATUS CORE_ScanMemoryRegion(VOID);
