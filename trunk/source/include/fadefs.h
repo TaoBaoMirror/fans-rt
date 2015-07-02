@@ -175,10 +175,15 @@
 #define	SECTION_TEXT	        __attribute__ ((section(".text")))
 #define RO_CORE_CODE            __attribute__ ((section(".CoreText")))
 #define RW_CORE_DATA            __attribute__ ((section(".CoreRWdata")))
+#define RW_CORE_STACK           __attribute__ ((section(".CoreStack")))
+#define RW_IDLE_STACK           __attribute__ ((section(".IdleStack")))
+#define RW_CORE_REGION0         __attribute__ ((section(".Region0")))
+#define RW_CORE_REGION1         __attribute__ ((section(".Region1")))
 #define RO_CORE_DATA            __attribute__ ((section(".CoreROdata")))
 #define RO_USER_CODE            __attribute__ ((section(".UserText")))
-#define RW_USER_DATA            __attribute__ ((section(".UserRWdata")))
 #define RO_USER_DATA            __attribute__ ((section(".UserROdata")))
+#define RW_USER_DATA            __attribute__ ((section(".UserRWdata")))
+#define RW_USER_STACK           __attribute__ ((section(".UserStack")))
 #else
 #define RO_CORE_CODE
 #define RW_CORE_DATA

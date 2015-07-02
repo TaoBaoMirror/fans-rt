@@ -27,9 +27,9 @@
 #include "libcmini.h"
 
 
-STATIC BOOL DebugEnable = TRUE;
-STATIC DWORD DebugLevelMask = DEBUG_LOG_MASK;
-EXTERN CONST CHAR * CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1];
+STATIC RW_CORE_DATA     BOOL DebugEnable = TRUE;
+STATIC RW_CORE_DATA     DWORD DebugLevelMask = DEBUG_LOG_MASK;
+EXTERN CONST CHAR *     CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1];
 
 EXPORT LPSTR kDebugLevel2String(E_LOG_LEVEL emLevel)
 {

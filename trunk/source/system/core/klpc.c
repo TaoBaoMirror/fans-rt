@@ -22,7 +22,7 @@
 #include "kdebug.h"
 #include "libfw.h"
 
-STATIC CONST LPC_SERVICE * g_ServiceHashTable[CONFIG_LPC_SERVICE_MAX] = {NULL};
+STATIC RW_CORE_DATA LPC_SERVICE * g_ServiceHashTable[CONFIG_LPC_SERVICE_MAX] = {NULL};
 
 EXPORT E_STATUS CORE_InstallLPC(CONST LPC_SERVICE * lpService)
 {
@@ -49,7 +49,7 @@ EXPORT E_STATUS CORE_InstallLPC(CONST LPC_SERVICE * lpService)
         return STATE_EXISTING;
     }
 
-    g_ServiceHashTable[RequestID] = lpService;
+    g_ServiceHashTable[RequestID] = (LPVOID) lpService;
     
     CORE_INFOR(TRUE, "Install service '%s' to %d successfully.", lpService->u.SvcName, RequestID);
     

@@ -64,13 +64,10 @@
 #define     CONFIG_OBJECT7_BLOCK_MAX            0           /**< The max blocks for 4096 bytes class */
 
 #define     CONFIG_BUILD_MINI_MEMORY            TRUE
-#define     CONFIG_DEFAULT_STACK_SIZE           2048        /**< 默认的堆栈长度 */
-#define     CONFIG_BOOT_STACK_SIZE              1024        /**< 引导任务的堆栈长度 */
-#define     CONFIG_IDLE_STACK_SIZE              2048        /**< 空闲任务的堆栈长度 */
-#define     CONFIG_CORE_STACK_SIZE              2048        /**< 内核的堆栈长度 */
-#ifndef     CONFIG_ARCH_SUPPORT_KSTACK
-#define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU 是否支持内核堆栈 */
-#endif
+#define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
+#define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
+#define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */
+#define     CONFIG_CORE_STACK_SIZE              1024        /**< 内核的堆栈长度 */
 #define     CONFIG_ARCH_SUPPORT_SCHEDULE        TRUE        /**< CPU 是否支持任务调度中断 */
 #define     CONFIG_ARCH_SUPPORT_MPU             FALSE       /**< CPU 是否支持内存保护单元 */
 #define     CONFIG_DYNAMIC_STACK_ENABLE         FALSE       /**< 动态堆栈长度支持 */

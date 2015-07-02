@@ -166,8 +166,8 @@ typedef struct tagMM_MANAGER{
     MM_REGION           RegionTable[CONFIG_MEM_REGION_MAX];          /**< ÇøÓò±í */
 }MM_MANAGER, * PMM_MANAGER, FAR * LPMM_MANAGER;
 
-STATIC  MM_MANAGER              g_SystemMemoryManager       =   {0};
-STATIC  CONST WORD              g_SectionBuddyMaskTable[]   =
+STATIC  RW_CORE_DATA MM_MANAGER     g_SystemMemoryManager       =   {0};
+STATIC  CONST RO_CORE_DATA WORD     g_SectionBuddyMaskTable[]   =
 /* The size of g_SectionBuddyMaskTable is 32 bytes */
 {
     0xffff, 0xfffe, 0xfffc, 0xfff8, 0xfff0, 0xffe0, 0xffc0, 0xff80, /* Buddy 0x00 ~ 0x07 */
@@ -176,7 +176,7 @@ STATIC  CONST WORD              g_SectionBuddyMaskTable[]   =
 };
 
 #if (CONFIG_MEM_STATIC_PAGETABLE == TRUE)
-STATIC  MM_PAGE_ENTRIES         g_OnchipPageTable[CONFIG_MEM_ONCHIP_PAGES];
+STATIC  RW_CORE_DATA    MM_PAGE_ENTRIES g_OnchipPageTable[CONFIG_MEM_ONCHIP_PAGES];
 #endif
 
 STATIC INLINE WORD GetBuddyMask(BYTE Buddy)

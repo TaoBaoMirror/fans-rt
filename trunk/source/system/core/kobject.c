@@ -81,10 +81,10 @@ struct tagOBJECT0_CONTAINER{
 };
 
 #if ((0 != CONFIG_OBJECT0_POOL_MAX) && (0 != CONFIG_OBJECT0_BLOCK_MAX))
-STATIC      OBJECT0_CONTAINER       g_Object0PoolContainer;
+STATIC      OBJECT0_CONTAINER       RW_CORE_DATA    g_Object0PoolContainer;
 #define     OBJECT0_POOL_TABLE      ((LPVOID)(&g_Object0PoolContainer))
 #if (CONFIG_MEM_REGION_MAX == 0)
-STATIC      OBJECT0_HEADER          g_Object0Table[CONFIG_OBJECT0_BLOCK_MAX];
+STATIC      OBJECT0_HEADER          RW_CORE_DATA    g_Object0Table[CONFIG_OBJECT0_BLOCK_MAX];
 #define     OBJECT0_HEADER_TABLE    ((LPVOID)(&g_Object0Table))
 #else
 #define     OBJECT0_HEADER_TABLE    NULL
@@ -117,10 +117,10 @@ struct tagOBJECT1_CONTAINER{
 };
 
 #if ((0 != CONFIG_OBJECT1_POOL_MAX) && (0 != CONFIG_OBJECT1_BLOCK_MAX))
-STATIC      OBJECT1_CONTAINER       g_Object1PoolContainer;
+STATIC      OBJECT1_CONTAINER       RW_CORE_DATA    g_Object1PoolContainer;
 #define     OBJECT1_POOL_TABLE      ((LPVOID)(&g_Object1PoolContainer))
 #if (CONFIG_MEM_REGION_MAX == 0)
-STATIC      OBJECT1_HEADER          g_Object1Table[CONFIG_OBJECT1_BLOCK_MAX];
+STATIC      OBJECT1_HEADER          RW_CORE_DATA    g_Object1Table[CONFIG_OBJECT1_BLOCK_MAX];
 #define     OBJECT1_HEADER_TABLE    ((LPVOID)(&g_Object1Table))
 #else
 #define     OBJECT1_HEADER_TABLE    NULL
@@ -153,10 +153,10 @@ struct tagOBJECT2_CONTAINER{
 };
 
 #if ((0 != CONFIG_OBJECT2_POOL_MAX) && (0 != CONFIG_OBJECT2_BLOCK_MAX))
-STATIC      OBJECT2_CONTAINER       g_Object2PoolContainer;
+STATIC      OBJECT2_CONTAINER       RW_CORE_DATA    g_Object2PoolContainer;
 #define     OBJECT2_POOL_TABLE      ((LPVOID)(&g_Object2PoolContainer))
 #if (CONFIG_MEM_REGION_MAX == 0)
-STATIC      OBJECT2_HEADER          g_Object2Table[CONFIG_OBJECT2_BLOCK_MAX];
+STATIC      OBJECT2_HEADER          RW_CORE_DATA    g_Object2Table[CONFIG_OBJECT2_BLOCK_MAX];
 #define     OBJECT2_HEADER_TABLE    ((LPVOID)(&g_Object2Table))
 #else
 #define     OBJECT2_HEADER_TABLE    NULL
@@ -190,10 +190,10 @@ struct tagOBJECT3_CONTAINER{
 /****************************** Define some symbol for OBJECT3 *******************************/
 #if ((0 != CONFIG_OBJECT3_POOL_MAX) && (0 != CONFIG_OBJECT3_BLOCK_MAX))
 
-STATIC      OBJECT3_CONTAINER       g_Object3PoolContainer;
+STATIC      OBJECT3_CONTAINER       RW_CORE_DATA    g_Object3PoolContainer;
 #define     OBJECT3_POOL_TABLE      ((LPVOID)(&g_Object3PoolContainer))
 #if (CONFIG_MEM_REGION_MAX == 0)
-STATIC      OBJECT3_HEADER          g_Object3Table[CONFIG_OBJECT3_BLOCK_MAX];
+STATIC      OBJECT3_HEADER          RW_CORE_DATA    g_Object3Table[CONFIG_OBJECT3_BLOCK_MAX];
 #define     OBJECT3_HEADER_TABLE    ((LPVOID)(&g_Object3Table))
 #else
 #define     OBJECT3_HEADER_TABLE    NULL
@@ -225,10 +225,10 @@ struct tagOBJECT4_CONTAINER{
 };
 
 #if ((0 != CONFIG_OBJECT4_POOL_MAX) && (0 != CONFIG_OBJECT4_BLOCK_MAX))
-STATIC      OBJECT4_CONTAINER       g_Object4PoolContainer;
+STATIC      OBJECT4_CONTAINER       RW_CORE_DATA    g_Object4PoolContainer;
 #define     OBJECT4_POOL_TABLE      ((LPVOID)(&g_Object4PoolContainer))
 #if (CONFIG_MEM_REGION_MAX == 0)
-STATIC      OBJECT4_HEADER          g_Object4Table[CONFIG_OBJECT4_BLOCK_MAX];
+STATIC      OBJECT4_HEADER          RW_CORE_DATA    g_Object4Table[CONFIG_OBJECT4_BLOCK_MAX];
 #define     OBJECT4_HEADER_TABLE    ((LPVOID)(&g_Object4Table))
 #else
 #define     OBJECT4_HEADER_TABLE    NULL
@@ -261,10 +261,10 @@ struct tagOBJECT5_CONTAINER{
 
 /****************************** Define some symbol for OBJECT5 *******************************/
 #if ((0 != CONFIG_OBJECT5_POOL_MAX) && (0 != CONFIG_OBJECT5_BLOCK_MAX))
-STATIC      OBJECT5_CONTAINER       g_Object5PoolContainer;
+STATIC      OBJECT5_CONTAINER       RW_CORE_DATA    g_Object5PoolContainer;
 #define     OBJECT5_POOL_TABLE      ((LPVOID)(&g_Object5PoolContainer))
 #if (CONFIG_MEM_REGION_MAX == 0)
-STATIC      OBJECT5_HEADER          g_Object5Table[CONFIG_OBJECT5_BLOCK_MAX];
+STATIC      OBJECT5_HEADER          RW_CORE_DATA    g_Object5Table[CONFIG_OBJECT5_BLOCK_MAX];
 #define     OBJECT5_HEADER_TABLE    ((LPVOID)(&g_Object5Table))
 #else
 #define     OBJECT5_HEADER_TABLE    NULL
@@ -296,10 +296,10 @@ struct tagOBJECT6_CONTAINER{
 };
 
 #if ((0 != CONFIG_OBJECT6_POOL_MAX) && (0 != CONFIG_OBJECT6_BLOCK_MAX))
-STATIC      OBJECT6_CONTAINER       g_Object6PoolContainer;
+STATIC      OBJECT6_CONTAINER       RW_CORE_DATA    g_Object6PoolContainer;
 #define     OBJECT6_POOL_TABLE      ((LPVOID)(&g_Object6PoolContainer))
 #if (CONFIG_MEM_REGION_MAX == 0)
-STATIC      OBJECT6_HEADER          g_Object6Table[CONFIG_OBJECT6_BLOCK_MAX];
+STATIC      OBJECT6_HEADER          RW_CORE_DATA    g_Object6Table[CONFIG_OBJECT6_BLOCK_MAX];
 #define     OBJECT6_HEADER_TABLE    ((LPVOID)(&g_Object6Table))
 #else
 #define     OBJECT6_HEADER_TABLE    NULL
@@ -331,10 +331,10 @@ struct tagOBJECT7_CONTAINER{
 };
 
 #if ((0 != CONFIG_OBJECT7_POOL_MAX) && (0 != CONFIG_OBJECT7_BLOCK_MAX))
-STATIC      OBJECT7_CONTAINER       g_Object7PoolContainer;
+STATIC      OBJECT7_CONTAINER       RW_CORE_DATA    g_Object7PoolContainer;
 #define     OBJECT7_POOL_TABLE      ((LPVOID)(&g_Object7PoolContainer))
 #if (CONFIG_MEM_REGION_MAX == 0)
-STATIC      OBJECT7_HEADER          g_Object7Table[CONFIG_OBJECT7_BLOCK_MAX];
+STATIC      OBJECT7_HEADER          RW_CORE_DATA    g_Object7Table[CONFIG_OBJECT7_BLOCK_MAX];
 #define     OBJECT7_HEADER_TABLE    ((LPVOID)(&g_Object7Table))
 #else
 #define     OBJECT7_HEADER_TABLE    NULL
@@ -374,9 +374,9 @@ STATIC CONST LPCORE_CONTAINER g_GlobalObjectPoolTable[CONFIG_OBJECT_POOL_TABLE_M
 #endif
 };
 
-STATIC LPKCLASS_DESCRIPTOR g_GlobalClassTable[CONFIG_SYSTEM_CLASS_MAX];
-STATIC LIST_HEAD g_GlobalHashTable[CONFIG_OBJECT_HASH_TABLE_MAX];
-STATIC DWORD g_SystemIDValue = 2;
+STATIC RW_CORE_DATA LPKCLASS_DESCRIPTOR g_GlobalClassTable[CONFIG_SYSTEM_CLASS_MAX] = {NULL};
+STATIC RW_CORE_DATA LIST_HEAD g_GlobalHashTable[CONFIG_OBJECT_HASH_TABLE_MAX] = {NULL};
+STATIC RW_CORE_DATA DWORD g_SystemIDValue = 2;
 
 #define     Attach2HashList(HashValue, lpHeader)                            \
             LIST_INSERT_TAIL(&g_GlobalHashTable[HashValue], &(lpHeader)->HashNode)

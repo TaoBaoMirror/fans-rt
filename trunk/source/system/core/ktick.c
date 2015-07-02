@@ -21,7 +21,7 @@
 #include "kdebug.h"
 #include "kobject.h"
 
-STATIC VOLATILE TICK SystemTick = 0;
+STATIC RW_CORE_DATA VOLATILE TICK SystemTick = 0;
 
 EXPORT VOID CORE_TickHandler(VOID)
 {
