@@ -21,9 +21,11 @@
 #include "kirq_define_name.h"
 #include "kboard_name.h"
 
+STATIC CHAR RW_CORE_DATA BoardName[] = {BOARD_NAME_STRING};
+
 PUBLIC LPCSTR CORE_GetBoardName(VOID)
 {
-    return BOARD_NAME_STRING;
+    return BoardName;
 }
 
 PUBLIC LPCSTR CORE_GetIRQNameString(DWORD IrqID)

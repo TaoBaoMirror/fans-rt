@@ -79,3 +79,4 @@ PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpPara
     SetStackPosition(GetArchCoreSD(lpArchContext), NULL);
     SetStackHandle(GetArchCoreSD(lpArchContext), INVALID_HANDLE_VALUE);
 }
+

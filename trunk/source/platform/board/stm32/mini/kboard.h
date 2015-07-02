@@ -20,17 +20,19 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    PUBLIC LPSTR CORE_GetBoardName(VOID);
+#define     CORE_GetRegionID(x)                  0
+    PUBLIC LPCSTR CORE_GetBoardName(VOID);
     PUBLIC VOID CORE_DebugWriteByte(DWORD Data);
     PUBLIC LPCSTR CORE_GetIRQNameString(DWORD IrqID);
-
-    PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID);
-    PUBLIC SIZE_T CORE_GetIdleStackCapacity(VOID);
-#define     CORE_GetTaskCoreStackPosition(lpTaskContext, StackPosition)         \
-                                            (StackPosition)
-#define     CORE_GetRegionID(x)             0
-#define     CORE_GetCoreStackButtom()       0
+ 
 #define     CORE_ActiveSwitchIRQ()
+#define     CORE_GetBootStackLength()     CONFIG_BOOT_STACK_SIZE
+#define     CORE_GetIdleStackLength()     CONFIG_IDLE_STACK_SIZE
+    PUBLIC LPVOID CORE_GetCoreStackBuffer(VOID);
+    PUBLIC SIZE_T CORE_GetCoreStackLength(VOID);
+    PUBLIC LPVOID CORE_GetBootStackBuffer(VOID);
+    PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID);
+    STATIC BOOL CORE_CpuSupportGlobalCoreStack(VOID) { return FALSE;}
 #define     CORE_ScanMemoryRegion()         STATE_SUCCESS
 #ifdef __cplusplus
 }

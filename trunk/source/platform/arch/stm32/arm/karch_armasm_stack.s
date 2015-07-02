@@ -38,7 +38,7 @@ CORE_HeapLength PROC
     SUB     R0, R2, R0
     POP     {R1-R3, PC}
     ENDP
-    
+
 CORE_InitArchFirst PROC
     MOV     R4,     LR
     BL      __user_initial_stackheap

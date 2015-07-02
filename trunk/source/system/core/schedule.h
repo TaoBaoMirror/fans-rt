@@ -35,35 +35,35 @@ typedef union tagSCHEDULER_FLAGS{
     BYTE                    Value;
 }SCHEDULER_FLAGS;
 
-STATIC  LIST_HEAD       g_SystemTaskTable;                                                      /**< 系统任务表 */
-STATIC  LIST_HEAD       g_SystemDeathQueue;                                                     /**< 任务死亡队列 */
-STATIC  LIST_HEAD       g_TaskSuspendQueue;                                                     /**< 任务休眠队列 */
-STATIC  LIST_HEAD       g_TaskReadyQueue[CONFIG_TASK_PRIORITY_MAX];                             /**< 优先级就绪队列 */
-PUBLIC  VOLATILE        LPTASK_CONTEXT      g_CurrentContext        =       NULL;               /**< 当前任务上下文指针 */
+STATIC  RW_CORE_DATA    LIST_HEAD       g_SystemTaskTable;                                                      /**< 系统任务表 */
+STATIC  RW_CORE_DATA    LIST_HEAD       g_SystemDeathQueue;                                                     /**< 任务死亡队列 */
+STATIC  RW_CORE_DATA    LIST_HEAD       g_TaskSuspendQueue;                                                     /**< 任务休眠队列 */
+STATIC  RW_CORE_DATA    LIST_HEAD       g_TaskReadyQueue[CONFIG_TASK_PRIORITY_MAX];                             /**< 优先级就绪队列 */
+PUBLIC  RW_CORE_DATA    VOLATILE        LPTASK_CONTEXT      g_CurrentContext        =       NULL;               /**< 当前任务上下文指针 */
 #if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
-STATIC  VOLATILE        LPTASK_CONTEXT      g_Switch2Context        =       NULL;               /**< 切换目标任务上下文指针  */
+STATIC  RW_CORE_DATA    VOLATILE        LPTASK_CONTEXT      g_Switch2Context        =       NULL;               /**< 切换目标任务上下文指针  */
 #endif
 
 #if (CONFIG_PROFILER_CYCLE != 0)
-STATIC  VOLATILE        DWORD               g_SystemScheduleCount   =       0;                  /**< 任务调度次数 */
+STATIC  RW_CORE_DATA    VOLATILE        DWORD               g_SystemScheduleCount   =       0;                  /**< 任务调度次数 */
 #endif
 
-STATIC  VOLATILE        E_STATUS            g_SystemGlobalError     =       STATE_SUCCESS;
-STATIC  VOLATILE        SCHEDULER_FLAGS     g_SchedulerFlags        =       {FALSE, FALSE};
-STATIC  VOLATILE        E_TASK_PERMISSION   g_CurrentPermission     =       TASK_PERMISSION_USER;
-STATIC  VOLATILE        TASK_PRIORITY       g_CurrentPriority       =       TASK_PRIORITY_IDLE; /**< 当前任务优先级 */
-STATIC  VOLATILE        BYTE                g_InterruptNestLayer    =       2;                  /**< 中断嵌套 */
+STATIC  RW_CORE_DATA    VOLATILE        E_STATUS            g_SystemGlobalError     =       STATE_SUCCESS;
+STATIC  RW_CORE_DATA    VOLATILE        SCHEDULER_FLAGS     g_SchedulerFlags        =       {FALSE, FALSE};
+STATIC  RW_CORE_DATA    VOLATILE        E_TASK_PERMISSION   g_CurrentPermission     =       TASK_PERMISSION_USER;
+STATIC  RW_CORE_DATA    VOLATILE        TASK_PRIORITY       g_CurrentPriority       =       TASK_PRIORITY_IDLE; /**< 当前任务优先级 */
+STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_InterruptNestLayer    =       2;                  /**< 中断嵌套 */
 
 #if (CONFIG_TASK_PRIORITY_MAX <= 8)
-STATIC  VOLATILE        BYTE                g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
+STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
 #elif (CONFIG_TASK_PRIORITY_MAX <= 16)
-STATIC  VOLATILE        WORD                g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
+STATIC  RW_CORE_DATA    VOLATILE        WORD                g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
 #elif (CONFIG_TASK_PRIORITY_MAX <= 32)
-STATIC  VOLATILE        DWORD               g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
+STATIC  RW_CORE_DATA    VOLATILE        DWORD               g_PriorityReadyBitmap;                              /**< 任务就绪位图 */
 #else
-STATIC  VOLATILE        BYTE                g_PriorityReadyBitmap0;                             /**< 0级任务就绪位图 */
-STATIC  VOLATILE        BYTE                g_PriorityReadyBitmap1[4];                          /**< 1级任务就绪位图 */
-STATIC  VOLATILE        BYTE                g_PriorityReadyBitmap2[32];                         /**< 2级任务就绪位图 */
+STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitmap0;                             /**< 0级任务就绪位图 */
+STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitmap1[4];                          /**< 1级任务就绪位图 */
+STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitmap2[32];                         /**< 2级任务就绪位图 */
 #endif
 
 #define     GetContextPriorityReadyQueue(lpC)           (&g_TaskReadyQueue[GetContextThisPriority(lpC)])

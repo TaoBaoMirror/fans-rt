@@ -33,7 +33,7 @@
 #define     MakeCoreStackHandle(id)                                                             \
             MakeCoreHandle(Magic2ClassID(STK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
 
-STATIC DWORD g_SystemTaskCount = 0;
+STATIC RW_CORE_DATA DWORD g_SystemTaskCount = 0;
 
 #define GetGlobalTaskContextCount()     g_SystemTaskCount
 #define IncGlobalTaskContextCount()     (g_SystemTaskCount ++)
