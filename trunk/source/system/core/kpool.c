@@ -148,12 +148,10 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
  
     if (Bid >= GetPoolTotalBlocks(lpCorePool))
     {
-        CORE_ERROR(TRUE, "Can not found free block in pool %d, bitmap is 0x%08x.",
-            Pid, GetPoolBitmap(lpCorePool));
+        CORE_ERROR(TRUE, "No free block in pool %d for '%s', bitmap(0x%08x), Bid(%d).",
+            Pid, GetContainerName(lpManager), GetPoolBitmap(lpCorePool), Bid);
         return INVALID_CONTAINER_ID;
     }
-    
-
 
     SubPoolBitmap(lpCorePool, 1 << Bid);
     SetContainerBitmap(lpManager, Pid, TRUE && GetPoolBitmap(lpCorePool));

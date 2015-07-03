@@ -70,8 +70,7 @@ typedef struct tagOBJECT0_HEADER * POBJECT0_HEADER;
 typedef struct tagOBJECT0_HEADER FAR * LPOBJECT0_HEADER;
 
 struct tagOBJECT0_HEADER{
-    KOBJECT_HEADER      Header;
-    CHAR                Reserved[SIZEOF_OBJECT0 - sizeof(KOBJECT_HEADER)];
+    QWORD               Data[SIZEOF_OBJECT0/sizeof(QWORD)];
 };
 
 struct tagOBJECT0_CONTAINER{
@@ -106,8 +105,7 @@ typedef struct tagOBJECT1_HEADER * POBJECT1_HEADER;
 typedef struct tagOBJECT1_HEADER FAR * LPOBJECT1_HEADER;
 
 struct tagOBJECT1_HEADER{
-    KOBJECT_HEADER      Header;
-    CHAR                Reserved[SIZEOF_OBJECT1 - sizeof(KOBJECT_HEADER)];
+    QWORD               Data[SIZEOF_OBJECT1/sizeof(QWORD)];
 };
 
 struct tagOBJECT1_CONTAINER{
@@ -142,8 +140,7 @@ typedef struct tagOBJECT2_HEADER * POBJECT2_HEADER;
 typedef struct tagOBJECT2_HEADER FAR * LPOBJECT2_HEADER;
 
 struct tagOBJECT2_HEADER{
-    KOBJECT_HEADER      Header;
-    CHAR                Reserved[SIZEOF_OBJECT2 - sizeof(KOBJECT_HEADER)];
+    QWORD               Data[SIZEOF_OBJECT2/sizeof(QWORD)];
 };
 
 struct tagOBJECT2_CONTAINER{
@@ -177,8 +174,7 @@ typedef struct tagOBJECT3_HEADER * POBJECT3_HEADER;
 typedef struct tagOBJECT3_HEADER FAR * LPOBJECT3_HEADER;
 
 struct tagOBJECT3_HEADER{
-    KOBJECT_HEADER      Header;
-    CHAR                Reserved[SIZEOF_OBJECT3 - sizeof(KOBJECT_HEADER)];
+    QWORD               Data[SIZEOF_OBJECT3/sizeof(QWORD)];
 };
 
 struct tagOBJECT3_CONTAINER{
@@ -214,8 +210,7 @@ typedef struct tagOBJECT4_HEADER * POBJECT4_HEADER;
 typedef struct tagOBJECT4_HEADER FAR * LPOBJECT4_HEADER;
 
 struct tagOBJECT4_HEADER{
-    KOBJECT_HEADER      Header;
-    CHAR                Reserved[SIZEOF_OBJECT4 - sizeof(KOBJECT_HEADER)];
+    QWORD               Data[SIZEOF_OBJECT4/sizeof(QWORD)];
 };
 
 struct tagOBJECT4_CONTAINER{
@@ -249,8 +244,7 @@ typedef struct tagOBJECT5_HEADER * POBJECT5_HEADER;
 typedef struct tagOBJECT5_HEADER FAR * LPOBJECT5_HEADER;
 
 struct tagOBJECT5_HEADER{
-    KOBJECT_HEADER      Header;
-    CHAR                Reserved[SIZEOF_OBJECT5 - sizeof(KOBJECT_HEADER)];
+    QWORD               Data[SIZEOF_OBJECT5/sizeof(QWORD)];
 };
 
 struct tagOBJECT5_CONTAINER{
@@ -285,8 +279,7 @@ typedef struct tagOBJECT6_HEADER * POBJECT6_HEADER;
 typedef struct tagOBJECT6_HEADER FAR * LPOBJECT6_HEADER;
 
 struct tagOBJECT6_HEADER{
-    KOBJECT_HEADER       Header;
-    CHAR                 Reserved[SIZEOF_OBJECT6 - sizeof(KOBJECT_HEADER)];
+    QWORD               Data[SIZEOF_OBJECT6/sizeof(QWORD)];
 };
 
 struct tagOBJECT6_CONTAINER{
@@ -320,8 +313,7 @@ typedef struct tagOBJECT7_HEADER * POBJECT7_HEADER;
 typedef struct tagOBJECT7_HEADER FAR * LPOBJECT7_HEADER;
 
 struct tagOBJECT7_HEADER{
-    KOBJECT_HEADER      Header;
-    CHAR                Reserved[SIZEOF_OBJECT7 - sizeof(KOBJECT_HEADER)];
+    QWORD               Data[SIZEOF_OBJECT7/sizeof(QWORD)];
 };
 
 struct tagOBJECT7_CONTAINER{
@@ -550,9 +542,7 @@ PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * lpClass)
 #ifdef __DEBUG__
         DWORD Count = 0;
         DWORD MagicArray[CONFIG_SYSTEM_CLASS_MAX];
-#endif
 
-#ifdef __DEBUG__
         Count = CORE_HashSetArray(LoadMagic, g_GlobalClassTable,
                 MagicArray, lpClass->Magic, CONFIG_SYSTEM_CLASS_MAX);
 

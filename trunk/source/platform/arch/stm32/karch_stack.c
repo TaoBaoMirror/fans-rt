@@ -28,19 +28,33 @@ PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID fnMain, LPVOID lpArgument,
     DWORD TaskObject;
     DWORD IRQLeaveR;
     LPDWORD StackPoint = Position;
+    LPTASK_CONTEXT lpCoreContext = lpTaskContext;
     
-    if (TASK_PERMISSION_CORE == Permission)
+    if (GetContextPermission(lpCoreContext) == TASK_PERMISSION_CORE)
     {
+        if (TASK_PERMISSION_USER == Permission)
+        {
+            CORE_BUG(TRUE, "'%s' will be fill user stack for core task !!",
+                GetContextTaskName(lpCoreContext));
+            
+            return Position;
+        }
+        
         fnEntry = CORE_TaskEntry;
         fnLeave = CORE_TaskLeave;
         IRQLeaveR  = (DWORD) 0xfffffff9L;
         TaskObject = (DWORD) lpTaskContext;
+
     }
     else
     {
         fnLeave = USER_TaskLeave;
         fnEntry = USER_TaskEntry;
+#if (0 == CONFIG_CORE_STACK_SIZE)
+        IRQLeaveR  = (DWORD) 0xfffffff9L;
+#else
         IRQLeaveR  = (DWORD) 0xfffffffdL;
+#endif
         TaskObject = (DWORD) hTask;
     }
 

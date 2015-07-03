@@ -11,11 +11,13 @@
 
     IMPORT  CORE_EnterIRQ
     IMPORT  CORE_LeaveIRQ
-    IMPORT  CORE_HandlerLPC
     IMPORT  CORE_TickHandler
     IMPORT  CORE_TaskScheduling
-    IMPORT  CORE_SetTaskStackPosition
+    IMPORT  CORE_HandlerLPC
+    IMPORT  CORE_SwitchTask
+    IMPORT  CORE_GetCoreStackPosition
     IMPORT  CORE_GetTaskStackPosition
+    IMPORT  CORE_GetCurrentPermission
 
     PRESERVE8
 
@@ -23,70 +25,62 @@
     ALIGN 4
     THUMB
 
+NVIC_CONTROL    EQU     0xE000ED04
+NVIC_PEND_SET   EQU     0x10000000
+
 CORE_Switch2UserMode   PROC
     MOV     R0,     #0
     MSR     PRIMASK, R0
     BX      LR
     ENDP
-    
-SysTick_Handler PROC
-    CPSID   I
-    PUSH    {LR}
-    BL      CORE_TickHandler
-    BL      CORE_EnterIRQ
-    CBNZ    R0,     ST_L1
-    PUSH    {R4-R12}
-    MOV     R0,     R13                         ; R0 = Stack position
-    BL      CORE_SetTaskStackPosition
-ST_L1
-    CPSIE   I
-    BL      CORE_TaskScheduling
-    CPSID   I
-    BL      CORE_LeaveIRQ
-    CBNZ    R0,     ST_L2
-    BL      CORE_GetTaskStackPosition
-    MOV     R13,    R0
-    POP     {R4-R12}
-ST_L2
-    CPSIE   I
-    POP     {PC}
-    ENDP
 
 PendSV_Handler  PROC
+    CPSID   I                           ;  Why to disable IRQ ? Guess !
+    PUSH    {LR, R4-R12}                ;  Why to save R12 ?
+    MRS     R0,     MSP                 ;  R0 = Core stack for old task
+    MRS     R1,     PSP                 ;  R1 = User stack for old task
+    BL      CORE_SwitchTask             ;  CORE_SwitchTask(CoreStack, UserStack);
+                                        ;  No need check the task permssion
+    BL      CORE_GetTaskStackPosition
+    MOV     R1,     R0                  ;  R1 = User stack for new task
+    BL      CORE_GetCoreStackPosition   ;  R0 = Core stack for new task
+    MSR     PSP,    R1                  ;  Update user stack
+    MSR     MSP,    R0                  ;  Update core stack
+    POP     {LR, R4-R12}                ;  Why to save R12 ?
+    CPSIE   I
     BX      LR
     ENDP
 
 SVC_Handler     PROC
     CPSID   I
-    PUSH    {LR}
-    PUSH    {R8-R12}
-    MOV     R8,     R0                          ; 暂存入参 1
-    MOV     R9,     R1                          ; 暂存入参 2
-    MOV     R10,    R2                          ; 暂存入参 3
-    BL      CORE_EnterIRQ
-    CBNZ    R0,     SV_L1
-    PUSH    {R4-R7}
-    MOV     R0,     R13                         ; R0 = Stack position
-    BL      CORE_SetTaskStackPosition
-    SUB     R13,    #16
-SV_L1
-    MOV     R0,     R8
-    MOV     R1,     R9
-    MOV     R2,     R10
-    POP     {R8-R11}
+    PUSH    {LR, R4}                    ;  Why to push R4 ? Guess !
+    PUSH    {R0, R1, R2, R3}            ;
+    BL      CORE_EnterIRQ               ;  Enter Interrupt Critiacl
+    POP     {R0, R1, R2, R3}
     CPSIE   I
 
-    BL      CORE_HandlerLPC
-    
+    BL      CORE_HandlerLPC             ;  Call system service
+
     CPSID   I
-    BL      CORE_LeaveIRQ
-    CBNZ    R0,     SV_L2
-    BL      CORE_GetTaskStackPosition
-    MOV     R13,    R0
-    POP     {R4-R12}
-SV_L2
+    BL      CORE_LeaveIRQ               ;  Leave Interrupt Critiacl
+    POP     {LR, R4}                    ;  Pop registers
     CPSIE   I
-    POP     {PC}
+    BX      LR
+    ENDP
+    
+SysTick_Handler PROC
+    CPSID   I
+    PUSH    {LR, R4}                    ;  The LR must be push, but the 
+                                        ;  stack is not aligned to 64 bit
+    BL      CORE_EnterIRQ               ;  Enter Interrupt Critiacl
+    BL      CORE_TickHandler            ;  Inc the system tick
+    CPSIE   I
+    BL      CORE_TaskScheduling         ;  Find the new task will be scheduling
+    CPSID   I
+    BL      CORE_LeaveIRQ               ;  Leave Interrupt Critiacl
+    POP     {LR, R4}                    ;  Pop registers
+    CPSIE   I
+    BX      LR
     ENDP
 
 HardFault_Handler   PROC

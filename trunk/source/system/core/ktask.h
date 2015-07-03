@@ -154,7 +154,7 @@ struct tagTASK_CONTEXT{
                                     | (((DWORD)(StackPid)) << MISCBITS_STACKPID_BITS_SHIFT)             \
                                     | (((DWORD)(StackTid)) << MISCBITS_STACKTID_BITS_SHIFT)             \
                                     | (((DWORD)(TASK_PERMISSION_USER)) << MISCBITS_PERMISSION_SHIFT)    \
-                                    | (((DWORD)(FALSE)) << MISCBITS_CANCEL_BIT_SHIFT);                  \
+                                    | (((DWORD)(TRUE)) << MISCBITS_CANCEL_BIT_SHIFT);                  \
             } while(0)
 
 #define     GetContextStartTick(lpTC)                       ((lpTC)->StartTick)
