@@ -24,6 +24,23 @@
 
 STATIC RW_CORE_DATA LPC_SERVICE * g_ServiceHashTable[CONFIG_LPC_SERVICE_MAX] = {NULL};
 
+#ifdef __DEBUG__
+STATIC DWORD ServiceHashKey(DWORD Magic)
+{
+    return Magic2RequestID(Magic);
+}
+
+STATIC DWORD LoadMagic(LPVOID lpPrivate, DWORD Id)
+{
+    if (g_ServiceHashTable[Id])
+    {
+        return g_ServiceHashTable[Id]->u.ServiceID;
+    }
+    
+    return 0;
+}
+#endif
+
 EXPORT E_STATUS CORE_InstallLPC(CONST LPC_SERVICE * lpService)
 {
     BYTE RequestID;
@@ -43,9 +60,19 @@ EXPORT E_STATUS CORE_InstallLPC(CONST LPC_SERVICE * lpService)
     
     if (NULL != g_ServiceHashTable[RequestID])
     {
+#ifdef __DEBUG__
+        DWORD Count = 0;
+        DWORD MagicArray[CONFIG_LPC_SERVICE_MAX];
+
+        Count = CORE_HashSetArray(LoadMagic, g_ServiceHashTable,
+                MagicArray, lpService->u.ServiceID, CONFIG_LPC_SERVICE_MAX);
+
+        CORE_HashDebug(ServiceHashKey, MagicArray, Count, 8, 24,
+                "CONFIG_LPC_SERVICE_MAX", "Magic2RequestID");
+#endif
         CORE_ERROR(TRUE, "Install service '%s' to %d has been registered !",
             lpService->u.SvcName, RequestID);
-        CORE_ERROR(TRUE, "See the macro 'CONFIG_LPC_HASH_FUNCTION' define in file <config.h> !");
+
         return STATE_EXISTING;
     }
 

@@ -140,6 +140,7 @@ STATIC E_STATUS AttachContext2System(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE
     {
         Attach2SystemTaskTable(lpTaskContext);
         SetContextWorkTimes(lpTaskContext, 0);
+        SetContextCancel(lpTaskContext, FALSE);
         if (IncGlobalTaskContextCount())
         {
             SetContextStartTick(lpTaskContext, INVALID_TICK);
@@ -406,11 +407,7 @@ STATIC E_STATUS OBJ_FreeContext(LPKOBJECT_HEADER lpHeader)
 {
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
 
-    CORE_DEBUG(TRUE, "Task '%s' stack pid is %u, tid is %u.",
-        GetContextTaskName(lpTaskContext), GetContextStackPid(lpTaskContext),
-        GetContextStackTid(lpTaskContext));
-    
-    CORE_DEBUG(TRUE, "Free 0x%P task '%s' ...", lpHeader, GetObjectName(lpHeader));
+    CORE_INFOR(TRUE, "Free 0x%P task '%s' ...", lpHeader, GetObjectName(lpHeader));
     
     return DetachContextFromSystem(lpTaskContext);
 }

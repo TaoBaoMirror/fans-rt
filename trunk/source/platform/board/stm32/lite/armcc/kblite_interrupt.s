@@ -76,35 +76,34 @@ PV_L4
 
 SVC_Handler     PROC
     CPSID   I
-    PUSH    {LR}
-    PUSH    {R4}
-    PUSH    {R0, R1, R2, R3}
-    BL      CORE_EnterIRQ
+    PUSH    {LR, R4}                    ;  Why to push R4 ? Guess !
+    PUSH    {R0, R1, R2, R3}            ;
+    BL      CORE_EnterIRQ               ;  Enter Interrupt Critiacl
     POP     {R0, R1, R2, R3}
     CPSIE   I
 
-    BL      CORE_HandlerLPC                 ; 进入中断处理程序
+    BL      CORE_HandlerLPC             ;  Call system service
 
     CPSID   I
-    BL      CORE_LeaveIRQ
-    POP     {R4}
+    BL      CORE_LeaveIRQ               ;  Leave Interrupt Critiacl
+    POP     {LR, R4}                    ;  Pop registers
     CPSIE   I
-    POP     {PC}
+    BX      LR
     ENDP
     
 SysTick_Handler PROC
     CPSID   I
-    PUSH    {LR}
-    PUSH    {R4}
-    BL      CORE_EnterIRQ
-    BL      CORE_TickHandler
+    PUSH    {LR, R4}                    ;  The LR must be push, but the 
+                                        ;  stack is not aligned to 64 bit
+    BL      CORE_EnterIRQ               ;  Enter Interrupt Critiacl
+    BL      CORE_TickHandler            ;  Inc the system tick
     CPSIE   I
-    BL      CORE_TaskScheduling             ; 进入中断处理程序
+    BL      CORE_TaskScheduling         ;  Find the new task will be scheduling
     CPSID   I
-    BL      CORE_LeaveIRQ
-    POP     {R4}
+    BL      CORE_LeaveIRQ               ;  Leave Interrupt Critiacl
+    POP     {LR, R4}                    ;  Pop registers
     CPSIE   I
-    POP     {PC}
+    BX      LR
     ENDP
 
 HardFault_Handler   PROC

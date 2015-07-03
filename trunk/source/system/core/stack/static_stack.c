@@ -105,7 +105,7 @@ DEFINE_CLASS(SUU_MAGIC,
             OBJ_DetachStack,
             OBJ_FreeStack);
 
-#if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE)
+#if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
 DEFINE_CLASS(SCU_MAGIC,
             CoreStackForUserTask,
             CONFIG_CORE_STACK_SIZE,
@@ -173,7 +173,28 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         }
         else /* 普通任务创建内核堆栈 */
         {
-#if (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
+#if (CONFIG_CORE_STACK_SIZE == 0)
+            /* 任务权限和堆栈权限不一致，如果内核栈大小为0 */
+            /* 则普通任务分配用户栈，但是以局部内核栈的方式使用，具备内核任务权限 */
+            if (CONFIG_DEFAULT_STACK_SIZE != lpTaskParam->StackSize)
+            {
+                CORE_ERROR(TRUE, "Invalid user stack size %d.", lpTaskParam->StackSize);
+                return STATE_INVALID_SIZE;
+            }
+            if (0 == CORE_GetGlobalTaskCount())
+            {
+                /* Boot 任务创建普通堆栈(BOOT任务为普通任务)*/
+                lpHeader = CORE_GetBootStackBuffer();
+                SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetBootStackLength());
+                CORE_INFOR(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                Permission, lpHeader, GetContextTaskName(lpCoreContext));
+            }
+            else
+            {
+                lpHeader = (LPVOID)CORE_MallocNoNameObject(SUU_MAGIC, lpTaskParam);
+                SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_DEFAULT_STACK_SIZE);
+            }
+#elif (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
             /* CPU 支持全局内核堆栈 */
             lpHeader = CORE_GetCoreStackBuffer();
             SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetCoreStackLength());
@@ -186,14 +207,6 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
 #endif
         }
     }
-    else if (0 == CORE_GetGlobalTaskCount())
-    {
-        /* Boot 任务创建普通堆栈(BOOT任务为普通任务)*/
-        lpHeader = CORE_GetBootStackBuffer();
-        SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetBootStackLength());
-        CORE_INFOR(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
-            Permission, lpHeader, GetContextTaskName(lpCoreContext));
-    }
     else if (TASK_PRIORITY_IDLE == GetContextThisPriority(lpCoreContext))
     {
         /* Idle 任务创建内核堆栈(Idle任务为内核任务)*/
@@ -205,14 +218,19 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         /* 任务权限和堆栈权限一致的情况：内核任务创建内核堆栈和普通任务创建普通堆栈 */
         if (TASK_PERMISSION_USER == Permission)
         {
-            if (CONFIG_DEFAULT_STACK_SIZE != lpTaskParam->StackSize)
-            {
-                CORE_ERROR(TRUE, "Invalid user stack size %d.", lpTaskParam->StackSize);
-                return STATE_INVALID_SIZE;
-            }
-            /* 从 SUU 中分配 */
+#if (CONFIG_CORE_STACK_SIZE == 0)
+            /* 任务权限和堆栈权限一致，但是没有全局内核栈，则任务不指定用户栈 */
+            SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
+            SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
+            CORE_INFOR(TRUE, "Task '%s' no need malloc user stack.",
+                GetContextTaskName(lpCoreContext), Permission, lpHeader);
+
+            return STATE_SUCCESS;
+#else
+            /* 任务权限和堆栈权限一致，并且有全局内核栈，则为任务分配局部用户栈 */
             lpHeader = (LPVOID)CORE_MallocNoNameObject(SUU_MAGIC, lpTaskParam);
             SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_DEFAULT_STACK_SIZE);
+#endif
         }
         else
         {
@@ -231,13 +249,13 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
 
     if (NULL == lpHeader)
     {
-        CORE_ERROR(TRUE, "Malloc stack for task '%s' failed.", GetContextTaskName(lpCoreContext));
+        CORE_ERROR(TRUE, "Malloc stack(%d) for task '%s' failed.",
+            Permission, GetContextTaskName(lpCoreContext));
         return CORE_GetError();
     }
-    
-    CORE_INFOR(TRUE, "Task '%s' malloc stack(%d) buffer 0x%P.",
-        GetContextTaskName(lpCoreContext), Permission, lpHeader);
-    
+
+    CORE_INFOR(TRUE, "Task '%s' malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                GetContextTaskName(lpCoreContext), Permission, lpHeader, GetContextTaskName(lpCoreContext));
     return STATE_SUCCESS;
 }
 
@@ -276,8 +294,20 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         DWORD StackCapacity = GetStackCapacity(GetArchSD(lpArchContext, Permission));
         LPBYTE lpStackBuffer = (LPVOID) lpHeader;
         LPBYTE lpStackPosition = (lpStackBuffer + StackCapacity);
-        
-        if (0 != CORE_GetGlobalTaskCount() && GetContextPermission(lpCoreContext) == Permission)
+
+        /* 对于 boot task(Boot task 的用户栈不能 Fill)*/
+#if (CONFIG_CORE_STACK_SIZE == 0)
+        /* 如果内核栈大小为0，则不填充普通用户的用户栈(内核任务和普通任务均只填充内核栈)*/
+        if (0 != CORE_GetGlobalTaskCount() && (TASK_PERMISSION_CORE == Permission))
+#elif (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
+        /* 如果 CPU 支持全局内核栈，则不填充普通用户的内核栈(只填充内核任务的内核栈和用户任务的用户栈)*/
+        if ((0 != CORE_GetGlobalTaskCount()) && (GetContextPermission(lpCoreContext) == Permission))
+#else
+        /* 如果 CPU 不支持全局内核栈，则不填充内核任务的用户栈(填充内核任务的内核栈，用户任务的所有栈)*/
+        if ((0 != CORE_GetGlobalTaskCount()) &&
+            ((TASK_PERMISSION_USER == GetContextPermission(lpCoreContext)) ||
+            TASK_PERMISSION_CORE == Permission))
+#endif
         {
             lpStackPosition = CORE_FillStack(lpStackPosition, lpTaskParam->fnTaskMain,
                               lpTaskParam->lpArgument, lpTaskContext,
@@ -296,13 +326,36 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
     }
     else
     {
-        if (TASK_PERMISSION_CORE == GetContextPermission(lpCoreContext) && 
-            TASK_PERMISSION_USER == Permission)
+#if (CONFIG_CORE_STACK_SIZE == 0)
+        /* 如果内核栈大小为0，所有任务均没有用户栈 */
+        if (TASK_PERMISSION_USER == Permission)
         {
-            CORE_DEBUG(TRUE, "Task '%s' no need fill user stack.", GetContextTaskName(lpCoreContext));
+            CORE_INFOR(TRUE, "Task '%s' no need fill user stack.",
+                GetContextTaskName(lpCoreContext));
             
             return STATE_SUCCESS;
         }
+#elif (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
+        /* 如果 CPU 支持全局内核栈，则内核任务的用户栈为 NULL*/
+        if (TASK_PERMISSION_CORE != GetContextPermission(lpCoreContext) &&
+            TASK_PERMISSION_USER == Permission)
+        {
+            CORE_INFOR(TRUE, "Task '%s' no need fill core stack.",
+                GetContextTaskName(lpCoreContext));
+            
+            return STATE_SUCCESS;
+        }
+#else
+        /* 如果 CPU 不支持全局内核栈，则内核任务的用户栈为NULL*/
+        if (TASK_PERMISSION_CORE != GetContextPermission(lpCoreContext) &&
+            TASK_PERMISSION_USER == Permission)
+        {
+            CORE_INFOR(TRUE, "Task '%s' no need fill user stack.",
+                GetContextTaskName(lpCoreContext));
+            
+            return STATE_SUCCESS;
+        }
+#endif
     }
 
     CORE_ERROR(TRUE, "No task stack buffer found, permission is %d.", Permission);
@@ -335,16 +388,27 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
         /* 任务权限为用户级普通任务 */
         if (TASK_PERMISSION_USER == GetContextPermission(lpCoreContext))
         {
-#if (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
+#if (CONFIG_CORE_STACK_SIZE == 0)
+            /* 没有全局内核栈，则普通任务也没有用户栈 */
+            if (TASK_PERMISSION_USER == Permission)
+            {
+                CORE_INFOR(TRUE, "Task '%s' no need free user stack.",
+                    GetContextTaskName(lpCoreContext));
+                break;
+            }            
+#elif (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
             /* 释放的堆栈为内核栈 */
             if (TASK_PERMISSION_CORE == Permission)
             {
-                    /* 普通任务释放内核栈，并且CPU支持全局内核栈 */
-                    /* 则不会分配内核栈，直接使用全局内核栈，所以 */
-                    /* 不需要释放也不能释放 */
-                    break;
+                /* 普通任务释放内核栈，并且CPU支持全局内核栈 */
+                /* 则不会分配内核栈，直接使用全局内核栈，所以 */
+                /* 不需要释放也不能释放 */
+                CORE_INFOR(TRUE, "Task '%s' no need free core stack.",
+                    GetContextTaskName(lpCoreContext));
+                break;
 
             }
+#else
 #endif
         }
         else /* 内核任务 */
@@ -352,6 +416,8 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
             if (TASK_PERMISSION_USER == Permission)
             {
                 /* 内核任务不会分配用户栈，所以直接返回成功 */
+                CORE_INFOR(TRUE, "Task '%s' no need free user stack.",
+                    GetContextTaskName(lpCoreContext));
                 break;
             }
         }
@@ -421,7 +487,7 @@ PUBLIC E_STATUS initCoreSystemTaskStackManager(VOID)
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Register stack class failed, result %d !", State);
-#if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE)
+#if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
     /* 注册 用户任务的内核栈 对象类 */
     State = CORE_RegisterClass(&CoreStackForUserTask);
 
