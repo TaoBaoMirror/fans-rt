@@ -737,7 +737,7 @@ EXPORT RO_CODE LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREATE
     }
     
     TaskParam.StackSize   =   0 == TaskParam.StackSize
-                                ?   CONFIG_DEFAULT_STACK_SIZE
+                                ?   CONFIG_KTASK_STACK_SIZE
                                 :   TaskParam.StackSize;
     TaskParam.lpTaskPath  =   NULL == TaskParam.lpTaskPath
                                 ?   CONFIG_DEFAULT_PATH

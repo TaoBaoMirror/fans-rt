@@ -32,7 +32,6 @@ extern "C" {
     PUBLIC SIZE_T CORE_GetCoreStackLength(VOID);
     PUBLIC LPVOID CORE_GetBootStackBuffer(VOID);
     PUBLIC LPVOID CORE_GetIdleStackBuffer(DWORD CpuID);
-    STATIC BOOL CORE_CpuSupportGlobalCoreStack(VOID) { return FALSE;}
 #define     CORE_ScanMemoryRegion()         STATE_SUCCESS
 #ifdef __cplusplus
 }

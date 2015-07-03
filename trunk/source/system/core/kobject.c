@@ -345,10 +345,10 @@ STATIC      OBJECT7_HEADER          RW_CORE_DATA    g_Object7Table[CONFIG_OBJECT
 #define     OBJECT7_HEADER_TABLE    NULL
 #endif
 
-#define     TID2PoolContainer(Tid)      (g_GlobalObjectPoolTable[Tid])
+#define     TID2PoolContainer(Tid)      ((LPVOID)(g_GlobalObjectPoolTable[Tid]))
 #define     CID2ClassDescriptor(Cid)    (g_GlobalClassTable[Cid])
 
-STATIC CONST LPCORE_CONTAINER g_GlobalObjectPoolTable[CONFIG_OBJECT_POOL_TABLE_MAX] = 
+STATIC RW_CORE_DATA CONST CORE_CONTAINER * CONST RW_CORE_DATA g_GlobalObjectPoolTable[CONFIG_OBJECT_POOL_TABLE_MAX] = 
 {
     OBJECT0_POOL_TABLE,
 #if (CONFIG_OBJECT_POOL_TABLE_MAX > 1)
@@ -593,9 +593,11 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
     lpManager = TID2PoolContainer(Tid);
     
+    CORE_DEBUG(TRUE, "Malloc pool from '%s', Tid(%d).", lpClass->ClassName, Tid);
+    
     if (NULL == lpManager)
     {
-        CORE_ERROR(TRUE, "Invalid pool manager for magic(0x%08x), Tid = %d.", lpClass->Magic, Tid);
+        CORE_ERROR(TRUE, "Container not found, magic(0x%08x), Tid(%d).", lpClass->Magic, Tid);
         CORE_SetError(STATE_INVALID_POOL);
         return NULL;
     }

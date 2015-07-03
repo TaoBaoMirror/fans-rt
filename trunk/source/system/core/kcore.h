@@ -21,12 +21,14 @@
 #define     INVALID_MAGIC               INVALID_VALUE
 /* The some system objects magic */
 #define     POL_MAGIC                   MAKE_DWORD('P', 'O', 'L')               /**< The pool object */
-#define     STK_MAGIC                   MAKE_DWORD('S', 'T', 'K')               /**< The Stack object */
+#define     SCC_MAGIC                   MAKE_DWORD('S', 'C', 'C')               /**< Core stack for core task */
+#define     SCU_MAGIC                   MAKE_DWORD('S', 'C', 'U')               /**< Core stack for user task */
+#define     SUU_MAGIC                   MAKE_DWORD('S', 'U', 'U')               /**< User stack for user task */
 #define     TSK_MAGIC                   MAKE_DWORD('T', 'S', 'K')               /**< The task object */
-#define     EVT_MAGIC                   MAKE_DWORD('E', 'V', 'T')
-#define     MTX_MAGIC                   MAKE_DWORD('M', 'T', 'X')
-#define     SEM_MAGIC                   MAKE_DWORD('S', 'E', 'M')
-#define     SET_MAGIC                   MAKE_DWORD('S', 'E', 'T')
+#define     EVT_MAGIC                   MAKE_DWORD('E', 'V', 'T')               /**< The event object */
+#define     MTX_MAGIC                   MAKE_DWORD('M', 'T', 'X')               /**< The mutex object */
+#define     SEM_MAGIC                   MAKE_DWORD('S', 'E', 'M')               /**< The semaphore object */
+#define     SET_MAGIC                   MAKE_DWORD('S', 'E', 'T')               /**< The semset object */
 
 
 /* The some system modules magic */
@@ -40,6 +42,7 @@
 #define     SCM_MAGIC                   MAKE_DWORD('C', 'L', 'K')               /**< System clock manager */
 #define     SDM_MAGIC                   MAKE_DWORD('S', 'D', 'M')               /**< System debug manager */
 #define     SOM_MAGIC                   MAKE_DWORD('S', 'O', 'M')               /**< System object manager*/
+#define     STK_MAGIC                   MAKE_DWORD('S', 'T', 'K')               /**< System stack manager */
 #define     SYSTEM_CALL_OOPS()          kSystemOops()
 
 
