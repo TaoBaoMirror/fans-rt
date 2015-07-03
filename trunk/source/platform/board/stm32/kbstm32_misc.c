@@ -21,7 +21,7 @@
 #include "kirq_define_name.h"
 #include "kboard_name.h"
 
-STATIC CHAR RW_CORE_DATA BoardName[] = {BOARD_NAME_STRING};
+STATIC CONST CHAR RW_CORE_DATA BoardName[] = {BOARD_NAME_STRING};
 
 PUBLIC LPCSTR CORE_GetBoardName(VOID)
 {
