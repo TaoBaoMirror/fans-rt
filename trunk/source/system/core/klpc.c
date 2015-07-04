@@ -27,7 +27,7 @@ STATIC RW_CORE_DATA LPC_SERVICE * g_ServiceHashTable[CONFIG_LPC_SERVICE_MAX] = {
 #ifdef __DEBUG__
 STATIC DWORD ServiceHashKey(DWORD Magic)
 {
-    return Magic2RequestID(Magic);
+    return Magic2RequestIDKey(Magic);
 }
 
 STATIC DWORD LoadMagic(LPVOID lpPrivate, DWORD Id)

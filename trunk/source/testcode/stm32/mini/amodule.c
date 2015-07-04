@@ -5,7 +5,7 @@
 
 DECLARE_MODULE(Application);
 
-STATIC CONST RO_DATA MODULE_HEADER * g_SystemModuleArray[] =
+STATIC CONST RO_DATA MODULE_HEADER * CONST RO_DATA g_SystemModuleArray[] =
 {
     EXCERPT_MODULE(Application),
 };

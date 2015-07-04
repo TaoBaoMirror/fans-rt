@@ -48,6 +48,7 @@ STATIC  RW_CORE_DATA    VOLATILE        LPTASK_CONTEXT      g_Switch2Context    
 STATIC  RW_CORE_DATA    VOLATILE        DWORD               g_SystemScheduleCount   =       0;                  /**< 任务调度次数 */
 #endif
 
+STATIC  RW_CORE_DATA    VOLATILE        WORD                g_SystemTaskCount       =       0;
 STATIC  RW_CORE_DATA    VOLATILE        E_STATUS            g_SystemGlobalError     =       STATE_SUCCESS;
 STATIC  RW_CORE_DATA    VOLATILE        SCHEDULER_FLAGS     g_SchedulerFlags        =       {FALSE, FALSE};
 STATIC  RW_CORE_DATA    VOLATILE        E_TASK_PERMISSION   g_CurrentPermission     =       TASK_PERMISSION_USER;
@@ -66,6 +67,9 @@ STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitma
 STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitmap2[32];                         /**< 2级任务就绪位图 */
 #endif
 
+#define     GetGlobalTaskContextCount()                 g_SystemTaskCount
+#define     IncGlobalTaskContextCount()                 (g_SystemTaskCount ++)
+#define     DecGlobalTaskContextCount()                 (-- g_SystemTaskCount)
 #define     GetContextPriorityReadyQueue(lpC)           (&g_TaskReadyQueue[GetContextThisPriority(lpC)])
 #define     Attach2SystemTaskTable(lpTaskContext)       AttachSystem(&g_SystemTaskTable, lpTaskContext)
 #define     GetPriorityFirstContext(Priority)           GetContextByReadyNode(LIST_FIRST_NODE(&g_TaskReadyQueue[Priority]))
