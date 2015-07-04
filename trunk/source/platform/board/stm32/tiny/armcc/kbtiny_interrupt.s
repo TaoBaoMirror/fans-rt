@@ -7,7 +7,7 @@
     EXPORT  SysTick_Handler
     EXPORT  PendSV_Handler
     EXPORT  SVC_Handler
-    EXPORT  CORE_EnableKernelStack
+    EXPORT  CORE_Switch2UserMode
 
     IMPORT  CORE_EnterIRQ
     IMPORT  CORE_LeaveIRQ
@@ -24,7 +24,7 @@
     ALIGN 4
     THUMB
 
-CORE_EnableKernelStack   PROC
+CORE_Switch2UserMode   PROC
     MOV     R0,     #0
     MSR     PRIMASK, R0
     BX      LR
