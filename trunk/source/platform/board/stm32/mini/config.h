@@ -33,9 +33,9 @@
 #define     CONFIG_OBJECT_HASH_TABLE_MAX        1			/**< The number of hash table */
 #define     CONFIG_OBJECT_POOL_TABLE_MAX        8           /**< Max number is 8,  see @HANDLE_OBJECT_TID_MASK */
 #define     CONFIG_OBJECT_POOL_TABLE_MASK       0x7UL       /**< Max number is 8,  see @HANDLE_OBJECT_TID_MASK */
-#define     CONFIG_OBJECT_SIZE_MAX              4096
-#define     CONFIG_OBJECT_SIZE_MIN              32
-#define     CONFIG_OBJECT_SIZE_SHIFT            5
+#define     CONFIG_OBJECT_SIZE_MAX              4096		/**< The object size max is 4KB */
+#define     CONFIG_OBJECT_SIZE_MIN              32			/**< The object size min is 32 Bytes */
+#define     CONFIG_OBJECT_SIZE_SHIFT            5			/**< 32 is 100000b, bit 5 is 1 */
 
 #define     CONFIG_OBJECT0_POOL_MAX             1           /**< The max pools for 32 bytes class */
 #define     CONFIG_OBJECT0_BLOCK_MAX            2           /**< The max blocks for 32 bytes class */

@@ -712,11 +712,6 @@
               <FilePath>..\..\source\platform\board\stm32\lite\kblite_memory.c</FilePath>
             </File>
             <File>
-              <FileName>kblite_stack.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\kblite_stack.c</FilePath>
-            </File>
-            <File>
               <FileName>kbstm32_init.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\kbstm32_init.c</FilePath>
@@ -725,6 +720,11 @@
               <FileName>kblite_interrupt.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\..\source\platform\board\stm32\lite\armcc\kblite_interrupt.s</FilePath>
+            </File>
+            <File>
+              <FileName>kbstm32_stack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\kbstm32_stack.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -925,11 +925,6 @@
               <FileName>karch_armasm_stack.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\..\source\platform\arch\stm32\arm\karch_armasm_stack.s</FilePath>
-            </File>
-            <File>
-              <FileName>karch_armcc_stack.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\arch\stm32\arm\karch_armcc_stack.c</FilePath>
             </File>
           </Files>
         </Group>

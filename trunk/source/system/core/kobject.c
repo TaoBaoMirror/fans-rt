@@ -876,11 +876,19 @@ EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam)
     }
 
     lpHeader = FindObjectHash(lpName);
+
+    if (NULL == lpHeader)
+    {
+        CORE_SetError(STATE_NOT_FOUND);
+        return NULL;
+    }
+    
     lpClass = KObject2KClass(lpHeader);
 
 
     if (NULL == lpClass)
     {
+        CORE_SetError(STATE_INVALID_CLASS);
         return NULL;
     }
 
