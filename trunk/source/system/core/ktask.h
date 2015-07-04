@@ -306,6 +306,7 @@ extern "C" {
     EXPORT VOID CORE_SetTaskStackPosition(LPVOID StackPosition);
     EXPORT LPVOID CORE_GetCoreStackPosition(VOID);
     EXPORT VOID CORE_SetCoreStackPosition(LPVOID StackPosition);
+    EXPORT BOOL CORE_CheckMustbeSchedule(VOID);
     EXPORT E_TASK_PERMISSION CORE_SwitchTask(LPVOID CoreStack, LPVOID UserStack);
 
     EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID);
