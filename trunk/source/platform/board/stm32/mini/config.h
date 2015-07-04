@@ -38,12 +38,12 @@
 #define     CONFIG_OBJECT_SIZE_SHIFT            5
 
 #define     CONFIG_OBJECT0_POOL_MAX             1           /**< The max pools for 32 bytes class */
-#define     CONFIG_OBJECT0_BLOCK_MAX            8           /**< The max blocks for 32 bytes class */
+#define     CONFIG_OBJECT0_BLOCK_MAX            2           /**< The max blocks for 32 bytes class */
 
 #define     CONFIG_OBJECT1_POOL_MAX             0           /**< The max pools for 64 bytes class */
 #define     CONFIG_OBJECT1_BLOCK_MAX            0           /**< The max blocks for 64 bytes class */
 
-#define     CONFIG_OBJECT2_POOL_MAX             3           /**< The max pools for 128 bytes class */
+#define     CONFIG_OBJECT2_POOL_MAX             1           /**< The max pools for 128 bytes class */
 #define     CONFIG_OBJECT2_BLOCK_MAX            3           /**< The max blocks for 128 bytes class */
 
 #define     CONFIG_OBJECT3_POOL_MAX             0           /**< The max pools for 256 bytes class */
@@ -61,10 +61,10 @@
 #define     CONFIG_OBJECT7_POOL_MAX             0           /**< The max pools for 4096 bytes class */
 #define     CONFIG_OBJECT7_BLOCK_MAX            0           /**< The max blocks for 4096 bytes class */
 
-#define     CONFIG_TASK_PRIORITY_MAX            8           /**< 任务管理器支持的任务优先级数量 */
+#define     CONFIG_TASK_PRIORITY_MAX            3           /**< 任务管理器支持的任务优先级数量 */
 #define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
-#define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */
+#define     CONFIG_IDLE_STACK_SIZE              768         /**< 空闲任务的堆栈长度 */
 #define     CONFIG_CORE_STACK_SIZE            	0           /**< 内核堆栈长度 */
 #define     CONFIG_KTASK_STACK_SIZE             1024        /**< 内核任务的堆栈长度 */
 #define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU不支持全局内核栈 */
@@ -78,8 +78,8 @@
 #define     CONFIG_TIME_SLICE_NORMAL            10          /**< 默认任务时间片 */
 #define     MILLI_SECOND_TO_TICK(Ms)            ((Ms) * (CONFIG_SYSTICK_FREQUENCY / 1000))
 #define     CONFIG_ENABLE_FAST_SCHEDULE         TRUE
-#define     CONFIG_LPC_SERVICE_MAX              24
-#define     CONFIG_SYSTEM_MODULES               8           /**< 系统模块数量 */
+#define     CONFIG_LPC_SERVICE_MAX              9
+#define     CONFIG_SYSTEM_MODULES               2           /**< 系统模块数量 */
 
 #endif
 

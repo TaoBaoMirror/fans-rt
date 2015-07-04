@@ -340,7 +340,7 @@ STATIC      OBJECT7_HEADER          RW_CORE_DATA    g_Object7Table[CONFIG_OBJECT
 #define     TID2PoolContainer(Tid)      ((LPVOID)(g_GlobalObjectPoolTable[Tid]))
 #define     CID2ClassDescriptor(Cid)    (g_GlobalClassTable[Cid])
 
-STATIC RW_CORE_DATA CONST CORE_CONTAINER * CONST RW_CORE_DATA g_GlobalObjectPoolTable[CONFIG_OBJECT_POOL_TABLE_MAX] = 
+STATIC RO_CORE_DATA CONST CORE_CONTAINER * CONST RO_CORE_DATA g_GlobalObjectPoolTable[CONFIG_OBJECT_POOL_TABLE_MAX] = 
 {
     OBJECT0_POOL_TABLE,
 #if (CONFIG_OBJECT_POOL_TABLE_MAX > 1)
@@ -368,7 +368,7 @@ STATIC RW_CORE_DATA CONST CORE_CONTAINER * CONST RW_CORE_DATA g_GlobalObjectPool
 
 STATIC RW_CORE_DATA LPKCLASS_DESCRIPTOR g_GlobalClassTable[CONFIG_SYSTEM_CLASS_MAX] = {NULL};
 STATIC RW_CORE_DATA LIST_HEAD g_GlobalHashTable[CONFIG_OBJECT_HASH_TABLE_MAX] = {NULL};
-STATIC RW_CORE_DATA DWORD g_SystemIDValue = 2;
+STATIC RW_CORE_DATA WORD g_SystemIDValue = 2;
 
 #define     Attach2HashList(HashValue, lpHeader)                            \
             LIST_INSERT_TAIL(&g_GlobalHashTable[HashValue], &(lpHeader)->HashNode)

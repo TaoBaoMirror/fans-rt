@@ -28,7 +28,7 @@
 
 EXPORT RO_CODE LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
 {
-    STATIC RW_USER_DATA UINT Count = 0;
+    STATIC RW_USER_DATA WORD Count = 0;
     
     snprintf(lpName, OBJECT_NAME_MAX-1, "%s%04X", lpType, (Count ++) & 0xffff);
     

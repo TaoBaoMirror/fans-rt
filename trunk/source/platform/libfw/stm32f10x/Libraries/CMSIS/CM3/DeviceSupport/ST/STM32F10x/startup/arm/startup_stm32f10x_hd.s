@@ -160,7 +160,7 @@ NMI_Handler     PROC
                 EXPORT  NMI_Handler                [WEAK]
                 B       .
                 ENDP
-HardFault_Handler\
+HardFault_Handler
                 PROC
                 EXPORT  HardFault_Handler          [WEAK]
                 B       .

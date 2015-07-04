@@ -26,9 +26,8 @@
 #include "kdebug.h"
 #include "libcmini.h"
 
-
 STATIC RW_CORE_DATA     BOOL DebugEnable = TRUE;
-STATIC RW_CORE_DATA     DWORD DebugLevelMask = DEBUG_LOG_MASK;
+STATIC RW_CORE_DATA     BYTE DebugLevelMask = DEBUG_LOG_MASK;
 EXTERN CONST CHAR *     CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1];
 
 EXPORT LPSTR kDebugLevel2String(E_LOG_LEVEL emLevel)

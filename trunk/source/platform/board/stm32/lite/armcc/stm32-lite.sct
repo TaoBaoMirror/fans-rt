@@ -18,7 +18,7 @@ LR_IROM1 0x08000000 0x0000D000  {    ; load region size_region
    startup_stm32f10x_hd.o (HEAP, +RW +ZI)
    kbcom_stack.o (.IdleStack, +RW +ZI)
    kblite_memory.o (.Region0, +RW +ZI)
-   kbstm32_stack.o (.BootStack, +RW +ZI)
+   kbstm32_stack.o (.CoreStack, +RW +ZI)
   }
 
   RW_IRAM2 0x20003e00 0x00001000  {  ; RW data

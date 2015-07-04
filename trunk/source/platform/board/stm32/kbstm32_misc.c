@@ -21,7 +21,8 @@
 #include "kirq_define_name.h"
 #include "kboard_name.h"
 
-STATIC CONST CHAR RW_CORE_DATA BoardName[] = {BOARD_NAME_STRING};
+STATIC CONST CHAR RO_CORE_DATA BoardName[] = {BOARD_NAME_STRING};
+STATIC CONST CHAR RO_CORE_DATA UnknowIRQ[] = {"Unknow IRQ"};
 
 PUBLIC LPCSTR CORE_GetBoardName(VOID)
 {
@@ -35,5 +36,5 @@ PUBLIC LPCSTR CORE_GetIRQNameString(DWORD IrqID)
         return g_IRQNameString[IrqID];
     }
     
-    return "Unknow IRQ";
+    return UnknowIRQ;
 }
