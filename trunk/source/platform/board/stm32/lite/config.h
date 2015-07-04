@@ -33,9 +33,9 @@
 #define     CONFIG_OBJECT_HASH_TABLE_MAX        8			/**< The number of hash table */
 #define     CONFIG_OBJECT_POOL_TABLE_MAX        8           /**< Max number is 8,  see @HANDLE_OBJECT_TID_MASK */
 #define     CONFIG_OBJECT_POOL_TABLE_MASK       0x7UL       /**< Max number is 8,  see @HANDLE_OBJECT_TID_MASK */
-#define     CONFIG_OBJECT_SIZE_MAX              4096
-#define     CONFIG_OBJECT_SIZE_MIN              32
-#define     CONFIG_OBJECT_SIZE_SHIFT            5
+#define     CONFIG_OBJECT_SIZE_MAX              4096		/**< The object size max is 4KB */
+#define     CONFIG_OBJECT_SIZE_MIN              32			/**< The object size min is 32 Bytes */
+#define     CONFIG_OBJECT_SIZE_SHIFT            5			/**< 32 is 100000b, bit 5 is 1 */
 
 #define     CONFIG_OBJECT0_POOL_MAX             1           /**< The max pools for 32 bytes class */
 #define     CONFIG_OBJECT0_BLOCK_MAX            16          /**< The max blocks for 32 bytes class */
@@ -67,7 +67,7 @@
 #define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */
 #define     CONFIG_CORE_STACK_SIZE              1024        /**< 内核的堆栈长度 */
 #define     CONFIG_KTASK_STACK_SIZE             2048        /**< 内核任务的堆栈长度 */
-#define     CONFIG_ARCH_SUPPORT_KSTACK          TRUE        /**< CPU支持全局内核栈 */
+#define     CONFIG_ARCH_SUPPORT_KSTACK          TRUE        /**< CPU 是否支持全局内核栈 */
 #define     CONFIG_ARCH_SUPPORT_SCHEDULE        TRUE        /**< CPU 是否支持任务调度中断 */
 #define     CONFIG_ARCH_SUPPORT_MPU             FALSE       /**< CPU 是否支持内存保护单元 */
 #define     CONFIG_DYNAMIC_STACK_ENABLE         FALSE       /**< 动态堆栈长度支持 */

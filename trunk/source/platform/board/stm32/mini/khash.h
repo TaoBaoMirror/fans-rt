@@ -22,28 +22,28 @@
 #define     BITS24_31(x)                        ((((x) >> 16) & 0xff) - 'A')
 
 #if (__ENDIAN__ == 0x1234)
-#define     Magic2RequestIDKey(Magic)                                \
+#define     Magic2RequestIDKey(Magic)                                   \
             ((BITS08_15(Magic))% CONFIG_LPC_SERVICE_MAX)
 
-#define     Magic2RequestID(Magic)                                    \
+#define     Magic2RequestID(Magic)                                      \
             (Magic2RequestIDKey(Magic) % CONFIG_LPC_SERVICE_MAX)
             
-#define     Magic2ClassIDKey(Magic)                                 \
-            (((BITS16_23(Magic)<<0) |                               \
+#define     Magic2ClassIDKey(Magic)                                     \
+            (((BITS16_23(Magic)<<0) |                                   \
             (BITS08_15(Magic)<<5)))
 
-#define     Magic2ClassID(Magic)                                    \
+#define     Magic2ClassID(Magic)                                        \
             (Magic2ClassIDKey(Magic) % CONFIG_SYSTEM_CLASS_MAX)
 
 #else
-#define     Magic2RequestID(Magic)                                \
+#define     Magic2RequestID(Magic)                                      \
             (BITS08_15(Magic)% CONFIG_LPC_SERVICE_MAX)
 
-#define     Magic2ClassIDKey(Magic)                                 \
-            (((BITS16_23(Magic)<<0) |                               \
+#define     Magic2ClassIDKey(Magic)                                     \
+            (((BITS16_23(Magic)<<0) |                                   \
             (BITS08_15(Magic)<<5)))
 
-#define     Magic2ClassID(Magic)                                    \
+#define     Magic2ClassID(Magic)                                        \
             (Magic2ClassIDKey(Magic) % CONFIG_SYSTEM_CLASS_MAX)
 
 #endif

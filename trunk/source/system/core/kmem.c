@@ -97,7 +97,7 @@ typedef union tagMM_PAGE_ENTRIES FAR * LPMM_PAGE_ENTRIES;
 ************************************************************************/
 
 typedef struct tagMM_HEAD_PAGE{
-    DWORD               PrveSection:14;                 /**< 上一个节 */
+    DWORD               PrveSection:14;                 /**< 上一个段 */
     DWORD               ManyBoolean:1;                  /**< 多页标志 */
     DWORD               HeadBoolean:1;                  /**< 首页标志 */
     DWORD               SectionPages:14;                /**< 页数量 */
@@ -109,16 +109,16 @@ typedef struct tagMM_TAIL_PAGE{
     DWORD               SectionPages:14;                /**< 页数量 */
     DWORD               ManyBoolean:1;                  /**< 多页标志 */
     DWORD               HeadBoolean:1;                  /**< 首页标志 */
-    DWORD               NextSection:14;                 /**< 下一个节 */
+    DWORD               NextSection:14;                 /**< 下一个段 */
     DWORD               UsedBoolean:1;                  /**< 使用标志 */
     DWORD               ReservedBit:1;                  /**< 保留 */
 }__attribute__ ((packed)) MM_TAIL_PAGE, * PMM_TAIL_PAGE, FAR * LPMM_TAIL_PAGE;
 
 typedef struct tagMM_SELF_PAGE{
-    DWORD               PrveSection:14;                 /**< 上一个节 */
+    DWORD               PrveSection:14;                 /**< 上一个段 */
     DWORD               ManyBoolean:1;                  /**< 多页标志 */
     DWORD               HeadBoolean:1;                  /**< 首页标志 */
-    DWORD               NextSection:14;                 /**< 下一个节 */
+    DWORD               NextSection:14;                 /**< 下一个段 */
     DWORD               UsedBoolean:1;                  /**< 使用标志 */
     DWORD               ReservedBit:1;                  /**< 链表首尾标志 */
 }__attribute__ ((packed)) MM_SELF_PAGE, * PMM_SELF_PAGE, FAR * LPMM_SELF_PAGE;
@@ -148,8 +148,8 @@ typedef struct tagMM_REGION{
     BOOL                RegionOnChip;                                /**< 该区域为片上内存 */
     WORD                RegionPages;                                 /**< 该区域的页数量*/
     WORD                RegionFrees;                                 /**< 该区域空闲页数*/
-    WORD                RegionUsedCount;                             /**< 该区域非空闲节数量 */
-    MM_PAGE_ENTRIES     RegionUsedTable;                             /**< 该区域非空闲节链表 */
+    WORD                RegionUsedCount;                             /**< 该区域非空闲段数量 */
+    MM_PAGE_ENTRIES     RegionUsedTable;                             /**< 该区域非空闲段链表 */
     MM_PAGE_ENTRIES     RegionBuddyTable[CONFIG_MEM_BUDDY_MAX];      /**< 该区域伙伴链表 */
     WORD                RegionBuddyCount[CONFIG_MEM_BUDDY_MAX];      /**< 该区域伙伴表计数器 */
     LPMM_PAGE_ENTRIES   lpRegionPageTable;                           /**< 该区域页表首指针 */
