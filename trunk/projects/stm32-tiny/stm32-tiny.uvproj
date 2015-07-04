@@ -427,11 +427,6 @@
               <FilePath>..\..\source\include\fauser.h</FilePath>
             </File>
             <File>
-              <FileName>version.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\include\version.h</FilePath>
-            </File>
-            <File>
               <FileName>facore.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\include\facore.h</FilePath>

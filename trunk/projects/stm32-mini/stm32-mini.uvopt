@@ -365,7 +365,7 @@
 
   <Group>
     <GroupName>core</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -375,10 +375,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>60</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>22</TopLine>
-      <CurrentLine>30</CurrentLine>
+      <TopLine>23</TopLine>
+      <CurrentLine>28</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\Source\system\core\kdebug.c</PathWithFileName>
       <FilenameWithoutPath>kdebug.c</FilenameWithoutPath>
@@ -391,10 +391,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>19</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>22</TopLine>
-      <CurrentLine>23</CurrentLine>
+      <TopLine>1</TopLine>
+      <CurrentLine>1</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\Source\system\core\kirq.c</PathWithFileName>
       <FilenameWithoutPath>kirq.c</FilenameWithoutPath>
@@ -425,8 +425,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>148</TopLine>
-      <CurrentLine>155</CurrentLine>
+      <TopLine>1</TopLine>
+      <CurrentLine>1</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\Source\system\core\kpool.c</PathWithFileName>
       <FilenameWithoutPath>kpool.c</FilenameWithoutPath>
@@ -473,8 +473,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>31</TopLine>
-      <CurrentLine>35</CurrentLine>
+      <TopLine>885</TopLine>
+      <CurrentLine>899</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\Source\system\core\ktask.c</PathWithFileName>
       <FilenameWithoutPath>ktask.c</FilenameWithoutPath>
@@ -569,7 +569,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>34</TopLine>
+      <TopLine>35</TopLine>
       <CurrentLine>42</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\Source\system\core\kprintf.c</PathWithFileName>
@@ -585,7 +585,7 @@
       <Focus>0</Focus>
       <ColumnNumber>31</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>29</TopLine>
+      <TopLine>30</TopLine>
       <CurrentLine>37</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\klpc.c</PathWithFileName>
@@ -825,7 +825,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>51</TopLine>
+      <TopLine>52</TopLine>
       <CurrentLine>56</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\stack\static_stack.c</PathWithFileName>
@@ -865,7 +865,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>12</TopLine>
+      <TopLine>13</TopLine>
       <CurrentLine>20</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\testtask.c</PathWithFileName>
@@ -1065,7 +1065,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>8</TopLine>
+      <TopLine>14</TopLine>
       <CurrentLine>22</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\platform\board\kbcom_stack.c</PathWithFileName>
@@ -1111,10 +1111,10 @@
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>37</ColumnNumber>
+      <ColumnNumber>71</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>33</TopLine>
-      <CurrentLine>44</CurrentLine>
+      <TopLine>69</TopLine>
+      <CurrentLine>72</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\platform\board\stm32\mini\armcc\kbmini_interrupt.s</PathWithFileName>
       <FilenameWithoutPath>kbmini_interrupt.s</FilenameWithoutPath>
@@ -1529,7 +1529,7 @@
       <Focus>0</Focus>
       <ColumnNumber>28</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>25</TopLine>
+      <TopLine>26</TopLine>
       <CurrentLine>31</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\libs\libcal\caobject.c</PathWithFileName>

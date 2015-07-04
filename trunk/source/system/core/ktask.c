@@ -831,6 +831,11 @@ EXPORT RO_CODE VOID CORE_CloseTask(LPTASK_CONTEXT lpTaskContext)
     }
 }
 
+EXPORT RO_CODE BOOL CORE_CheckMustbeSchedule(VOID)
+{
+    return CheckMustSchedule();
+}
+
 /**
  * 进入IRQ中断临界状态
  * @return DWORD 返回中断结束后的嵌套层数
@@ -860,9 +865,8 @@ EXPORT DWORD CORE_LeaveIRQ(VOID)
     return (DWORD)(LeaveInterruptCritiacl());
 }
 
-#if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
 /**
- * 切换任务(硬件任务切换中断，硬件内核堆栈)
+ * 切换任务
  * @param CoreStack 当前任务内核栈指针
  * @param UserStack 当前任务用户栈指针
  * @return E_TASK_PERMISSION 目标任务的权限级别
@@ -882,6 +886,7 @@ EXPORT E_TASK_PERMISSION CORE_SwitchTask(LPVOID CoreStack, LPVOID UserStack)
     SetContextState(lpSwitch2Task, TASK_STATE_WORKING);
     SetCurrentTaskContext(lpSwitch2Task);
     
+    
     if (INVALID_TICK == GetContextStartTick(lpSwitch2Task))
     {
         SetContextStartTick(lpSwitch2Task, CORE_GetSystemTick());
@@ -889,7 +894,6 @@ EXPORT E_TASK_PERMISSION CORE_SwitchTask(LPVOID CoreStack, LPVOID UserStack)
     
     return GetContextPermission(lpSwitch2Task);
 }
-#endif
 
 
 EXPORT VOID CORE_TaskScheduling(VOID)

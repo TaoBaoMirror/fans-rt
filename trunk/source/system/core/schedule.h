@@ -31,6 +31,7 @@ typedef union tagSCHEDULER_FLAGS{
     struct {
         BOOL                SchedulerRunState:1;
         BOOL                NeedSchedule:1;
+        BOOL                MustSchedule:1;
     }Bits;
     BYTE                    Value;
 }SCHEDULER_FLAGS;
@@ -40,9 +41,7 @@ STATIC  RW_CORE_DATA    LIST_HEAD       g_SystemDeathQueue;                     
 STATIC  RW_CORE_DATA    LIST_HEAD       g_TaskSuspendQueue;                                                     /**< 任务休眠队列 */
 STATIC  RW_CORE_DATA    LIST_HEAD       g_TaskReadyQueue[CONFIG_TASK_PRIORITY_MAX];                             /**< 优先级就绪队列 */
 PUBLIC  RW_CORE_DATA    VOLATILE        LPTASK_CONTEXT      g_CurrentContext        =       NULL;               /**< 当前任务上下文指针 */
-#if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
 STATIC  RW_CORE_DATA    VOLATILE        LPTASK_CONTEXT      g_Switch2Context        =       NULL;               /**< 切换目标任务上下文指针  */
-#endif
 
 #if (CONFIG_PROFILER_CYCLE != 0)
 STATIC  RW_CORE_DATA    VOLATILE        DWORD               g_SystemScheduleCount   =       0;                  /**< 任务调度次数 */
@@ -50,7 +49,7 @@ STATIC  RW_CORE_DATA    VOLATILE        DWORD               g_SystemScheduleCoun
 
 STATIC  RW_CORE_DATA    VOLATILE        WORD                g_SystemTaskCount       =       0;
 STATIC  RW_CORE_DATA    VOLATILE        E_STATUS            g_SystemGlobalError     =       STATE_SUCCESS;
-STATIC  RW_CORE_DATA    VOLATILE        SCHEDULER_FLAGS     g_SchedulerFlags        =       {FALSE, FALSE};
+STATIC  RW_CORE_DATA    VOLATILE        SCHEDULER_FLAGS     g_SchedulerFlags        =       {FALSE, FALSE, FALSE};
 STATIC  RW_CORE_DATA    VOLATILE        E_TASK_PERMISSION   g_CurrentPermission     =       TASK_PERMISSION_USER;
 STATIC  RW_CORE_DATA    VOLATILE        TASK_PRIORITY       g_CurrentPriority       =       TASK_PRIORITY_IDLE; /**< 当前任务优先级 */
 STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_InterruptNestLayer    =       2;                  /**< 中断嵌套 */
@@ -94,18 +93,19 @@ STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitma
 #define     CheckNeedSchedule()                         (SCHEDULE_CONDITION == (g_SchedulerFlags.Value & SCHEDULE_CONDITION))
 #define     SetNeedSchedule()                           do { g_SchedulerFlags.Bits.NeedSchedule = TRUE; } while(0)
 #define     ClrNeedSchedule()                           do { g_SchedulerFlags.Bits.NeedSchedule = FALSE; } while(0)
+
+#define     CheckMustSchedule()                         (g_SchedulerFlags.Bits.MustSchedule)
+#define     SetMustSchedule()                           do { g_SchedulerFlags.Bits.MustSchedule = TRUE; } while(0)
+#define     ClrMustSchedule()                           do { g_SchedulerFlags.Bits.MustSchedule = FALSE; } while(0)
+
 #define     GetScheduleRunState()                       (g_SchedulerFlags.Bits.SchedulerRunState)
 #define     SetScheduleRunState(Boolean)                do { g_SchedulerFlags.Bits.SchedulerRunState = (BOOL)(Boolean); } while(0)
-#define     SetCurrentTaskContext(Context)              do { g_CurrentContext = (Context); } while(0)
+
+#define     SetCurrentTaskContext(Context)              do { g_CurrentContext = (Context); ClrMustSchedule();} while(0)
 #define     GetCurrentTaskContext()                     g_CurrentContext
 
-#if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
 #define     GetSwitch2TaskContext()                     g_Switch2Context
 #define     SetSwitch2TaskContext(Context)              do { g_Switch2Context = (Context); } while(0)
-#else
-#define     GetSwitch2TaskContext()                     g_CurrentContext
-#define     SetSwitch2TaskContext(Context)
-#endif
 
 #define     SetCurrentPriority(Priority)                do { g_CurrentPriority = (Priority); } while(0)
 #define     GetCurrentPriority()                        g_CurrentPriority
@@ -247,7 +247,7 @@ STATIC INLINE VOID ClrReadyBitmap(TASK_PRIORITY Priority, BOOL Clear)
 
 #endif
 
-#if (CONFIG_ARCH_SUPPORT_SCHEDULE == TRUE)
+#if 1
 /**
  * Begin to schedule(The CPU support scheduling interrupt).
  * @return VOID
@@ -275,6 +275,7 @@ STATIC VOID ScheduleBegin(VOID)
  //           CORE_INFOR(TRUE, "Will be scheduling to task '%p', Priority is %d, %p, %p, old task is %p.",
  //               lpNewTask, Priority, &g_TaskReadyQueue[Priority], LIST_FIRST_NODE(&g_TaskReadyQueue[Priority]), lpOldTask);
             SetSwitch2TaskContext(lpNewTask);
+            SetMustSchedule();
             CORE_ActiveSwitchIRQ();
         }
     }
