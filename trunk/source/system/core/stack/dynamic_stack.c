@@ -8,7 +8,7 @@
  *    If you need for commercial purposes, you should get the author's permission.
  *
  *    date           author          notes
- *    2015-06-27     JiangYong       new file
+ *    2015-07-5     JiangYong       new file
  */
 #include "config.h"
 #include <stm32f10x.h>
@@ -22,81 +22,22 @@
 #include "kstack.h"
 #include "kdebug.h"
 #include "kboard.h"
-#include "kobject.h"
+#include "kmem.h"
 
-#if (CONFIG_DYNAMIC_STACK_ENABLE == FALSE)
+#if (CONFIG_DYNAMIC_STACK_ENABLE==TRUE)
+
+#if (CONFIG_MEM_REGION_MAX == 0)
+#error "No memory region found !!"
+#endif
+
 typedef struct tagKSTACK_HEADER KSTACK_HEADER;
 typedef struct tagKSTACK_HEADER * PKSTACK_HEADER;
 typedef struct tagKSTACK_HEADER FAR * LPKSTACK_HEADER;
 
 struct tagKSTACK_HEADER{
-    KOBJECT_HEADER          Header;
-    LPSTR                   Buffer[CONFIG_DEFAULT_STACK_SIZE - sizeof(KOBJECT_HEADER)];
+    LPSTR                   Buffer[CONFIG_DEFAULT_STACK_SIZE];
 };
 
-#define     GetStackObjectHeader(lpHeader)          (&(lpHeader)->Header)
-#define     SetStackObjectMagic(lpHeader)           SetObjectMagic(GetContextHeader(lpHeader), STK_MAGIC, STK_MAGIC)
-#define     GetStackObjectHandle(lpHeader)          GetObjectHandle(GetContextHeader(lpHeader))
-
-#define     OBJ_MallocStack                         OBJ_DummyOperation
-#define     OBJ_ActiveStack                         OBJ_DummyOperation
-#define     OBJ_TakeStack                           OBJ_DummyOperation
-#define     OBJ_PostStack                           OBJ_DummyOperation
-#define     OBJ_ResetStack                          OBJ_DummyOperation
-#define     OBJ_DetachStack                         OBJ_DummyOperation
-
-STATIC E_STATUS OBJ_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS OBJ_WaitObject(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
-{
-    return STATE_NOT_SUPPORT;
-}
-
-STATIC E_STATUS OBJ_FreeStack(LPKOBJECT_HEADER lpHeader)
-{
-    return STATE_SUCCESS;
-}
-
-DEFINE_CLASS(SUU_MAGIC,
-            UserStackForUserTask,
-            CONFIG_DEFAULT_STACK_SIZE,
-            OBJ_MallocStack,
-            OBJ_ActiveStack,
-            OBJ_TakeStack,
-            OBJ_WaitObject,
-            OBJ_PostStack,
-            OBJ_ResetStack,
-            OBJ_DetachStack,
-            OBJ_FreeStack);
-
-#if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
-DEFINE_CLASS(SCU_MAGIC,
-            CoreStackForUserTask,
-            CONFIG_CORE_STACK_SIZE,
-            OBJ_MallocStack,
-            OBJ_ActiveStack,
-            OBJ_TakeStack,
-            OBJ_WaitObject,
-            OBJ_PostStack,
-            OBJ_ResetStack,
-            OBJ_DetachStack,
-            OBJ_FreeStack);
-#endif
-
-DEFINE_CLASS(SCC_MAGIC,
-            CoreStackForCoreTask,
-            CONFIG_KTASK_STACK_SIZE,
-            OBJ_MallocStack,
-            OBJ_ActiveStack,
-            OBJ_TakeStack,
-            OBJ_WaitObject,
-            OBJ_PostStack,
-            OBJ_ResetStack,
-            OBJ_DetachStack,
-            OBJ_FreeStack);
 
 PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission)
 {
@@ -138,16 +79,11 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
                 GetContextTaskName(lpCoreContext), Permission, lpHeader);
             return STATE_SUCCESS;
         }
-        else /* 普通任务创建内核堆栈 */
+        else /* 普通任务创建内核栈 */
         {
 #if (CONFIG_CORE_STACK_SIZE == 0)
             /* 任务权限和堆栈权限不一致，如果内核栈大小为0 */
             /* 则普通任务分配用户栈，但是以局部内核栈的方式使用，具备内核任务权限 */
-            if (CONFIG_DEFAULT_STACK_SIZE != lpTaskParam->StackSize)
-            {
-                CORE_ERROR(TRUE, "Invalid user stack size %d.", lpTaskParam->StackSize);
-                return STATE_INVALID_SIZE;
-            }
             if (0 == CORE_GetGlobalTaskCount())
             {
                 /* Boot 任务创建普通堆栈(BOOT任务为普通任务)*/
@@ -156,10 +92,10 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
                 CORE_INFOR(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
             }
-            else
+            else /* 创建非 BOOT 任务内核栈 */
             {
-                lpHeader = (LPVOID)CORE_MallocNoNameObject(SUU_MAGIC, lpTaskParam);
-                SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_DEFAULT_STACK_SIZE);
+                lpHeader = (LPVOID)CORE_PageAlloc(CONFIG_CORE_STACK_SIZE);
+                SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_CORE_STACK_SIZE);
             }
 #elif (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
             /* CPU 支持全局内核堆栈 */
@@ -169,7 +105,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
 #else
             /* CPU 不支持全局内核堆栈，每个任务一个独立的内核堆栈 */
-            lpHeader = (LPVOID)CORE_MallocNoNameObject(SCU_MAGIC, lpTaskParam);
+            lpHeader = (LPVOID)CORE_PageAlloc(lpTaskParam->StackSize);
             SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_CORE_STACK_SIZE);
 #endif
         }
@@ -183,9 +119,9 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
     else
     {
         /* 任务权限和堆栈权限一致的情况：内核任务创建内核堆栈和普通任务创建普通堆栈 */
+#if (CONFIG_CORE_STACK_SIZE == 0)
         if (TASK_PERMISSION_USER == Permission)
         {
-#if (CONFIG_CORE_STACK_SIZE == 0)
             /* 任务权限和堆栈权限一致，但是没有全局内核栈，则任务不指定用户栈 */
             SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
             SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
@@ -193,23 +129,11 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
                 GetContextTaskName(lpCoreContext), Permission, lpHeader);
 
             return STATE_SUCCESS;
-#else
-            /* 任务权限和堆栈权限一致，并且有全局内核栈，则为任务分配局部用户栈 */
-            lpHeader = (LPVOID)CORE_MallocNoNameObject(SUU_MAGIC, lpTaskParam);
-            SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_DEFAULT_STACK_SIZE);
+        }
 #endif
-        }
-        else
-        {
-            if (CONFIG_KTASK_STACK_SIZE != lpTaskParam->StackSize)
-            {
-                CORE_ERROR(TRUE, "Invalid core task stack size %d.", lpTaskParam->StackSize);
-                return STATE_INVALID_SIZE;
-            }
-            
-            lpHeader = (LPVOID)CORE_MallocNoNameObject(SCC_MAGIC, lpTaskParam);
-            SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_KTASK_STACK_SIZE);
-        }
+        lpHeader = (LPVOID)CORE_PageAlloc(lpTaskParam->StackSize);
+        SetStackCapacity(GetArchSD(lpArchContext, Permission), lpTaskParam->StackSize);
+
     }
     
     SetStackBuffer(GetArchSD(lpArchContext, Permission), lpHeader);
@@ -281,9 +205,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
                               GetContextHandle(lpCoreContext), Permission);
         }
 
-        SetStackHandle(GetArchSD(lpArchContext, Permission), GetStackObjectHandle(lpHeader));
         SetStackPosition(GetArchSD(lpArchContext, Permission), lpStackPosition);
-        SetStackObjectMagic(lpHeader);
         
         CORE_INFOR(TRUE, "Task '%s' fill stack(%d) buffer 0x%p buttom 0x%p position 0x%p.",
             GetContextTaskName(lpCoreContext), Permission, lpHeader,
@@ -383,7 +305,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
             if (TASK_PERMISSION_USER == Permission)
             {
                 /* 内核任务不会分配用户栈，所以直接返回成功 */
-                CORE_INFOR(TRUE, "Task '%s' no need free user stack.",
+                CORE_INFOR(TRUE, "Task '%s' no need free user stack",
                     GetContextTaskName(lpCoreContext));
                 break;
             }
@@ -395,19 +317,12 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
         /*2.普通任务释放内核栈，并且CPU不支持全局内核栈 */
         if (NULL != lpHeader)
         {
-            SetObjectHandle(GetStackObjectHeader(lpHeader),
-                    GetStackHandle(GetArchSD(lpArchContext, Permission)));
-            SetObjectState(GetStackObjectHeader(lpHeader), KOBJECT_STATE_ACTIVE);
-            
-            initSelfHashNode(GetStackObjectHeader(lpHeader));
-
-            Result = CORE_FreeObject(GetStackObjectHeader(lpHeader));
+            Result = CORE_PageFree(lpHeader);
         }
  
     } while(0);
 
     SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
-    SetStackHandle(GetArchSD(lpArchContext, Permission), INVALID_HANDLE_VALUE);
     SetStackPosition(GetArchSD(lpArchContext, Permission), NULL);
     SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
 
@@ -448,28 +363,8 @@ DEFINE_LPC_SERVICE(LPCService, STK_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHand
 
 PUBLIC E_STATUS initCoreSystemTaskStackManager(VOID)
 {
-    E_STATUS State;
-    /* 注册 用户栈 对象类 */
-    State = CORE_RegisterClass(&UserStackForUserTask);
-
-    CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
-        "Register stack class failed, result %d !", State);
-#if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
-    /* 注册 用户任务的内核栈 对象类 */
-    State = CORE_RegisterClass(&CoreStackForUserTask);
-
-    CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
-        "Register stack class failed, result %d !", State);
-#endif
-    /* 注册 内核任务栈 对象类 */
-    State = CORE_RegisterClass(&CoreStackForCoreTask);
-
-    CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
-        "Register stack class failed, result %d !", State);
-    
     LPC_INSTALL(&LPCService, "Task stack(STK) manager starting");
     
     return STATE_SUCCESS;
 }
 #endif
-

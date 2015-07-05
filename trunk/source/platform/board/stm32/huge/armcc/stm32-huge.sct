@@ -13,7 +13,7 @@ LR_IROM1 0x08000000 0x0000D000  {    ; load region size_region
    .ANY (+RO)
   }
 
-  RW_IRAM1 0x20000000 0x00003e00  {  ; RW data
+  RW_IRAM1 0x20001400 0x0000ec00  {  ; RW data
    startup_stm32f10x_hd.o (STACK, +First)
    startup_stm32f10x_hd.o (HEAP, +RW +ZI)
    kbcom_stack.o (.IdleStack, +RW +ZI)
@@ -21,13 +21,13 @@ LR_IROM1 0x08000000 0x0000D000  {    ; load region size_region
 ;   kbstm32_stack.o (.CoreStack, +RW +ZI)
   }
 
-  RW_IRAM2 0x20000000 0x00001000  {  ; RW data
+  RW_IRAM2 0x20000000 0x00001200  {  ; RW data
    *.o (.CoreRWdata, +ZI, +RW)
    *.o (.data, +ZI +RW)
    *.o (.bss)
    .ANY (+ZI +RW)
   }
-  RW_IRAM3 0x20001000 0x00000200  {  ; RW data
+  RW_IRAM3 0x20001200 0x00000200  {  ; RW data
    testtask.o (.UserRWdata, +RW +ZI)
    caobject.o (.UserRWdata, +RW +ZI)
   }
