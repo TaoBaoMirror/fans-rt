@@ -707,11 +707,6 @@
               <FilePath>..\..\source\platform\board\stm32\kbstm32_misc.c</FilePath>
             </File>
             <File>
-              <FileName>kblite_memory.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\kblite_memory.c</FilePath>
-            </File>
-            <File>
               <FileName>kbstm32_init.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\kbstm32_init.c</FilePath>
@@ -725,6 +720,11 @@
               <FileName>kbstm32_stack.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\kbstm32_stack.c</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_memory.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\kboard_memory.c</FilePath>
             </File>
           </Files>
         </Group>

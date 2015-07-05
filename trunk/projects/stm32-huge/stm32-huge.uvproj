@@ -632,9 +632,14 @@
               <FilePath>..\..\source\system\core\stack\kstack.h</FilePath>
             </File>
             <File>
-              <FileName>static_stack.c</FileName>
+              <FileName>kstack.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\system\core\stack\static_stack.c</FilePath>
+              <FilePath>..\..\source\system\core\kstack.c</FilePath>
+            </File>
+            <File>
+              <FileName>dynamic_stack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\system\core\stack\dynamic_stack.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -722,14 +727,14 @@
               <FilePath>..\..\source\platform\board\stm32\huge\khash.h</FilePath>
             </File>
             <File>
-              <FileName>kbhuge_interrupt.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\source\platform\board\stm32\huge\armcc\kbhuge_interrupt.s</FilePath>
-            </File>
-            <File>
               <FileName>kboard_memory.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\huge\kboard_memory.c</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_interrupt.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\source\platform\board\stm32\huge\armcc\kboard_interrupt.s</FilePath>
             </File>
           </Files>
         </Group>

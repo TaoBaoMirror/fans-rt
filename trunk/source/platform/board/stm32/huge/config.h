@@ -52,8 +52,8 @@
 #define     CONFIG_OBJECT4_POOL_MAX             0           /**< The max pools for 512 bytes class */
 #define     CONFIG_OBJECT4_BLOCK_MAX            0           /**< The max blocks for 512 bytes class */
 
-#define     CONFIG_OBJECT5_POOL_MAX             4           /**< The max pools for 1024 bytes class */
-#define     CONFIG_OBJECT5_BLOCK_MAX            8           /**< The max blocks for 1024 bytes class */
+#define     CONFIG_OBJECT5_POOL_MAX             0           /**< The max pools for 1024 bytes class */
+#define     CONFIG_OBJECT5_BLOCK_MAX            0           /**< The max blocks for 1024 bytes class */
 
 #define     CONFIG_OBJECT6_POOL_MAX             0           /**< The max pools for 2048 bytes class */
 #define     CONFIG_OBJECT6_BLOCK_MAX            0           /**< The max blocks for 2048 bytes class */
@@ -70,7 +70,7 @@
 #define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU 是否支持全局内核栈 */
 #define     CONFIG_ARCH_SUPPORT_SCHEDULE        FALSE       /**< CPU 是否支持任务调度中断 */
 #define     CONFIG_ARCH_SUPPORT_MPU             FALSE       /**< CPU 是否支持内存保护单元 */
-#define     CONFIG_DYNAMIC_STACK_ENABLE         FALSE       /**< 动态堆栈长度支持 */
+#define     CONFIG_DYNAMIC_STACK_ENABLE         TRUE        /**< 动态堆栈长度支持 */
 #define     CONFIG_BUILD_TASK_PATH              FALSE       /**< 任务路径支持 */
 #define     CONFIG_DEFAULT_PATH                 "/"         /**< 默认的任务路径 */
 #define     CONFIG_SYSTICK_FREQUENCY            1000        /**< 内核时钟频率 */
