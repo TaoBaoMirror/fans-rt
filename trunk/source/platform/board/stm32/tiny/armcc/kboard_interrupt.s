@@ -1,4 +1,25 @@
-	INCLUDE kirq_define_enum.inc
+;
+;    Copyright(C) 2013-2015, Fans-rt development team.
+;
+;    All rights reserved.
+;
+;    This is open source software.
+;    Learning and research can be unrestricted to  modification, use and dissemination.
+;    If you need for commercial purposes, you should get the author's permission.
+;
+;    Configuration:
+;     System global core stack                  NO
+;     The local core stack of general task      YES
+;     The loacl core stack of kernel task       YES
+;     The local user stack of general task      NO
+;     Hardware supported task switch IRQ        NO
+;     Hardware supported double stack           NO
+;
+;    date           author          notes
+;    2015-06-25     JiangYong       new file
+;    2015-07-07     JiangYong       rename to kboard_interrupt.s
+;
+        INCLUDE kirq_define_enum.inc
 
     EXPORT  UsageFault_Handler
     EXPORT  BusFault_Handler
