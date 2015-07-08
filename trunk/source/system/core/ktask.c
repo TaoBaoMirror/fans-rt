@@ -30,9 +30,6 @@
 
 #define     BOOT_TASK_ID                0
 #define     IDLE_TASK_ID                1
-#define     MakeCoreStackHandle(id)                                                             \
-            MakeCoreHandle(Magic2ClassID(STK_MAGIC), 0, KOBJECT_STATE_ACTIVE, id, 0)
-
 
 EXPORT DWORD CORE_GetGlobalTaskCount(VOID)
 {
