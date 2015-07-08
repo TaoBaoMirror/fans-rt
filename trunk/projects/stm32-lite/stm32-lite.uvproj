@@ -722,11 +722,6 @@
               <FilePath>..\..\source\platform\board\stm32\kbstm32_init.c</FilePath>
             </File>
             <File>
-              <FileName>kblite_interrupt.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\source\platform\board\stm32\lite\armcc\kblite_interrupt.s</FilePath>
-            </File>
-            <File>
               <FileName>kbstm32_stack.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\kbstm32_stack.c</FilePath>
@@ -735,6 +730,11 @@
               <FileName>kboard_memory.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\lite\kboard_memory.c</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_interrupt.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\source\platform\board\stm32\lite\armcc\kboard_interrupt.s</FilePath>
             </File>
           </Files>
         </Group>
