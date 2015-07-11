@@ -17,7 +17,7 @@
 ;
 ;    date           author          notes
 ;    2015-06-25     JiangYong       new file
-;    2015-07-07     JiangYong       rename to kboard_interrupt.s
+;    2015-07-11     JiangYong       soft stack mode finished
 ;
         INCLUDE kirq_define_enum.inc
 
@@ -61,46 +61,23 @@ PendSV_Handler  PROC
 
 SVC_Handler     PROC
     CPSID   I                           ;  Why to disable IRQ ? Guess !
-    PUSH    {LR, R12}                   ;  Save the parameter of service
+    PUSH    {LR, R12}                   ;  Why to push r12 ?
     BL      CORE_EnterIRQ               ;  Set current interrupt nest layer
-    MOV     R12,    SP                  ;  SP - 8 = Offset of {R0 - R3}
-    CBNZ    R0,     SV_L0
-    PUSH    {R4 - R11}
-    MOV     R11,    SP
-    BL      CORE_GetCurrentPermission   ;  Core task no need set core stack position
-    CBZ     R0,     SV_L0
+    MOV     R12,    SP                  ;  SP + 8 = Offset of {R0 - R3}
+    CBNZ    R0,     SV_L0               ;  IRQ nest layer is not 0 then no need switch stack
+    PUSH    {R4 - R11}                  ;  Save the other registers of current task
+    MOV     R11,    SP                  ;  R11 = Break point
+    BL      CORE_GetCurrentPermission   ;  Check the permission of current task
+    CBZ     R0,     SV_L0               ;  If is core task no need switch to global core stack
     BL      CORE_GetCoreStackPosition   ;  R0 = Core stack for new task
-    MOV     SP,     R0
+    MOV     SP,     R0                  ;  switch to global core stack
 SV_L0
     ADD     R12,    #8                  ;  R12 = Offset of {R0 - R3}
     LDMFD   R12,    {R0-R3}             ;  Load user stack for the new task(user)
-    SUB     R12,    #8
-    CPSIE   I                           ;
+    SUB     R12,    #8                  ;  R12 is the stack point if the IRQ nest layer not 0
+    CPSIE   I                           ;  Enable IRQ
     BL      CORE_HandlerLPC             ;  Call system service
-    CPSID   I                           ;
-    BL      CORE_LeaveIRQ               ;  Set and get current interrupt nest layer
-    CBNZ    R0,     SV_LE
-    BL      CORE_CheckMustbeSchedule    ;  Check need schedule
-    CBZ     R0,     SV_L1
-    MOV     R1,     R11                 ;  R11 = User stack position
-    MOV     R0,     SP
-    BL      CORE_SwitchTask             ;  CORE_SwitchTask(CoreStack, UserStack);
-    MOV     R4,     R0                  ;
-    BL      CORE_GetCoreStackPosition   ;
-    MOV     R11,    R0                  ;
-    CBZ     R4,     SV_L1               ;
-    BL      CORE_GetTaskStackPosition   ;
-    MOV     R11,    R0
-SV_L1
-    MOV     SP,     R11
-    POP     {LR, R4 - R12}
-    CPSIE   I
-    BX      LR
-SV_LE
-    MOV     SP,     R12
-    POP     {LR, R12}
-    CPSIE   I
-    BX      LR
+    B       ST_L1                       ;  The next step same as system tick handler
     ENDP
 
 SysTick_Handler PROC
@@ -108,41 +85,42 @@ SysTick_Handler PROC
     PUSH    {LR, R12}                   ;  Save the parameter of service
     BL      CORE_EnterIRQ               ;  Set current interrupt nest layer
     MOV     R12,    SP                  ;  SP - 8 = Offset of {R0 - R3}
-    CBNZ    R0,     ST_L0
-    PUSH    {R4 - R11}
-    MOV     R11,    SP
-    BL      CORE_GetCurrentPermission   ;  Core task no need set core stack position
-    CBZ     R0,     ST_L0
+    CBNZ    R0,     ST_L0               ;  IRQ nest layer is not 0 then no need switch stack
+    PUSH    {R4 - R11}                  ;  Save the other registers of current task
+    MOV     R11,    SP                  ;  R11 = Break point
+    BL      CORE_GetCurrentPermission   ;  Check the permission of current task
+    CBZ     R0,     ST_L0               ;  If is core task no need switch to global core stack
     BL      CORE_GetCoreStackPosition   ;  R0 = Core stack for new task
-    MOV     SP,     R0
+    MOV     SP,     R0                  ;  Switch to global core stack
 ST_L0
     BL      CORE_TickHandler            ;  Inc the system tick
-    CPSIE   I                           ;
+    CPSIE   I                           ;  Enable IRQ
     BL      CORE_TaskScheduling         ;  Find the new task will be scheduling
-    CPSID   I                           ;
-    BL      CORE_LeaveIRQ               ;  Set and get current interrupt nest layer
-    CBNZ    R0,     ST_LE
-    BL      CORE_CheckMustbeSchedule    ;  Check need schedule
-    CBZ     R0,     ST_L1
-    MOV     R1,     R11                 ;  R11 = User stack position
-    MOV     R0,     SP
-    BL      CORE_SwitchTask             ;  CORE_SwitchTask(CoreStack, UserStack);
-    MOV     R4,     R0                  ;
-    BL      CORE_GetCoreStackPosition   ;
-    MOV     R11,    R0                  ;
-    CBZ     R4,     ST_L1               ;
-    BL      CORE_GetTaskStackPosition   ;
-    MOV     R11,    R0
 ST_L1
-    MOV     SP,     R11
-    POP     {LR, R4 - R12}
-    CPSIE   I
-    BX      LR
+    CPSID   I                           ;  Disable IRQ
+    BL      CORE_LeaveIRQ               ;  Set and get current interrupt nest layer
+    CBNZ    R0,     ST_LE               ;  IRQ nest layer is not 0 then return
+    BL      CORE_CheckMustbeSchedule    ;  Check need schedule
+    CBZ     R0,     ST_L2               ;  If no need schedule then return to user stack(R11 = Break point)
+    MOV     R1,     R11                 ;  R1 = User stack position
+    MOV     R0,     SP                  ;  R0 = Core stack position 
+    BL      CORE_SwitchTask             ;  CORE_SwitchTask(CoreStack, UserStack);
+    MOV     R4,     R0                  ;  R4 = The permission of new task
+    BL      CORE_GetCoreStackPosition   ;  R0 = Core stack for new task
+    MOV     R11,    R0                  ;  R11 = Core stack for new task
+    CBZ     R4,     ST_L2               ;  If the new task is core task, then scheduling
+    BL      CORE_GetTaskStackPosition   ;  R0 = User stack for new task
+    MOV     R11,    R0                  ;  R11 = User stack for new task
+ST_L2
+    MOV     SP,     R11                 ;  Switch stack to new task
+    POP     {LR, R4 - R12}              ;  Resume break point
+    CPSIE   I                           ;  Enable IRQ
+    BX      LR                          ;  Scheduling new task
 ST_LE
-    MOV     SP,     R12
-    POP     {LR, R12}
-    CPSIE   I
-    BX      LR
+    MOV     SP,     R12                 ;  Switch to user stack(IRQ nest)
+    POP     {LR, R12}                   ;  Resume the registers
+    CPSIE   I                           ;  Enable IRQ
+    BX      LR                          ;  Return to the original IRQ
     ENDP
 
 HardFault_Handler   PROC
