@@ -18,6 +18,7 @@
 ;    date           author          notes
 ;    2015-06-25     JiangYong       new file
 ;    2015-07-07     JiangYong       rename to kboard_interrupt.s
+;    2015-07-11     JiangYong       code optimization
 ;
         INCLUDE kirq_define_enum.inc
 
