@@ -591,6 +591,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\system\core\stack\static_stack.c</FilePath>
             </File>
+            <File>
+              <FileName>kstack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\system\core\kstack.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -642,16 +647,6 @@
               <FilePath>..\..\source\platform\board\stm32\tiny\kirq_define.ini</FilePath>
             </File>
             <File>
-              <FileName>kirq_define_enum.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\board\stm32\tiny\kirq_define_enum.h</FilePath>
-            </File>
-            <File>
-              <FileName>kirq_define_name.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\board\stm32\tiny\kirq_define_name.h</FilePath>
-            </File>
-            <File>
               <FileName>config.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\platform\board\stm32\tiny\config.h</FilePath>
@@ -662,24 +657,9 @@
               <FilePath>..\..\source\platform\board\stm32\tiny\kboard.h</FilePath>
             </File>
             <File>
-              <FileName>kboard_name.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\board\stm32\tiny\kboard_name.h</FilePath>
-            </File>
-            <File>
               <FileName>khash.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\platform\board\stm32\tiny\khash.h</FilePath>
-            </File>
-            <File>
-              <FileName>kirq_define_enum.inc</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\board\stm32\tiny\armcc\kirq_define_enum.inc</FilePath>
-            </File>
-            <File>
-              <FileName>kbtiny_interrupt.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\source\platform\board\stm32\tiny\armcc\kbtiny_interrupt.s</FilePath>
             </File>
             <File>
               <FileName>startup_stm32f10x_ld.s</FileName>
@@ -705,6 +685,11 @@
               <FileName>kbcom_stack.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\kbcom_stack.c</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_interrupt.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\source\platform\board\stm32\tiny\armcc\kboard_interrupt.s</FilePath>
             </File>
           </Files>
         </Group>

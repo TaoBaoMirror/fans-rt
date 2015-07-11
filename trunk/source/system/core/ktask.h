@@ -34,10 +34,6 @@ enum{
     LPC_TSS_GET_STARTTICK,
     LPC_TSS_GET_PRIORITY,
     LPC_TSS_SET_PRIORITY,
-    LPC_TSS_GET_SMLTKEY,
-    LPC_TSS_PUT_SMLTKEY,
-    LPC_TSS_GET_SMLTVALUE,
-    LPC_TSS_SET_SMLTVALUE,
     LPC_TSS_SCHEDULE_TIMEOUT,
     LPC_TSS_WAKE_UP,
     LPC_TSS_TEST_CANCEL,
@@ -51,8 +47,6 @@ enum{
 
 
 #define     TASK_ENTRY(Ptr, Member)     ((LPTASK_CONTEXT)CONTAINER_OF(Ptr, TASK_CONTEXT, Member))
-
-#define     SMLT_ARRAY_SIZE             4                       /* 任务局部变量数组大小 */
 
 typedef struct tagTASK_CONTEXT TASK_CONTEXT;
 typedef struct tagTASK_CONTEXT * PTASK_CONTEXT;
@@ -83,14 +77,7 @@ struct tagTASK_CONTEXT{
             DWORD           FaultBit:1;                         /* 任务异常标记(堆栈溢出) */
             DWORD           CancelBit:1;                        /* 任务取消标志 */
             DWORD           Permission:1;                       /**< The permission of task */
-            DWORD           SmltMark:SMLT_ARRAY_SIZE;           /* The mark of smlt */
-            DWORD           Reserved0:1;                        /* Reserved bits */
-#if (CONFIG_DYNAMIC_STACK_ENABLE != TRUE)
-            DWORD           StackTid:3;                         /* 堆栈TID */
-            DWORD           StackPid:10;                        /* 堆栈PID */
-#else
-            DWORD           ReservedBits2:13;                    /* 保留 16 Bits */
-#endif
+            DWORD           ReservedBits:18;                    /* 保留 18 Bits */
         }Bits;
         DWORD               MiscBits;
     }ub;
@@ -107,12 +94,16 @@ struct tagTASK_CONTEXT{
     E_STATUS                ErrorCode;                          /* 错误码 */
     BYTE                    bReserved[3];
     LPLPC_REQUEST_PACKET    lpLPCPacket;                        /* LPC 请求包指针 for wait object */
-    DWORD                   SmltArray[SMLT_ARRAY_SIZE];         /* static memory local to a task */
-    DWORD                   Reserved[2];                        /* 保留 */
+    LPKOBJECT_HEADER        lpLsotObject;                       /* 局部变量对象 */
+    DWORD                   Reserved[5];                        /* 保留 */
 #if (CONFIG_BUILD_TASK_PATH == TRUE)
     CHAR                    cbTaskPath[MAX_PATH];               /* 任务当前路径 */
 #endif
 };
+
+#define     GetContextLsotObject(lpTC)                      ((lpTC)->lpLsotObject)
+#define     SetContextLsotObject(lpTC, lpHeader)            do {(lpTC)->lpLsotObject = (LPVOID)(lpHeader);} while(0)
+
 
 #define     TASK_BITS_STACKPID_MASK             OBJECT_PID_MASK
 #define     TASK_BITS_STACKTID_MASK             OBJECT_TID_MASK
@@ -146,15 +137,13 @@ struct tagTASK_CONTEXT{
 #define     MISCBITS_STACKID_BITS_SHIFT         19
 #define     MISCBITS_STACKID_BITS_MASK          (MISCBITS_STACKPID_BITS_MASK + MISCBITS_STACKTID_BITS_MASK)
 
-#define     SetContextMiscBits(lpTC, Percent, State, Fault, StackPid, StackTid)                         \
+#define     SetContextMiscBits(lpTC, Percent, State, Fault)                                             \
             do {                                                                                        \
                 (lpTC)->ub.MiscBits = (((DWORD)(State)) << MISCBITS_STATE_BITS_SHIFT)                   \
                                     | (((DWORD)(Percent)) << MISCBITS_PERCENT_BITS_SHIFT)               \
                                     | (((DWORD)(Fault)) << MISCBITS_FAULT_BIT_SHIFT)                    \
-                                    | (((DWORD)(StackPid)) << MISCBITS_STACKPID_BITS_SHIFT)             \
-                                    | (((DWORD)(StackTid)) << MISCBITS_STACKTID_BITS_SHIFT)             \
                                     | (((DWORD)(TASK_PERMISSION_USER)) << MISCBITS_PERMISSION_SHIFT)    \
-                                    | (((DWORD)(TRUE)) << MISCBITS_CANCEL_BIT_SHIFT);                  \
+                                    | (((DWORD)(TRUE)) << MISCBITS_CANCEL_BIT_SHIFT);                   \
             } while(0)
 
 #define     GetContextStartTick(lpTC)                       ((lpTC)->StartTick)
@@ -226,12 +215,6 @@ struct tagTASK_CONTEXT{
 
 #define     GetContextPermission(lpTC)                      ((E_TASK_PERMISSION)((lpTC)->ub.Bits.Permission))
 #define     SetContextPermission(lpTC, Perm)                do {(lpTC)->ub.Bits.Permission = (Perm);} while(0)
-
-#define     GetContextSmltMarkBits(lpTC)                    ((lpTC)->ub.Bits.SmltMark)
-#define     GetContextSmltKeyIsFree(lpTC, id)               (0 == (((lpTC)->ub.Bits.SmltMark) & (1 << (id))))
-#define     SetContextSmltKeyToFree(lpTC, id)               do { (lpTC)->ub.Bits.SmltMark &= (~(1 << (id))); } while(0)
-#define     GetContextSmltValue(lpTC, id)                   ((lpTC)->SmltArray[id])
-#define     SetContextSmltValue(lpTC, id, Value)            do {(lpTC)->SmltArray[id] = (Value);} while(0)
 
 #define     GetContextThisPriority(lpTC)                    ((lpTC)->ThisPriority)
 #define     SetContextThisPriority(lpTC, Prio)              do {(lpTC)->ThisPriority = (Prio); } while(0)

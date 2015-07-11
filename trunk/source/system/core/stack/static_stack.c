@@ -50,6 +50,25 @@ STATIC E_STATUS OBJ_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_SUCCESS;
 }
 
+#if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
+STATIC SIZE_T OBJ_SizeofCoreStack(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return CONFIG_CORE_STACK_SIZE;
+}
+#endif
+
+STATIC SIZE_T OBJ_SizeofUserStack(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return CONFIG_DEFAULT_STACK_SIZE;
+}
+
+STATIC SIZE_T OBJ_SizeofKtaskStack(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return CONFIG_KTASK_STACK_SIZE;
+}
+
+
+
 STATIC E_STATUS OBJ_WaitObject(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
 {
     return STATE_NOT_SUPPORT;
@@ -62,7 +81,7 @@ STATIC E_STATUS OBJ_FreeStack(LPKOBJECT_HEADER lpHeader)
 
 DEFINE_CLASS(SUU_MAGIC,
             UserStackForUserTask,
-            CONFIG_DEFAULT_STACK_SIZE,
+            OBJ_SizeofUserStack,
             OBJ_MallocStack,
             OBJ_ActiveStack,
             OBJ_TakeStack,
@@ -75,7 +94,7 @@ DEFINE_CLASS(SUU_MAGIC,
 #if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
 DEFINE_CLASS(SCU_MAGIC,
             CoreStackForUserTask,
-            CONFIG_CORE_STACK_SIZE,
+            OBJ_SizeofCoreStack,
             OBJ_MallocStack,
             OBJ_ActiveStack,
             OBJ_TakeStack,
@@ -88,7 +107,7 @@ DEFINE_CLASS(SCU_MAGIC,
 
 DEFINE_CLASS(SCC_MAGIC,
             CoreStackForCoreTask,
-            CONFIG_KTASK_STACK_SIZE,
+            OBJ_SizeofKtaskStack,
             OBJ_MallocStack,
             OBJ_ActiveStack,
             OBJ_TakeStack,

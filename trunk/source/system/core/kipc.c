@@ -141,7 +141,10 @@ struct tagIPC_EVENT_OBJECT{
 #define     SetEventSignal(lpObject, value)                                                          \
             do { ((LPIPC_EVENT_OBJECT)(lpObject))->Marks.Bits.Signal = value; } while(0)
 
-
+STATIC SIZE_T IPC_SizeofEvent(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return sizeof(IPC_EVENT_OBJECT);
+}
 
 STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
@@ -254,7 +257,8 @@ STATIC E_STATUS IPC_FreeEvent(LPKOBJECT_HEADER lpHeader)
 }
 
 
-DEFINE_CLASS(EVT_MAGIC, EventClass, sizeof(IPC_EVENT_OBJECT),
+DEFINE_CLASS(EVT_MAGIC, EventClass,
+            IPC_SizeofEvent,
             IPC_MallocEvent,
             IPC_ActiveEvent,
             IPC_TakeEvent,
@@ -304,6 +308,11 @@ struct tagIPC_MUTEX_OBJECT{
                 (((LPIPC_MUTEX_OBJECT)(lpObject))->un.Attribute) =                                  \
                     ((Handle & (~HANDLE_OBJECT_SID_MASK)) | (Value & HANDLE_OBJECT_SID_MASK));      \
             } while(0)
+
+STATIC SIZE_T IPC_SizeofMutex(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return sizeof(IPC_MUTEX_OBJECT);
+}
 
 STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
@@ -472,7 +481,8 @@ STATIC E_STATUS IPC_DetachMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_INVALID_PARAMETER;
 }
 
-DEFINE_CLASS(MTX_MAGIC, MutexClass, sizeof(IPC_MUTEX_OBJECT),
+DEFINE_CLASS(MTX_MAGIC, MutexClass,
+            IPC_SizeofMutex,
             IPC_MallocMutex,
             IPC_ActiveMutex,
             IPC_TakeMutex,
@@ -490,6 +500,12 @@ struct tagIPC_SEMAPHORE_OBJECT{
     IPC_BASE_OBJECT                 Base;
     VOLATILE SEMAPHORE_ATTRIBUTE    Attribute;
 };
+
+STATIC SIZE_T IPC_SizeofSemaphone(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return sizeof(IPC_SEMAPHORE_OBJECT);
+}
+
 
 STATIC E_STATUS IPC_ActiveSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
@@ -511,7 +527,8 @@ STATIC E_STATUS IPC_FreeSemaphore(LPKOBJECT_HEADER lpHeader)
     return STATE_NOT_SUPPORT;
 }
 
-DEFINE_CLASS(SEM_MAGIC, SemaphoreClass, sizeof(IPC_SEMAPHORE_OBJECT),
+DEFINE_CLASS(SEM_MAGIC, SemaphoreClass,
+            IPC_SizeofSemaphone,
             IPC_MallocSemaphore,
             IPC_ActiveSemaphore,
             IPC_TakeSemaphore,
@@ -529,6 +546,12 @@ struct tagIPC_SEMSET_OBJECT{
     IPC_BASE_OBJECT                 Base;
     VOLATILE SEMSET_ATTRIBUTE    Attribute;
 };
+
+STATIC SIZE_T IPC_SizeofSemset(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return sizeof(IPC_SEMSET_OBJECT);
+}
+
 
 STATIC E_STATUS IPC_ActiveSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
@@ -550,7 +573,8 @@ STATIC E_STATUS IPC_FreeSemset(LPKOBJECT_HEADER lpHeader)
     return STATE_NOT_SUPPORT;
 }
 
-DEFINE_CLASS(SET_MAGIC, SemsetClass, sizeof(IPC_SEMSET_OBJECT),
+DEFINE_CLASS(SET_MAGIC, SemsetClass,
+            IPC_SizeofSemset,
             IPC_MallocSemset,
             IPC_ActiveSemset,
             IPC_TakeSemset,

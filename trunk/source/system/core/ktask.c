@@ -88,7 +88,7 @@ STATIC VOID SetContextParam(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE_PARAM lp
 #endif
     SetContextSliceRemain(lpTaskContext, MILLI_SECOND_TO_TICK(lpTaskParam->SliceLength));
     SetContextSliceLength(lpTaskContext, MILLI_SECOND_TO_TICK(lpTaskParam->SliceLength));
-    SetContextMiscBits(lpTaskContext, 0, TASK_STATE_CREATE, FALSE, 0, 0);
+    SetContextMiscBits(lpTaskContext, 0, TASK_STATE_CREATE, FALSE);
     SetContextThisPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextInitPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextTaskError(lpTaskContext, STATE_SUCCESS);
@@ -234,7 +234,7 @@ STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
     return Result;
 }
 
-
+#if 0
 STATIC SMLT_KEY_T MallocSmltKey(LPTASK_CONTEXT lpTaskContext)
 {
     DWORD MarkBits = GetContextSmltMarkBits(lpTaskContext);
@@ -298,7 +298,7 @@ STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey
 
     return STATE_SUCCESS;
 }
-
+#endif
 /************************************************************************************************
                                Some none object functions
 ************************************************************************************************/
@@ -322,6 +322,12 @@ STATIC E_STATUS OBJ_WaitContext(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
 /************************************************************************************************
                                Some task object functions
 ************************************************************************************************/
+STATIC SIZE_T OBJ_SizeofContext(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return sizeof(TASK_CONTEXT);
+}
+
+
 STATIC E_STATUS OBJ_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     LPTASK_CREATE_PARAM lpTaskParam = lpParam;
@@ -405,7 +411,8 @@ STATIC E_STATUS OBJ_FreeContext(LPKOBJECT_HEADER lpHeader)
 }
 
 
-DEFINE_CLASS(TSK_MAGIC, TaskClass, sizeof(TASK_CONTEXT),
+DEFINE_CLASS(TSK_MAGIC, TaskClass,
+            OBJ_SizeofContext,
             OBJ_MallocContext,
             OBJ_ActiveContext,
             OBJ_TakeContext,
@@ -582,55 +589,6 @@ STATIC E_STATUS SVC_SetTaskPriority(LPVOID lpPrivate, LPVOID lpParam)
     return State;
 }
 
-
-STATIC E_STATUS SVC_GetSmltKey(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
-    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-
-    lpPacket->u0.dParam = MallocSmltKey(lpCurrentTask);
-    
-    if (TASK_SMLTKEY_INVALID == (SMLT_KEY_T) lpPacket->u0.dParam)
-    {
-        SetTaskError(STATE_OUT_OF_MEMORY);
-        return STATE_OUT_OF_MEMORY;
-    }
-    
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS SVC_PutSmltKey(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
-    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-
-    return FreeSmltKey(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam);
-}
-
-STATIC E_STATUS SVC_GetSmltValue(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
-    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-    
-    return GetSmltKeyValue(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam, (LPDWORD)&lpPacket->u1.dParam);
-}
-
-STATIC E_STATUS SVC_SetSmltValue(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
-    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-    
-    return SetSmltKeyValue(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam, lpPacket->u1.dParam);
-}
-
 STATIC E_STATUS SVC_CloseTask(LPVOID lpPrivate, LPVOID lpParam)
 {
     LPTASK_CONTEXT lpTaskContext;
@@ -672,18 +630,14 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_GetTaskStartTick,           /* 04.LPC_TSS_GET_STARTTICK */
     SVC_GetTaskPriority,            /* 05.LPC_TSS_GET_PRIORITY */
     SVC_SetTaskPriority,            /* 06.LPC_TSS_SET_PRIORITY */
-    SVC_GetSmltKey,                 /* 07.LPC_TSS_GET_SMLTKEY */
-    SVC_PutSmltKey,                 /* 08.LPC_TSS_PUT_SMLTKEY */
-    SVC_GetSmltValue,               /* 09.LPC_TSS_GET_SMLTVALUE */
-    SVC_SetSmltValue,               /* 10.LPC_TSS_SET_SMLTVALUE */
-    SVC_TaskSchedule,               /* 11.LPC_TSS_SCHEDULE_TIMEOUT */
-    SVC_TaskWakeup,                 /* 12.LPC_TSS_WAKE_UP */
-    SVC_TestCancel,                 /* 13.LPC_TSS_TEST_CANCEL */
-    SVC_PostCancel,                 /* 14.LPC_TSS_POST_CANCEL */
-    SVC_CloseTask,                  /* 15.LPC_TSS_CLOSE_TASK */
-    SVC_GetTaskInfo,                /* 16.LPC_TSS_GET_TASKINFO */
-    SVC_EnumTask,                   /* 17.LPC_TSS_SYS_ENUMTASK */
-    SVC_SystemPerformance,          /* 18.LPC_TSS_PERFORMANCE */
+    SVC_TaskSchedule,               /* 07.LPC_TSS_SCHEDULE_TIMEOUT */
+    SVC_TaskWakeup,                 /* 08.LPC_TSS_WAKE_UP */
+    SVC_TestCancel,                 /* 09.LPC_TSS_TEST_CANCEL */
+    SVC_PostCancel,                 /* 10.LPC_TSS_POST_CANCEL */
+    SVC_CloseTask,                  /* 11.LPC_TSS_CLOSE_TASK */
+    SVC_GetTaskInfo,                /* 12.LPC_TSS_GET_TASKINFO */
+    SVC_EnumTask,                   /* 13.LPC_TSS_SYS_ENUMTASK */
+    SVC_SystemPerformance,          /* 14.LPC_TSS_PERFORMANCE */
 };
 
 DEFINE_LPC_SERVICE(LPCService, STM_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHandlers);

@@ -131,14 +131,27 @@ FANSAPI RO_CODE HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpPa
         LOG_ERROR(TRUE, "Fill user stack for task '%s' failed.", TaskName);
         goto lable2;
     }
-    
+
+    if (0 != TaskParam.LsotKeys)
+    {
+        if (STATE_SUCCESS != caCreateLsotObject(hTask, TaskParam.LsotKeys))
+        {
+            LOG_ERROR(TRUE, "Fill user stack for task '%s' failed.", TaskName);
+            goto lable2;
+        }
+    }
+
     if (STATE_SUCCESS == caActiveObject(hTask, &TaskParam))
     {
         return hTask;
     }
 
     LOG_ERROR(TRUE, "Active object failed to create task '%s' !", TaskName);
-    
+
+    if (0 != TaskParam.LsotKeys)
+    {
+        caRemoveLsotObject(hTask);
+    }
 lable2:
     caStackFree(hTask, TASK_PERMISSION_CORE);
 lable1:
@@ -173,6 +186,7 @@ FANSAPI RO_CODE HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnM
     TaskParam.Priority      =   Priority;
     TaskParam.SliceLength   =   CONFIG_TIME_SLICE_NORMAL;
     TaskParam.StackSize     =   CONFIG_DEFAULT_STACK_SIZE;
+//    TaskParam.LsotKeys      =   CONFIG_DEFAULT_SLOT_KEYS;
 
     return CreateTaskEx(lpTaskName, &TaskParam);
 }
@@ -410,11 +424,11 @@ EXPORT_SYMBOL(GetTaskState);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI RO_CODE SMLT_KEY_T GetSmltKey(VOID)
+FANSAPI RO_CODE SMLT_KEY_T GetLsotKey(VOID)
 {
-    return caGetSmltKey();
+    return caGetLsotKey();
 }
-EXPORT_SYMBOL(GetSmltKey);
+EXPORT_SYMBOL(GetLsotKey);
 
 /**
  * Free the key of static memory local to a task.
@@ -424,11 +438,11 @@ EXPORT_SYMBOL(GetSmltKey);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS PutSmltKey(SMLT_KEY_T SmtKey)
+FANSAPI RO_CODE E_STATUS PutLsotKey(SMLT_KEY_T SmtKey)
 {
-    return caPutSmltKey(SmtKey);
+    return caPutLsotKey(SmtKey);
 }
-EXPORT_SYMBOL(PutSmltKey);
+EXPORT_SYMBOL(PutLsotKey);
 
 /**
  * Get the value of static memory local to a task.
@@ -439,11 +453,11 @@ EXPORT_SYMBOL(PutSmltKey);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS GetSmltValue(SMLT_KEY_T SmtKey, LPDWORD lpValue)
+FANSAPI RO_CODE E_STATUS GetLsotValue(SMLT_KEY_T SmtKey, LPDWORD lpValue)
 {
-    return caGetSmltValue(SmtKey, lpValue);
+    return caGetLsotValue(SmtKey, lpValue);
 }
-EXPORT_SYMBOL(GetSmltValue);
+EXPORT_SYMBOL(GetLsotValue);
 
 /**
  * Set the value of static memory local to a task.
@@ -454,11 +468,11 @@ EXPORT_SYMBOL(GetSmltValue);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS SetSmltValue(SMLT_KEY_T SmtKey, DWORD Value)
+FANSAPI RO_CODE E_STATUS SetLsotValue(SMLT_KEY_T SmtKey, DWORD Value)
 {
-    return caSetSmltValue(SmtKey, Value);
+    return caSetLsotValue(SmtKey, Value);
 }
-EXPORT_SYMBOL(caSetSmltValue);
+EXPORT_SYMBOL(caSetLsotValue);
 
 /*******************************************************************************************
  *  º¯ Êý Ãû£ºGetTaskInformation
