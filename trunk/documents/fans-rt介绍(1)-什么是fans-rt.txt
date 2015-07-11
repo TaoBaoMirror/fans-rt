@@ -106,7 +106,6 @@ source
     ├─stm32bin
     │  └─libelf
     └─table
-\
 
 二、模块划分
 1.libcmini -- libc基本库，提供无任何符号依赖的libc功能，可同时被内核态和用户态调用
