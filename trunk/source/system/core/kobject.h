@@ -44,7 +44,7 @@ typedef struct tagKCLASS_DESCRIPTOR FAR * LPKCLASS_DESCRIPTOR;
 struct tagKCLASS_DESCRIPTOR{
     DWORD               Magic;
     LPCSTR              ClassName;
-    SIZE_T              ObjectSize;
+    SIZE_T              (* fnSizeofObject)(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam);
     E_STATUS            (* fnMallocObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
     E_STATUS            (* fnActiveObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
     E_STATUS            (* fnTakeObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
@@ -96,11 +96,11 @@ STATIC E_STATUS object_no_need_detach(LPKOBJECT_HEADER lpHeader)
     return STATE_SUCCESS;
 }
 
-#define     DEFINE_DUMMY_CLASS(M, Name, Size)                                                   \
+#define     DEFINE_DUMMY_CLASS(M, Name, fnSize)                                                 \
             STATIC CONST KCLASS_DESCRIPTOR Name = {                                             \
                 .Magic          =       M,                                                      \
                 .ClassName      =       #Name,                                                  \
-                .ObjectSize     =       Size,                                                   \
+                .fnSizeofObject =       fnSize,                                                 \
                 .fnMallocObject =       object_no_need_malloc,                                  \
                 .fnActiveObject =       object_no_need_active,                                  \
                 .fnTakeObject   =       object_no_need_take,                                    \
@@ -112,12 +112,12 @@ STATIC E_STATUS object_no_need_detach(LPKOBJECT_HEADER lpHeader)
             }
 #endif
 
-#define     DEFINE_CLASS(M, Name, Size, fnMalloc, fnActive, fnTake,                             \
+#define     DEFINE_CLASS(M, Name, fnSize, fnMalloc, fnActive, fnTake,                           \
                         fnWait, fnPost, fnReset, fnDetach, fnFree)                              \
             STATIC CONST KCLASS_DESCRIPTOR Name = {                                             \
                 .Magic          =       M,                                                      \
                 .ClassName      =       #Name,                                                  \
-                .ObjectSize     =       Size,                                                   \
+                .fnSizeofObject =       fnSize,                                                 \
                 .fnMallocObject =       fnMalloc,                                               \
                 .fnActiveObject =       fnActive,                                               \
                 .fnTakeObject   =       fnTake,                                                 \
@@ -192,8 +192,16 @@ struct tagKOBJECT_HEADER{
         CHAR            caName[OBJECT_NAME_MAX];
         DWORD           daName[OBJECT_NAME_MAX/sizeof(DWORD)];
         DWORD           daMagic[OBJECT_NAME_MAX/sizeof(DWORD)];
+        DWORD           daValue[OBJECT_NAME_MAX/sizeof(DWORD)];
+        struct{
+            DWORD       Total:5;
+            DWORD       Marks:27;
+            DWORD       dwArray[1];
+        }s;
     }un;
 };
+
+
 #define     OBJECT_ENTRY(Ptr, Member)                                                               \
             ((LPKOBJECT_HEADER)CONTAINER_OF(Ptr, KOBJECT_HEADER, Member))
 
@@ -228,16 +236,6 @@ struct tagKOBJECT_HEADER{
             (((tid) << HANDLE_OBJECT_TID_SHIFT) & HANDLE_OBJECT_TID_MASK) |                         \
             (((state) << HANDLE_OBJECT_STATE_SHIFT) & HANDLE_OBJECT_STATE_MASK) |                   \
             HANDLE_OBJECT_USER_MASK))
-
-#define     MakeCoreHandle(cid, pid, state, sid, tid)                                            \
-            ((HANDLE)((((cid) << HANDLE_OBJECT_CID_SHIFT) & HANDLE_OBJECT_CID_MASK) |               \
-            (((pid) << HANDLE_OBJECT_PID_SHIFT) & HANDLE_OBJECT_PID_MASK) |                         \
-            (((sid) << HANDLE_OBJECT_SID_SHIFT) & HANDLE_OBJECT_SID_MASK) |                         \
-            (((tid) << HANDLE_OBJECT_TID_SHIFT) & HANDLE_OBJECT_TID_MASK) |                         \
-            (((state) << HANDLE_OBJECT_STATE_SHIFT) & HANDLE_OBJECT_STATE_MASK)))
-
-
-#define     IsCoreHandle(handle)                    (0 == (handle & HANDLE_OBJECT_USER_MASK))
 
 #define     GetObjectHandle(lpHeader)                                                               \
             ((lpHeader)->uh.Handle & (~(HANDLE_OBJECT_STATE_MASK)))

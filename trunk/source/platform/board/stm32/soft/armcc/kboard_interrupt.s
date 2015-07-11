@@ -61,9 +61,10 @@ PendSV_Handler  PROC
 
 SVC_Handler     PROC
     CPSID   I                           ;  Why to disable IRQ ? Guess !
+    MOV     R0,     SP                  ;  R0 = Offset of {R0 - R3}
     PUSH    {LR, R12}                   ;  Why to push r12 ?
+    MOV     R12,    R0                  ;  R12 = Offset of {R0 - R3}
     BL      CORE_EnterIRQ               ;  Set current interrupt nest layer
-    MOV     R12,    SP                  ;  SP + 8 = Offset of {R0 - R3}
     CBNZ    R0,     SV_L0               ;  IRQ nest layer is not 0 then no need switch stack
     PUSH    {R4 - R11}                  ;  Save the other registers of current task
     MOV     R11,    SP                  ;  R11 = Break point
@@ -72,7 +73,6 @@ SVC_Handler     PROC
     BL      CORE_GetCoreStackPosition   ;  R0 = Core stack for new task
     MOV     SP,     R0                  ;  switch to global core stack
 SV_L0
-    ADD     R12,    #8                  ;  R12 = Offset of {R0 - R3}
     LDMFD   R12,    {R0-R3}             ;  Load user stack for the new task(user)
     SUB     R12,    #8                  ;  R12 is the stack point if the IRQ nest layer not 0
     CPSIE   I                           ;  Enable IRQ

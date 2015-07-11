@@ -27,8 +27,8 @@
 #define     CONFIG_CORE_POOL_MAX                4           /**< 支持的最大 POOL 数量 */
 #define     CONFIG_POOL_BLOCK_MAX               8           /**< 每个POOL的块数量 */
 
-#define     CONFIG_SYSTEM_CLASS_MAX             14          /**< 内核对象类数量，最大为32 */
-#define     CONFIG_SYSTEM_CLASS_MASK            0xf         /**< 根据 CLASS_MAX 选择一个适合的 MASK */
+#define     CONFIG_SYSTEM_CLASS_MAX             18          /**< 内核对象类数量，最大为32 */
+#define     CONFIG_SYSTEM_CLASS_MASK            0x1f        /**< 根据 CLASS_MAX 选择一个适合的 MASK */
 
 #define     CONFIG_OBJECT_HASH_TABLE_MAX        8			/**< The number of hash table */
 #define     CONFIG_OBJECT_POOL_TABLE_MAX        8           /**< Max number is 8,  see @HANDLE_OBJECT_TID_MASK */
@@ -62,6 +62,7 @@
 #define     CONFIG_OBJECT7_BLOCK_MAX            0           /**< The max blocks for 4096 bytes class */
 
 #define     CONFIG_TASK_PRIORITY_MAX            8           /**< 任务管理器支持的任务优先级数量 */
+#define     CONFIG_DEFAULT_SLOT_KEYS            4           /**< 默认的局部变量KEY数量 */
 #define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
 #define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */

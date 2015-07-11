@@ -43,10 +43,12 @@ extern "C" {
     EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority);
     EXPORT E_STATUS caCloseTask(HANDLE hTask);
 
-    EXPORT SMLT_KEY_T caGetSmltKey(VOID);
-    EXPORT E_STATUS caPutSmltKey(SMLT_KEY_T SmltKey);
-    EXPORT E_STATUS caGetSmltValue(SMLT_KEY_T SmltKey, LPDWORD lpValue);
-    EXPORT E_STATUS caSetSmltValue(SMLT_KEY_T SmltKey, DWORD Value);
+    EXPORT E_STATUS caCreateLsotObject(HANDLE hTask, DWORD Total);
+    EXPORT E_STATUS caRemoveLsotObject(HANDLE hTask);
+    EXPORT SMLT_KEY_T caGetLsotKey(VOID);
+    EXPORT E_STATUS caPutLsotKey(SMLT_KEY_T SmltKey);
+    EXPORT E_STATUS caGetLsotValue(SMLT_KEY_T SmltKey, LPDWORD lpValue);
+    EXPORT E_STATUS caSetLsotValue(SMLT_KEY_T SmltKey, DWORD Value);
     
     EXPORT TASK_STATUS caGetTaskState(HANDLE hTask);
     EXPORT E_STATUS ntGetTaskInfor(HANDLE hTask, LPTASK_INFOR lpTaskInfor);

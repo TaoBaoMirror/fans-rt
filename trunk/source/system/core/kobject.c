@@ -510,15 +510,8 @@ PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * lpClass)
         return STATE_INVALID_NAME;
     }
     
-    if (lpClass->ObjectSize > CONFIG_OBJECT_SIZE_MAX ||
-        lpClass->ObjectSize < CONFIG_OBJECT_SIZE_MIN)
-    {
-        CORE_ERROR(TRUE, "Invalid object size(%d) for class(%s).",
-            lpClass->ObjectSize, lpClass->ClassName);
-        return STATE_INVALID_SIZE;
-    }
-    
-    if (NULL == lpClass->fnMallocObject ||
+    if (NULL == lpClass->fnSizeofObject ||
+        NULL == lpClass->fnMallocObject ||
         NULL == lpClass->fnActiveObject ||
         NULL == lpClass->fnTakeObject   ||
         NULL == lpClass->fnWaitObject   ||
@@ -571,15 +564,15 @@ PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * lpClass)
 
 
 
-STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR lpName)
+STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR lpName, SIZE_T ObjectSize)
 {
     LPKOBJECT_HEADER lpHeader = NULL;
     LPCORE_CONTAINER lpManager = NULL;
     KCONTAINER_ID_T Pid = INVALID_CONTAINER_ID;
-    KOBJTABLE_ID_T Tid = Class2Tid(lpClass->ObjectSize);
+    KOBJTABLE_ID_T Tid = Class2Tid(ObjectSize);
 
     CORE_ASSERT(Tid < CONFIG_OBJECT_POOL_TABLE_MAX, SYSTEM_CALL_OOPS(),
-        "BUG: Invalid tid value %u, from object size %d bytes.", Tid, lpClass->ObjectSize);
+        "BUG: Invalid tid value %u, from object size %d bytes.", Tid, ObjectSize);
 
     lpManager = TID2PoolContainer(Tid);
     
@@ -720,6 +713,7 @@ EXPORT LPKOBJECT_HEADER CORE_Handle2HeaderCheck(HANDLE handle, BOOL Check)
 EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam)
 {
     E_STATUS State;
+    SIZE_T Length = 0;
     LPKOBJECT_HEADER lpHeader = NULL;
     LPKCLASS_DESCRIPTOR lpClass = NULL;
 
@@ -741,10 +735,25 @@ EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam)
     }
 
     CORE_ASSERT(lpClass->fnMallocObject, SYSTEM_CALL_OOPS(), 
-        "BUG: Not support function for class(%s) to create no name object.",
+        "BUG: Not support malloc for class(%s) to create no name object.",
+            lpClass->ClassName);
+    
+    CORE_ASSERT(lpClass->fnSizeofObject, SYSTEM_CALL_OOPS(), 
+        "BUG: Not support get size for class(%s) to create no name object.",
             lpClass->ClassName);
 
-    lpHeader = MallocObjectFromPool(lpClass, NULL);
+    Length = lpClass->fnSizeofObject(lpClass, lpParam);
+    
+    if (Length > CONFIG_OBJECT_SIZE_MAX ||
+        Length < CONFIG_OBJECT_SIZE_MIN)
+    {
+        CORE_ERROR(TRUE, "Invalid object size(%d) for class(%s).",
+            Length, lpClass->ClassName);
+        CORE_SetError(STATE_OVER_RANGE);
+        return NULL;
+    }
+    
+    lpHeader = MallocObjectFromPool(lpClass, NULL, Length);
 
     if (NULL == lpHeader)
     {
@@ -774,6 +783,7 @@ EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam)
 EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpParam)
 {
     E_STATUS State;
+    SIZE_T Length = 0;
     LPKOBJECT_HEADER lpHeader = NULL;
     LPKCLASS_DESCRIPTOR lpClass = NULL;
 
@@ -805,6 +815,21 @@ EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpP
         "BUG: Not support function for class(%s) to malloc object '%s'.",
             lpClass->ClassName, lpName);
 
+    CORE_ASSERT(lpClass->fnSizeofObject, SYSTEM_CALL_OOPS(), 
+        "BUG: Not support get size for class(%s) to create no name object.",
+            lpClass->ClassName);
+
+    Length = lpClass->fnSizeofObject(lpClass, lpParam);
+    
+    if (Length > CONFIG_OBJECT_SIZE_MAX ||
+        Length < CONFIG_OBJECT_SIZE_MIN)
+    {
+        CORE_ERROR(TRUE, "Invalid object size(%d) for class(%s).",
+            Length, lpClass->ClassName);
+        CORE_SetError(STATE_OVER_RANGE);
+        return NULL;
+    }
+    
     lpHeader = FindObjectHash(lpName);
 
     if (NULL != lpHeader)
@@ -814,7 +839,7 @@ EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpP
         return NULL;
     }
     
-    lpHeader = MallocObjectFromPool(lpClass, lpName);
+    lpHeader = MallocObjectFromPool(lpClass, lpName, Length);
 
     if (NULL == lpHeader)
     {
