@@ -50,7 +50,7 @@ PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID fnMain, LPVOID lpArgument,
     {
         fnLeave = USER_TaskLeave;
         fnEntry = USER_TaskEntry;
-#if (0 == CONFIG_CORE_STACK_SIZE)
+#if (0 == CONFIG_CORE_STACK_SIZE || TRUE != CONFIG_ARCH_SUPPORT_KSTACK)
         IRQLeaveR  = (DWORD) 0xfffffff9L;
 #else
         IRQLeaveR  = (DWORD) 0xfffffffdL;
