@@ -61,17 +61,19 @@ PendSV_Handler  PROC
 
 SVC_Handler     PROC
     CPSID   I                           ;  Why to disable IRQ ? Guess !
-    PUSH    {LR, R12, R0-R3}            ;  Why to push 12? Guess !
+    MOV     R0,     SP                  ;  R0 = Offset of {R0 - R3}
+    PUSH    {LR, R12}                   ;  Why to push 12? Guess !
+    MOV     R12,    R0                  ;  R12 = Offset of {R0 - R3}
     BL      CORE_EnterIRQ               ;  Set current interrupt nest layer
-    POP     {R0 - R3}                   ;  Resume R0 - R3
     CPSIE   I                           ;  Enable IRQ
+    LDMFD   R12,    {R0-R3}             ;  Resume R0 - R3 to call service
     BL      CORE_HandlerLPC             ;  Call system service
     B       ST_L1                       ;  The next step same as system tick handler
     ENDP
 
 SysTick_Handler PROC
     CPSID   I                           ;  Why to disable IRQ ? Guess !
-    PUSH    {R12, LR}                   ;  Why to push R0?
+    PUSH    {R12, LR}                   ;  Why to push R12?
     BL      CORE_EnterIRQ               ;  Set current interrupt nest layer
     BL      CORE_TickHandler            ;  Inc the system tick
     CPSIE   I                           ;  Enable IRQ
