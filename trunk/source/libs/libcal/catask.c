@@ -76,6 +76,23 @@ EXPORT RO_CODE TASK_STATUS caGetTaskState(HANDLE hTask)
     return (TASK_STATUS) Packet.u0.dParam;
 }
 
+EXPORT RO_CODE HANDLE caGetLsotHandle(HANDLE hTask)
+{
+    LPC_REQUEST_PACKET Packet;
+    
+    memset(&Packet, 0, sizeof(LPC_REQUEST_PACKET));
+    
+    SetREQhParam(&Packet, u0, hTask);
+    
+    if (STATE_SUCCESS != caSystemCall(&Packet, STM_MAGIC, LPC_TSS_GET_LSOTHANDLE))
+    {
+        return INVALID_HANDLE_VALUE;
+    }
+    
+    return REQhParam(&Packet, u1);
+}
+
+
 EXPORT RO_CODE E_STATUS caScheduleTimeout(LONG Timeout)
 {
     LPC_REQUEST_PACKET Packet;

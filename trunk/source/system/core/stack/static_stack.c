@@ -79,43 +79,59 @@ STATIC E_STATUS OBJ_FreeStack(LPKOBJECT_HEADER lpHeader)
     return STATE_SUCCESS;
 }
 
-DEFINE_CLASS(SUU_MAGIC,
-            UserStackForUserTask,
-            OBJ_SizeofUserStack,
-            OBJ_MallocStack,
-            OBJ_ActiveStack,
-            OBJ_TakeStack,
-            OBJ_WaitObject,
-            OBJ_PostStack,
-            OBJ_ResetStack,
-            OBJ_DetachStack,
-            OBJ_FreeStack);
+
+typedef tagKCLASS_USER_STACK KCLASS_USER_STACK;
+typedef tagKCLASS_USER_STACK * PKCLASS_USER_STACK;
+typedef tagKCLASS_USER_STACK FAR * LPKCLASS_USER_STACK;
+
+struct tagKCLASS_USER_STACK{
+    KCLASS_HEADER               Header;
+};
+
+typedef tagKCLASS_CORE_STACK KCLASS_CORE_STACK;
+typedef tagKCLASS_CORE_STACK * PKCLASS_CORE_STACK;
+typedef tagKCLASS_CORE_STACK FAR * LPKCLASS_CORE_STACK;
+
+struct tagKCLASS_CORE_STACK{
+    KCLASS_HEADER               Header;
+};
+
+typedef tagKCLASS_KTASK_STACK KCLASS_KTASK_STACK;
+typedef tagKCLASS_KTASK_STACK * PKCLASS_KTASK_STACK;
+typedef tagKCLASS_KTASK_STACK FAR * LPKCLASS_KTASK_STACK;
+
+struct tagKCLASS_KTASK_STACK{
+    KCLASS_HEADER               Header;
+};
+
+DEFINE_KCLASS(KCLASS_USER_STACK,
+              UserStackClass,
+              SUU_MAGIC, 0,
+              OBJ_SizeofUserStack,
+              OBJ_MallocStack,
+              OBJ_ActiveStack,
+              OBJ_TakeStack,
+              OBJ_FreeStack);
 
 #if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
-DEFINE_CLASS(SCU_MAGIC,
-            CoreStackForUserTask,
-            OBJ_SizeofCoreStack,
-            OBJ_MallocStack,
-            OBJ_ActiveStack,
-            OBJ_TakeStack,
-            OBJ_WaitObject,
-            OBJ_PostStack,
-            OBJ_ResetStack,
-            OBJ_DetachStack,
-            OBJ_FreeStack);
+DEFINE_KCLASS(KCLASS_CORE_STACK,
+              CoreStackClass,
+              SCU_MAGIC, 0,
+              OBJ_SizeofCoreStack,
+              OBJ_MallocStack,
+              OBJ_ActiveStack,
+              OBJ_TakeStack,
+              OBJ_FreeStack);
 #endif
 
-DEFINE_CLASS(SCC_MAGIC,
-            CoreStackForCoreTask,
-            OBJ_SizeofKtaskStack,
-            OBJ_MallocStack,
-            OBJ_ActiveStack,
-            OBJ_TakeStack,
-            OBJ_WaitObject,
-            OBJ_PostStack,
-            OBJ_ResetStack,
-            OBJ_DetachStack,
-            OBJ_FreeStack);
+DEFINE_KCLASS(KCLASS_KTASK_STACK,
+              KTaskStackClass,
+              SCC_MAGIC, 0,
+              OBJ_SizeofKtaskStack,
+              OBJ_MallocStack,
+              OBJ_ActiveStack,
+              OBJ_TakeStack,
+              OBJ_FreeStack);
 
 PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission)
 {
@@ -469,19 +485,19 @@ PUBLIC E_STATUS initCoreSystemTaskStackManager(VOID)
 {
     E_STATUS State;
     /* 注册 用户栈 对象类 */
-    State = CORE_RegisterClass(&UserStackForUserTask);
+    State = REGISTER_KCLASS(UserStackClass);
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Register stack class failed, result %d !", State);
 #if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
     /* 注册 用户任务的内核栈 对象类 */
-    State = CORE_RegisterClass(&CoreStackForUserTask);
+    State = REGISTER_KCLASS(CoreStackClass);
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Register stack class failed, result %d !", State);
 #endif
     /* 注册 内核任务栈 对象类 */
-    State = CORE_RegisterClass(&CoreStackForCoreTask);
+    State = REGISTER_KCLASS(KTaskStackClass);
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Register stack class failed, result %d !", State);

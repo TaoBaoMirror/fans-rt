@@ -48,10 +48,10 @@ extern "C" {
     FANSAPI TASK_PRIORITY GetPriority(HANDLE hTask);
     FANSAPI E_STATUS SetPriority(HANDLE hTask, TASK_PRIORITY Priority);
 
-    FANSAPI SMLT_KEY_T GetLsotKey(VOID);
-    FANSAPI E_STATUS PutLsotKey(SMLT_KEY_T SmtKey);
-    FANSAPI E_STATUS GetLsotValue(SMLT_KEY_T SmtKey, LPDWORD lpValue);
-    FANSAPI E_STATUS SetLsotValue(SMLT_KEY_T SmtKey, DWORD Value);
+    FANSAPI LSOT_KEY_T GetLsotKey(VOID);
+    FANSAPI E_STATUS PutLsotKey(LSOT_KEY_T LsotKey);
+    FANSAPI E_STATUS GetLsotValue(LSOT_KEY_T LsotKey, DWORD_PTR lpValue);
+    FANSAPI E_STATUS SetLsotValue(LSOT_KEY_T LsotKey, DWORD Value);
 
     FANSAPI TASK_STATUS GetTaskState(HANDLE hTask);
 

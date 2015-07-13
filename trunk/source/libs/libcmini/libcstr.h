@@ -214,16 +214,16 @@ STATIC RO_CODE void * fast_memcpy(void * dst, const void * src, size_t length)
 {
     union{
         LPSTR lpstr;
-        LPDWORD lpint;
+        DWORD_PTR lpint;
     }s;
     union{
         LPSTR lpstr;
-        LPDWORD lpint;
+        DWORD_PTR lpint;
     }d;
     
     LPSTR suffix = (void *)(((MMADDR)src) + length);
     LPSTR prefix = (void *)(((MMADDR)src) & (~(sizeof(DWORD)-1)));
-    LPDWORD middle = (void *)(((MMADDR)suffix) & (~(sizeof(DWORD)-1)));
+    DWORD_PTR middle = (void *)(((MMADDR)suffix) & (~(sizeof(DWORD)-1)));
 
     
     s.lpstr = (void *) src;
@@ -291,10 +291,10 @@ EXPORT RO_CODE void * memset(void * ptr, int ch, size_t length)
     register DWORD w4 = (cv << 24) + (cv << 16) + (cv <<8) + (cv << 0);
     LPSTR suffix = (void *)(((MMADDR)ptr) + length);
     LPSTR prefix = (void *)(((MMADDR)ptr) & (~(sizeof(DWORD)-1)));
-    LPDWORD middle = (void *)(((MMADDR)suffix) & (~(sizeof(DWORD)-1)));
+    DWORD_PTR middle = (void *)(((MMADDR)suffix) & (~(sizeof(DWORD)-1)));
     register union{
         LPSTR lpstr;
-        LPDWORD lpint;
+        DWORD_PTR lpint;
     }u;
    
     u.lpstr = ptr;

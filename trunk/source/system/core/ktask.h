@@ -34,6 +34,7 @@ enum{
     LPC_TSS_GET_STARTTICK,
     LPC_TSS_GET_PRIORITY,
     LPC_TSS_SET_PRIORITY,
+    LPC_TSS_GET_LSOTHANDLE,
     LPC_TSS_SCHEDULE_TIMEOUT,
     LPC_TSS_WAKE_UP,
     LPC_TSS_TEST_CANCEL,
@@ -280,7 +281,7 @@ extern "C" {
 #endif
     EXPORT E_STATUS CORE_GetError(VOID);
     EXPORT E_STATUS CORE_SetError(E_STATUS emCode);
-    EXPORT LPTASK_CONTEXT CORE_Handle2TaskContextCheck(HANDLE hTask, BOOL Check);
+#define     CORE_Handle2TaskContextCheck(hTask, Check)      ((LPTASK_CONTEXT) CORE_Handle2HeaderCheck(hTask, Check))
 
     EXPORT DWORD CORE_EnterIRQ(VOID);
     EXPORT DWORD CORE_LeaveIRQ(VOID);

@@ -647,14 +647,14 @@
               <FilePath>..\..\source\system\core\stack\static_stack.c</FilePath>
             </File>
             <File>
-              <FileName>ktlocal.c</FileName>
+              <FileName>klsot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\system\core\ktlocal.c</FilePath>
+              <FilePath>..\..\source\system\core\klsot.c</FilePath>
             </File>
             <File>
-              <FileName>ktlocal.h</FileName>
+              <FileName>klsot.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\source\system\core\ktlocal.h</FilePath>
+              <FilePath>..\..\source\system\core\klsot.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -826,6 +826,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libapi\utick.c</FilePath>
             </File>
+            <File>
+              <FileName>ulsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libapi\ulsot.c</FilePath>
+            </File>
+            <File>
+              <FileName>libapi.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\libs\libapi\libapi.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -962,9 +972,9 @@
               <FilePath>..\..\source\libs\libcal\catick.c</FilePath>
             </File>
             <File>
-              <FileName>catlocal.c</FileName>
+              <FileName>calsot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\libs\libcal\catlocal.c</FilePath>
+              <FilePath>..\..\source\libs\libcal\calsot.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -164,8 +164,9 @@ STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 }
 
 
-STATIC E_STATUS IPC_WaitEvent(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
+STATIC E_STATUS IPC_WaitEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
+    LONG WaitTime = (LONG) lpParam;
     DWORD dwFlags = CORE_DisableIRQ();
 
     CORE_INFOR(TRUE, "wait event '%s', state '%d'...",
@@ -256,17 +257,20 @@ STATIC E_STATUS IPC_FreeEvent(LPKOBJECT_HEADER lpHeader)
     return STATE_SUCCESS;
 }
 
+DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
+              EventClass,
+              EVT_MAGIC,
+              KIPC_CLASS_METHODS,
+              IPC_SizeofEvent,
+              IPC_MallocEvent,
+              IPC_ActiveEvent,
+              IPC_TakeEvent,
+              IPC_FreeEvent,
+              IPC_WaitEvent,
+              IPC_PostEvent,
+              IPC_ResetEvent,
+              IPC_DetachDefault);
 
-DEFINE_CLASS(EVT_MAGIC, EventClass,
-            IPC_SizeofEvent,
-            IPC_MallocEvent,
-            IPC_ActiveEvent,
-            IPC_TakeEvent,
-            IPC_WaitEvent,
-            IPC_PostEvent,
-            IPC_ResetEvent,
-            IPC_DetachEvent,
-            IPC_FreeEvent);
 
 
 /************************************************************************************
@@ -349,9 +353,10 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_SUCCESS;
 }
 
-STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
+STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     DWORD dwFlags;
+    LONG WaitTime = (LONG) lpParam;
     LPTASK_CONTEXT lpOnwerContext;
     LPTASK_CONTEXT lpCurrentTask;
 
@@ -481,16 +486,19 @@ STATIC E_STATUS IPC_DetachMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_INVALID_PARAMETER;
 }
 
-DEFINE_CLASS(MTX_MAGIC, MutexClass,
-            IPC_SizeofMutex,
-            IPC_MallocMutex,
-            IPC_ActiveMutex,
-            IPC_TakeMutex,
-            IPC_LockMutex,
-            IPC_UnlockMutex,
-            IPC_ResetMutex,
-            IPC_DetachMutex,
-            IPC_FreeMutex);
+DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
+              MutexClass,
+              MTX_MAGIC,
+              KIPC_CLASS_METHODS,
+              IPC_SizeofMutex,
+              IPC_MallocMutex,
+              IPC_ActiveMutex,
+              IPC_TakeMutex,
+              IPC_FreeMutex,
+              IPC_LockMutex,
+              IPC_UnlockMutex,
+              IPC_ResetMutex,
+              IPC_DetachMutex);
 
 typedef struct tagIPC_SEMAPHORE_OBJECT IPC_SEMAPHORE_OBJECT;
 typedef struct tagIPC_SEMAPHORE_OBJECT * PIPC_SEMAPHORE_OBJECT;
@@ -512,7 +520,7 @@ STATIC E_STATUS IPC_ActiveSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_NOT_SUPPORT;
 }
 
-STATIC E_STATUS IPC_WaitSemaphore(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
+STATIC E_STATUS IPC_WaitSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     return STATE_NOT_SUPPORT;
 }
@@ -527,16 +535,19 @@ STATIC E_STATUS IPC_FreeSemaphore(LPKOBJECT_HEADER lpHeader)
     return STATE_NOT_SUPPORT;
 }
 
-DEFINE_CLASS(SEM_MAGIC, SemaphoreClass,
-            IPC_SizeofSemaphone,
-            IPC_MallocSemaphore,
-            IPC_ActiveSemaphore,
-            IPC_TakeSemaphore,
-            IPC_WaitSemaphore,
-            IPC_PostSemaphore,
-            IPC_ResetSemaphore,
-            IPC_DetachSemaphore,
-            IPC_FreeSemaphore);
+DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
+              SemaphoreClass,
+              SEM_MAGIC,
+              KIPC_CLASS_METHODS,
+              IPC_SizeofSemaphone,
+              IPC_MallocSemaphore,
+              IPC_ActiveSemaphore,
+              IPC_TakeSemaphore,
+              IPC_FreeSemaphore,
+              IPC_WaitSemaphore,
+              IPC_PostSemaphore,
+              IPC_ResetSemaphore,
+              IPC_DetachSemaphore);
 
 typedef struct tagIPC_SEMSET_OBJECT IPC_SEMSET_OBJECT;
 typedef struct tagIPC_SEMSET_OBJECT * PIPC_SEMSET_OBJECT;
@@ -544,7 +555,7 @@ typedef struct tagIPC_SEMSET_OBJECT * LPIPC_SEMSET_OBJECT;
 
 struct tagIPC_SEMSET_OBJECT{
     IPC_BASE_OBJECT                 Base;
-    VOLATILE SEMSET_ATTRIBUTE    Attribute;
+    VOLATILE SEMSET_ATTRIBUTE       Attribute;
 };
 
 STATIC SIZE_T IPC_SizeofSemset(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
@@ -558,7 +569,7 @@ STATIC E_STATUS IPC_ActiveSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_NOT_SUPPORT;
 }
 
-STATIC E_STATUS IPC_WaitSemset(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
+STATIC E_STATUS IPC_WaitSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     return STATE_NOT_SUPPORT;
 }
@@ -573,16 +584,20 @@ STATIC E_STATUS IPC_FreeSemset(LPKOBJECT_HEADER lpHeader)
     return STATE_NOT_SUPPORT;
 }
 
-DEFINE_CLASS(SET_MAGIC, SemsetClass,
-            IPC_SizeofSemset,
-            IPC_MallocSemset,
-            IPC_ActiveSemset,
-            IPC_TakeSemset,
-            IPC_WaitSemset,
-            IPC_PostSemset,
-            IPC_ResetSemset,
-            IPC_DetachSemset,
-            IPC_FreeSemset);
+DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
+              SemsetClass,
+              SET_MAGIC,
+              KIPC_CLASS_METHODS,
+              IPC_SizeofSemset,
+              IPC_MallocSemset,
+              IPC_ActiveSemset,
+              IPC_TakeSemset,
+              IPC_FreeSemset,
+              IPC_WaitSemset,
+              IPC_PostSemset,
+              IPC_ResetSemset,
+              IPC_DetachSemset);
+
 
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
 {
@@ -592,28 +607,28 @@ PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
         sizeof(IPC_MUTEX_OBJECT), sizeof(IPC_SEMAPHORE_OBJECT));
 
     /* 注册EVENT对象类 */
-    if (STATE_SUCCESS != CORE_RegisterClass(&EventClass))
+    if (STATE_SUCCESS != REGISTER_KCLASS(EventClass))
     {
         CORE_ERROR(TRUE, "Register event class failed !");
         SYSTEM_CALL_OOPS();
     }
 
     /* 注册MUTEX对象类 */
-    if (STATE_SUCCESS != CORE_RegisterClass(&MutexClass))
+    if (STATE_SUCCESS != REGISTER_KCLASS(MutexClass))
     {
         CORE_ERROR(TRUE, "Register mutex class failed !");
         SYSTEM_CALL_OOPS();
     }
 
     /* 注册SEMAPHORE对象类 */
-    if (STATE_SUCCESS != CORE_RegisterClass(&SemaphoreClass))
+    if (STATE_SUCCESS != REGISTER_KCLASS(SemaphoreClass))
     {
         CORE_ERROR(TRUE, "Register semaphore class failed !");
         SYSTEM_CALL_OOPS();
     }
 
     /* 注册SEMSET对象类 */
-    if (STATE_SUCCESS != CORE_RegisterClass(&SemsetClass))
+    if (STATE_SUCCESS != REGISTER_KCLASS(SemsetClass))
     {
         CORE_ERROR(TRUE, "Register semset class failed !");
         SYSTEM_CALL_OOPS();

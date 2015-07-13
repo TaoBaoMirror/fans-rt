@@ -7,6 +7,23 @@
 #include "ktask.h"
 #include "kobject.h"
 
+enum{
+    KIPC_METHOD_WAIT        =       0,
+    KIPC_METHOD_POST        =       1,
+    KIPC_METHOD_RESET       =       2,
+    KIPC_METHOD_DETACH      =       3,
+    KIPC_CLASS_METHODS,
+};
+
+typedef struct tagKIPC_CLASS_DESCRIPTOR KIPC_CLASS_DESCRIPTOR;
+typedef struct tagKIPC_CLASS_DESCRIPTOR * PKIPC_CLASS_DESCRIPTOR;
+typedef struct tagKIPC_CLASS_DESCRIPTOR FAR * LPKIPC_CLASS_DESCRIPTOR;
+
+struct tagKIPC_CLASS_DESCRIPTOR{
+    KCLASS_HEADER               Header;
+    FNCLASSMETHOD               fnClassMethods[KIPC_CLASS_METHODS];
+};
+
 typedef struct tagIPC_BASE_OBJECT IPC_BASE_OBJECT;
 typedef struct tagIPC_BASE_OBJECT * PIPC_BASE_OBJECT;
 typedef struct tagIPC_BASE_OBJECT FAR * LPIPC_BASE_OBJECT;
