@@ -392,7 +392,7 @@ STATIC DWORD GetObjectHash(LPCSTR lpName)
 STATIC LPKOBJECT_HEADER FindObjectHash(LPCSTR lpName)
 {
     LPLIST_HEAD lpNode = NULL;
-    LPDWORD lpdName = (LPVOID) lpName;
+    DWORD_PTR lpdName = (LPVOID) lpName;
     DWORD Hid = GetObjectHash(lpName);
     DWORD dwFlags = CORE_DisableIRQ();
     
@@ -429,7 +429,7 @@ STATIC DWORD LoadMagic(LPVOID lpPrivate, DWORD Id)
     
     if (lpClassArray[Id])
     {
-        return lpClassArray[Id]->Magic;
+        return GetClassMagic(lpClassArray[Id]);
     }
     
     return 0;
@@ -504,29 +504,25 @@ PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * lpClass)
         return STATE_INVALID_PARAMETER;
     }
     
-    if (NULL == lpClass->ClassName)
+    if (NULL == GetClassName(lpClass))
     {
         CORE_ERROR(TRUE, "Invalid class(0x%p) name.", lpClass);
         return STATE_INVALID_NAME;
     }
     
-    if (NULL == lpClass->fnSizeofObject ||
-        NULL == lpClass->fnMallocObject ||
-        NULL == lpClass->fnActiveObject ||
-        NULL == lpClass->fnTakeObject   ||
-        NULL == lpClass->fnWaitObject   ||
-        NULL == lpClass->fnPostObject   ||
-        NULL == lpClass->fnResetObject  ||
-        NULL == lpClass->fnFreeObject)
+    if (NULL == lpClass->Header.fnSizeofObject ||
+        NULL == lpClass->Header.fnMallocObject ||
+        NULL == lpClass->Header.fnActiveObject ||
+        NULL == lpClass->Header.fnFreeObject)
     {
-        CORE_ERROR(TRUE, "Class(%s) method is invalid.", lpClass->ClassName);
+        CORE_ERROR(TRUE, "Class(%s) method is invalid.", GetClassName(lpClass));
         return STATE_INVALID_CLASS;
     }
     
-    ClassID = Magic2ClassID(lpClass->Magic);
+    ClassID = Magic2ClassID(GetClassMagic(lpClass));
     
     CORE_INFOR(TRUE, "Class(%s-%d) register to %d ...",
-            lpClass->ClassName, Magic2ClassIDKey(lpClass->Magic), ClassID);
+            GetClassName(lpClass), Magic2ClassIDKey(GetClassMagic(lpClass)), ClassID);
     
     dwFlags = CORE_DisableIRQ();
     
@@ -537,17 +533,17 @@ PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * lpClass)
         DWORD MagicArray[CONFIG_SYSTEM_CLASS_MAX];
 
         Count = CORE_HashSetArray(LoadMagic, g_GlobalClassTable,
-                MagicArray, lpClass->Magic, CONFIG_SYSTEM_CLASS_MAX);
+                MagicArray, GetClassMagic(lpClass), CONFIG_SYSTEM_CLASS_MAX);
 
         CORE_HashDebug(ClassHashKey, MagicArray, Count, 8, 32,
                 "CONFIG_SYSTEM_CLASS_MAX", "Magic2ClassID");
 #endif
         CORE_RestoreIRQ(dwFlags);
-        CORE_ERROR(TRUE, "Class(%s) register to %d failed.", lpClass->ClassName, ClassID);
+        CORE_ERROR(TRUE, "Class(%s) register to %d failed.", GetClassName(lpClass), ClassID);
         CORE_ERROR(TRUE, "New class(%s) key is (%d), old class(%s) key is %d.",
-            lpClass->ClassName, Magic2ClassIDKey(lpClass->Magic),
-            g_GlobalClassTable[ClassID]->ClassName,
-            Magic2ClassIDKey(g_GlobalClassTable[ClassID]->Magic));
+            GetClassName(lpClass), Magic2ClassIDKey(GetClassMagic(lpClass)),
+            GetClassName(g_GlobalClassTable[ClassID]),
+            Magic2ClassIDKey(GetClassMagic(g_GlobalClassTable[ClassID])));
 
         return STATE_EXISTING;
     }
@@ -557,7 +553,7 @@ PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * lpClass)
     CORE_RestoreIRQ(dwFlags);
     
     CORE_INFOR(TRUE, "Register class '%s' to %d successfully.",
-            lpClass->ClassName, ClassID);
+            GetClassName(lpClass), ClassID);
     
     return STATE_SUCCESS;
 }
@@ -576,11 +572,11 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
     lpManager = TID2PoolContainer(Tid);
     
-    CORE_DEBUG(TRUE, "Malloc pool from '%s', Tid(%d).", lpClass->ClassName, Tid);
+    CORE_DEBUG(TRUE, "Malloc pool from '%s', Tid(%d).", GetClassName(lpClass), Tid);
     
     if (NULL == lpManager)
     {
-        CORE_ERROR(TRUE, "Container not found, magic(0x%08x), Tid(%d).", lpClass->Magic, Tid);
+        CORE_ERROR(TRUE, "Container not found, magic(0x%08x), Tid(%d).", GetClassMagic(lpClass), Tid);
         CORE_SetError(STATE_INVALID_POOL);
         return NULL;
     }
@@ -589,7 +585,7 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
     if (INVALID_CONTAINER_ID == Pid)
     {
-        CORE_ERROR(TRUE, "Invalid container id for magic(0x%08x).", lpClass->Magic);
+        CORE_ERROR(TRUE, "Invalid container id for magic(0x%08x).", GetClassMagic(lpClass));
         //CORE_SetError(STATE_INVALID_POOL); Set by pool
         return NULL;
     }
@@ -598,7 +594,7 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
     
     if (NULL == lpHeader)
     {
-        CORE_ERROR(TRUE, "Can't found header for magic(0x%08x) pid(%d).", lpClass->Magic, Pid);
+        CORE_ERROR(TRUE, "Can't found header for magic(0x%08x) pid(%d).", GetClassMagic(lpClass), Pid);
         return NULL;
     }
     
@@ -608,13 +604,13 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
         Attach2HashList(GetObjectHash(lpName), lpHeader);
 
-        initNamedObject(lpHeader, lpClass->Magic, ((LPDWORD)lpName), Pid, GetSystemObjectSid(), Tid);
+        initNamedObject(lpHeader, GetClassMagic(lpClass), ((DWORD_PTR)lpName), Pid, GetSystemObjectSid(), Tid);
         
         CORE_RestoreIRQ(dwFlags);
     }
     else
     {
-        initNonameObject(lpHeader, lpClass->Magic, Pid, GetSystemObjectSid(), Tid);
+        initNonameObject(lpHeader, GetClassMagic(lpClass), Pid, GetSystemObjectSid(), Tid);
     }
    
     CORE_SetError(STATE_SUCCESS); 
@@ -726,29 +722,29 @@ EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam)
         return NULL;
     }
     
-    if (Magic != lpClass->Magic)
+    if (Magic != GetClassMagic(lpClass))
     {
         CORE_ERROR(TRUE, "Magic(0x%08x) not match for class(0x%08x) to create no name object.",
-            Magic, lpClass->Magic);
+            Magic, GetClassMagic(lpClass));
         CORE_SetError(STATE_NOT_MATCH);
         return NULL;
     }
 
-    CORE_ASSERT(lpClass->fnMallocObject, SYSTEM_CALL_OOPS(), 
+    CORE_ASSERT(lpClass->Header.fnMallocObject, SYSTEM_CALL_OOPS(), 
         "BUG: Not support malloc for class(%s) to create no name object.",
-            lpClass->ClassName);
-    
-    CORE_ASSERT(lpClass->fnSizeofObject, SYSTEM_CALL_OOPS(), 
-        "BUG: Not support get size for class(%s) to create no name object.",
-            lpClass->ClassName);
+            GetClassName(lpClass));
 
-    Length = lpClass->fnSizeofObject(lpClass, lpParam);
+    CORE_ASSERT(lpClass->Header.fnSizeofObject, SYSTEM_CALL_OOPS(), 
+        "BUG: Not support get size for class(%s) to create no name object.",
+            GetClassName(lpClass));
+
+    Length = lpClass->Header.fnSizeofObject(lpClass, lpParam);
     
     if (Length > CONFIG_OBJECT_SIZE_MAX ||
         Length < CONFIG_OBJECT_SIZE_MIN)
     {
         CORE_ERROR(TRUE, "Invalid object size(%d) for class(%s).",
-            Length, lpClass->ClassName);
+            Length, GetClassName(lpClass));
         CORE_SetError(STATE_OVER_RANGE);
         return NULL;
     }
@@ -758,16 +754,16 @@ EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam)
     if (NULL == lpHeader)
     {
         CORE_ERROR(TRUE, "Can't malloc no name object for class '%s'",
-            lpClass->ClassName);
+            GetClassName(lpClass));
         return NULL;
     }
 
-    State = lpClass->fnMallocObject(lpHeader, lpParam);
+    State = lpClass->Header.fnMallocObject(lpHeader, lpParam);
     
     if (STATE_SUCCESS != State)
     {
-        CORE_ERROR(TRUE, "No name bject call malloc in the class '%s' failed.",
-            lpClass->ClassName);
+        CORE_ERROR(TRUE, "No name object call malloc in the class '%s' failed.",
+            GetClassName(lpClass));
         SetObjectState(lpHeader, KOBJECT_STATE_DEATH);
         CORE_FreeObject(lpHeader);
         lpHeader = NULL;
@@ -803,29 +799,29 @@ EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpP
         return NULL;
     }
     
-    if (Magic != lpClass->Magic)
+    if (Magic != GetClassMagic(lpClass))
     {
         CORE_ERROR(TRUE, "Magic(0x%08x) not match for class(0x%08x) to open object '%s'",
-            Magic, lpClass->Magic, lpName);
+            Magic, GetClassMagic(lpClass), lpName);
         CORE_SetError(STATE_NOT_MATCH);
         return NULL;
     }
 
-    CORE_ASSERT(lpClass->fnMallocObject, SYSTEM_CALL_OOPS(), 
+    CORE_ASSERT(lpClass->Header.fnMallocObject, SYSTEM_CALL_OOPS(), 
         "BUG: Not support function for class(%s) to malloc object '%s'.",
-            lpClass->ClassName, lpName);
+            GetClassName(lpClass), lpName);
 
-    CORE_ASSERT(lpClass->fnSizeofObject, SYSTEM_CALL_OOPS(), 
+    CORE_ASSERT(lpClass->Header.fnSizeofObject, SYSTEM_CALL_OOPS(), 
         "BUG: Not support get size for class(%s) to create no name object.",
-            lpClass->ClassName);
+            GetClassName(lpClass));
 
-    Length = lpClass->fnSizeofObject(lpClass, lpParam);
+    Length = lpClass->Header.fnSizeofObject(lpClass, lpParam);
     
     if (Length > CONFIG_OBJECT_SIZE_MAX ||
         Length < CONFIG_OBJECT_SIZE_MIN)
     {
         CORE_ERROR(TRUE, "Invalid object size(%d) for class(%s).",
-            Length, lpClass->ClassName);
+            Length, GetClassName(lpClass));
         CORE_SetError(STATE_OVER_RANGE);
         return NULL;
     }
@@ -838,55 +834,32 @@ EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpP
         CORE_SetError(STATE_EXISTING);
         return NULL;
     }
-    
+
     lpHeader = MallocObjectFromPool(lpClass, lpName, Length);
 
     if (NULL == lpHeader)
     {
         CORE_ERROR(TRUE, "Can't malloc object '%s' for class '%s'",
-            lpName, lpClass->ClassName);
+            lpName, GetClassName(lpClass));
         return NULL;
     }
 
-    State = lpClass->fnMallocObject(lpHeader, lpParam);
-    
+    State = lpClass->Header.fnMallocObject(lpHeader, lpParam);
+
     if (STATE_SUCCESS != State)
     {
         CORE_ERROR(TRUE, "Object '%s' call malloc in the class '%s' failed.",
-            lpName, lpClass->ClassName);
+            lpName, GetClassName(lpClass));
         SetObjectState(lpHeader, KOBJECT_STATE_DEATH);
         CORE_FreeObject(lpHeader);
         lpHeader = NULL;
     }
-    
+
     CORE_SetError(State);
-    
+
     return lpHeader;
-     
 }
 
-EXPORT E_STATUS CORE_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
-    
-    if (NULL == lpClass)
-    {
-        return CORE_GetError();
-    }
-
-    if (KOBJECT_STATE_CREATE != GetObjectState(lpHeader))
-    {
-        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
-                lpHeader, GetObjectState(lpHeader));
-        return STATE_INVALID_STATE;
-    }
-
-    CORE_ASSERT(lpClass->fnActiveObject, SYSTEM_CALL_OOPS(), 
-        "BUG: Not support function for class(%s) to wait object '%s'.",
-        lpClass->ClassName, GetObjectName(lpHeader));
-
-    return lpClass->fnActiveObject(lpHeader, lpParam);
-}
 
 EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam)
 {
@@ -925,18 +898,18 @@ EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam)
         return NULL;
     }
 
-    CORE_ASSERT(lpClass->fnTakeObject, SYSTEM_CALL_OOPS(), 
+    CORE_ASSERT(lpClass->Header.fnTakeObject, SYSTEM_CALL_OOPS(), 
         "BUG: Not support function for class(%s) to open object '%s'.",
-            lpClass->ClassName, lpName);
+            GetClassName(lpClass), lpName);
     
-    State = lpClass->fnTakeObject(lpHeader, lpParam);
+    State = lpClass->Header.fnTakeObject(lpHeader, lpParam);
     
     CORE_SetError(State);
     
     if (STATE_SUCCESS != State)
     {
         CORE_ERROR(TRUE, "Object '%s' call open in the class '%s' failed.",
-            lpName, lpClass->ClassName);
+            lpName, GetClassName(lpClass));
         
         return NULL;
     }
@@ -944,6 +917,75 @@ EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam)
     return lpHeader;
 }
 
+EXPORT E_STATUS CORE_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
+    
+    if (NULL == lpClass)
+    {
+        return CORE_GetError();
+    }
+
+    if (KOBJECT_STATE_CREATE != GetObjectState(lpHeader))
+    {
+        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
+                lpHeader, GetObjectState(lpHeader));
+        return STATE_INVALID_STATE;
+    }
+
+    CORE_ASSERT(lpClass->Header.fnActiveObject, SYSTEM_CALL_OOPS(), 
+        "BUG: Not support function for class(%s) to wait object '%s'.",
+        GetClassName(lpClass), GetObjectName(lpHeader));
+
+    return lpClass->Header.fnActiveObject(lpHeader, lpParam);
+}
+
+
+EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
+{
+    E_STATUS Result;
+    KOBJECT_STATE State;
+    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
+    
+    if (NULL == lpClass)
+    {
+        return CORE_GetError();
+    }
+    
+    State = SetObjectStateSafe(lpHeader, KOBJECT_STATE_DEATH);
+
+    if (KOBJECT_STATE_FREE == State || KOBJECT_STATE_DEATH == State)
+    {
+        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
+                lpHeader, GetObjectState(lpHeader));
+        return STATE_INVALID_STATE;
+    }
+
+    CORE_ASSERT(lpClass->Header.fnFreeObject, SYSTEM_CALL_OOPS(), 
+        "BUG: Not support function for class(%s) to free object '%s'.",
+        GetClassName(lpClass), GetObjectName(lpHeader));
+
+    if (STATE_SUCCESS == (Result = lpClass->Header.fnFreeObject(lpHeader)))
+    {   
+        CORE_INFOR(TRUE, "Object '%s' call free in the class '%s' successfully.",
+            GetObjectName(lpHeader), GetClassName(lpClass));
+        
+        if (STATE_SUCCESS == (Result = FreeObjectToPool(lpHeader)))
+        {
+            return Result;
+        }
+    }
+
+    SetObjectStateSafe(lpHeader, State);
+
+    CORE_ERROR(TRUE, "Object '%s' call free in the class '%s' failed result %d.",
+            GetObjectName(lpHeader), GetClassName(lpClass), Result);
+
+    return Result;
+}
+
+
+#if 0
 EXPORT E_STATUS CORE_WaitObject(LPKOBJECT_HEADER lpHeader, DWORD WaitTime)
 {
     LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
@@ -962,7 +1004,7 @@ EXPORT E_STATUS CORE_WaitObject(LPKOBJECT_HEADER lpHeader, DWORD WaitTime)
 
     CORE_ASSERT(lpClass->fnWaitObject, SYSTEM_CALL_OOPS(), 
         "BUG: Not support function for class(%s) to wait object '%s'.",
-        lpClass->ClassName, GetObjectName(lpHeader));
+        GetClassName(lpClass), GetObjectName(lpHeader));
     
     return lpClass->fnWaitObject(lpHeader, WaitTime);
 }
@@ -985,7 +1027,7 @@ EXPORT E_STATUS CORE_PostObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
     CORE_ASSERT(lpClass->fnPostObject, SYSTEM_CALL_OOPS(), 
         "BUG: Not support function for class(%s) to post object '%s'.",
-        lpClass->ClassName, GetObjectName(lpHeader));
+        GetClassName(lpClass), GetObjectName(lpHeader));
     
     return lpClass->fnPostObject(lpHeader, lpParam);
 }
@@ -1008,53 +1050,12 @@ EXPORT E_STATUS CORE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
     CORE_ASSERT(lpClass->fnResetObject, SYSTEM_CALL_OOPS(), 
         "BUG: Not support function for class(%s) to reset object '%s'.",
-        lpClass->ClassName, GetObjectName(lpHeader));
+        GetClassName(lpClass), GetObjectName(lpHeader));
     
     return lpClass->fnResetObject(lpHeader, lpParam);
 }
+#endif
 
-EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
-{
-    E_STATUS Result;
-    KOBJECT_STATE State;
-    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
-    
-    if (NULL == lpClass)
-    {
-        return CORE_GetError();
-    }
-    
-    State = SetObjectStateSafe(lpHeader, KOBJECT_STATE_DEATH);
-
-    if (KOBJECT_STATE_FREE == State || KOBJECT_STATE_DEATH == State)
-    {
-        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
-                lpHeader, GetObjectState(lpHeader));
-        return STATE_INVALID_STATE;
-    }
-
-    CORE_ASSERT(lpClass->fnFreeObject, SYSTEM_CALL_OOPS(), 
-        "BUG: Not support function for class(%s) to free object '%s'.",
-        lpClass->ClassName, GetObjectName(lpHeader));
-
-    if (STATE_SUCCESS == (Result = lpClass->fnFreeObject(lpHeader)))
-    {   
-        CORE_INFOR(TRUE, "Object '%s' call free in the class '%s' successfully.",
-            GetObjectName(lpHeader), lpClass->ClassName);
-        
-        if (STATE_SUCCESS == (Result = FreeObjectToPool(lpHeader)))
-        {
-            return Result;
-        }
-    }
-
-    SetObjectStateSafe(lpHeader, State);
-
-    CORE_ERROR(TRUE, "Object '%s' call free in the class '%s' failed result %d.",
-            GetObjectName(lpHeader), lpClass->ClassName, Result);
-
-    return Result;
-}
 
 EXPORT E_STATUS CORE_DetachIPCQueue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
@@ -1075,19 +1076,58 @@ EXPORT E_STATUS CORE_DetachIPCQueue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_SUCCESS;
     
 }
+
+EXPORT E_STATUS CORE_RequestMethod(LPKOBJECT_HEADER lpHeader, LPVOID lpParam, DWORD Method)
+{
+    FNCLASSMETHOD fnClassMethod = NULL;
+    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
+    
+    if (NULL == lpClass)
+    {
+        return CORE_GetError();
+    }
+    
+    if (KOBJECT_STATE_ACTIVE != GetObjectState(lpHeader))
+    {
+        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
+                lpHeader, GetObjectState(lpHeader));
+        return STATE_INVALID_STATE;
+    }
+    
+    if (Method >= GetClassMethods(lpClass))
+    {
+        CORE_ERROR(TRUE, "Request object(%s) method(%u) is greater than %u.",
+                GetObjectName(lpHeader), Method, GetClassMethods(lpClass));
+        return STATE_OVER_RANGE;
+    }
+
+    fnClassMethod = GetClassMethodFn(lpClass, Method);
+
+    if (NULL == fnClassMethod)
+    {
+        CORE_ERROR(TRUE, "Request object(%s) method(%u) is invalid.",
+                GetObjectName(lpHeader), Method, GetClassMethods(lpClass));
+        return STATE_INVALID_METHOD;
+    }
+    
+    return fnClassMethod(lpHeader, lpParam);
+}
+
+
+
 STATIC E_STATUS SVC_MallocObject(LPVOID lpPrivate, LPVOID lpParam)
 {
     LPKOBJECT_HEADER lpHeader = CORE_MallocObject(REQdParam(lpParam, u0),
                                                   REQpParam(lpParam, u1),
                                                   REQpParam(lpParam, u2));
-    
+
     if (NULL == lpHeader)
     {
         REQhParam(lpParam, u1) = INVALID_HANDLE_VALUE;
         return CORE_GetError();
     }
 
-    REQhParam(lpParam, u1) = GetObjectHandle(lpHeader);
+    SetREQhParam(lpParam, u1, GetObjectHandle(lpHeader));
     
     return STATE_SUCCESS;
 }
@@ -1111,37 +1151,9 @@ STATIC E_STATUS SVC_TakeObject(LPVOID lpPrivate, LPVOID lpParam)
         return CORE_GetError();
     }
     
-    REQhParam(lpParam, u1) = GetObjectHandle(lpHeader);
+    SetREQhParam(lpParam, u1, GetObjectHandle(lpHeader));
     
     return STATE_SUCCESS;
-}
-
-
-STATIC E_STATUS SVC_WaitObject(LPVOID lpPrivate, LPVOID lpParam)
-{
-    E_STATUS State =  CORE_WaitObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQdParam(lpParam, u1));
-    
-    CORE_SetError(State);
-    
-    return State;
-}
-
-STATIC E_STATUS SVC_PostObject(LPVOID lpPrivate, LPVOID lpParam)
-{
-    E_STATUS State =  CORE_PostObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQpParam(lpParam, u1));
-    
-    CORE_SetError(State);
-    
-    return State;
-}
-
-STATIC E_STATUS SVC_ResetObject(LPVOID lpPrivate, LPVOID lpParam)
-{
-    E_STATUS State =  CORE_ResetObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQpParam(lpParam, u1));  
-    
-    CORE_SetError(State);
-    
-    return State;  
 }
 
 STATIC E_STATUS SVC_FreeObject(LPVOID lpPrivate, LPVOID lpParam)
@@ -1173,10 +1185,38 @@ STATIC E_STATUS SVC_GetObjectName(LPVOID lpPrivate, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
 
-    DumpObjectName(lpHeader, (LPDWORD)(REQpParam(lpParam, u1)));
+    DumpObjectName(lpHeader, (DWORD_PTR)(REQpParam(lpParam, u1)));
 
     CORE_SetError(STATE_SUCCESS);
 
+    return STATE_SUCCESS;
+}
+
+
+STATIC E_STATUS SVC_RequestMethod(LPVOID lpPrivate, LPVOID lpParam)
+{
+    E_STATUS State =  CORE_RequestMethod(CORE_Handle2Header(REQhParam(lpParam, u0)),
+                                         REQpParam(lpParam, u1),
+                                         REQdParam(lpParam, u2));
+    
+    CORE_SetError(State);
+    
+    return State;
+}
+
+STATIC E_STATUS SVC_MallocNmObject(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPKOBJECT_HEADER lpHeader = CORE_MallocNoNameObject(REQdParam(lpParam, u0),
+                                                        REQpParam(lpParam, u1));
+
+    if (NULL == lpHeader)
+    {
+        SetREQdParam(lpParam, u2, INVALID_HANDLE_VALUE);
+        return CORE_GetError();
+    }
+
+    SetREQhParam(lpParam, u2, GetObjectHandle(lpHeader));
+    
     return STATE_SUCCESS;
 }
 
@@ -1184,11 +1224,10 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_MallocObject,                   /**< 0.LPC_SOM_OBJECT_MALLOC */
     SVC_ActiveObject,                   /**< 1.LPC_SOM_OBJECT_ACTIVE */
     SVC_TakeObject,                     /**< 2.LPC_SOM_OBJECT_TAKE */
-    SVC_WaitObject,                     /**< 3.LPC_SOM_OBJECT_WAIT */
-    SVC_PostObject,                     /**< 4.LPC_SOM_OBJECT_POST */
-    SVC_ResetObject,                    /**< 5.LPC_SOM_OBJECT_RESET */
-    SVC_FreeObject,                     /**< 6.LPC_SOM_OBJECT_FREE */
-    SVC_GetObjectName,                  /**< 7.LPC_SOM_OBJECT_GETNAME */
+    SVC_FreeObject,                     /**< 3.LPC_SOM_OBJECT_FREE */
+    SVC_GetObjectName,                  /**< 4.LPC_SOM_OBJECT_GETNAME */
+    SVC_RequestMethod,                  /**< 5.LPC_SOM_OBJECT_METHOD */
+    SVC_MallocNmObject,                 /**< 6.LPC_SOM_OBJECT_MALLOCNM */
 };
 
 

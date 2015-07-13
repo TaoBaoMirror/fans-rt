@@ -115,7 +115,7 @@ FANSAPI RO_CODE HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal
  */
 FANSAPI RO_CODE E_STATUS PostEvent(HANDLE handle)
 {
-    return caPostObject(handle, NULL);
+    return caRequestMethod(handle, NULL, KIPC_METHOD_POST);
 }
 
 /**
@@ -135,7 +135,7 @@ FANSAPI RO_CODE E_STATUS PostEvent(HANDLE handle)
  */
 FANSAPI RO_CODE E_STATUS ResetEvent(HANDLE handle)
 {
-    return caResetObject(handle, NULL);
+    return caRequestMethod(handle, NULL, KIPC_METHOD_RESET);
 }
 
 /**
@@ -212,7 +212,7 @@ FANSAPI RO_CODE HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
  */
 FANSAPI RO_CODE E_STATUS MutexUnlock(HANDLE hMutex)
 {
-    return caPostObject(hMutex, NULL);
+    return caRequestMethod(hMutex, NULL, KIPC_METHOD_POST);
 }
 
 /**
@@ -233,5 +233,5 @@ FANSAPI RO_CODE E_STATUS MutexUnlock(HANDLE hMutex)
  */
 FANSAPI RO_CODE E_STATUS MutexLock(HANDLE hMutex)
 {
-    return caWaitObject(hMutex, WAIT_INFINITE);
+    return caRequestMethod(hMutex, (LPVOID) WAIT_INFINITE, KIPC_METHOD_WAIT);
 }

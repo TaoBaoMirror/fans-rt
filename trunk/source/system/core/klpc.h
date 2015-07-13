@@ -73,11 +73,15 @@ typedef struct tagLPC_REQUEST_PACKET LPC_REQUEST_PACKET;
 typedef struct tagLPC_REQUEST_PACKET * PLPC_REQUEST_PACKET;
 typedef struct tagLPC_REQUEST_PACKET FAR * LPLPC_REQUEST_PACKET;
 
-#define     GetReqData(lpP)         ((LPLPC_REQUEST_PACKET)lpP)
-#define     REQpParam(lpP, uNid)    (((LPLPC_REQUEST_PACKET)lpP)->uNid.pParam)
-#define     REQhParam(lpP, uNid)    (((LPLPC_REQUEST_PACKET)lpP)->uNid.hParam)
-#define     REQdParam(lpP, uNid)    (((LPLPC_REQUEST_PACKET)lpP)->uNid.dParam)
-#define     REQlParam(lpP, uNid)    (((LPLPC_REQUEST_PACKET)lpP)->uNid.lParam)
+#define     GetReqData(lpP)                 ((LPLPC_REQUEST_PACKET)lpP)
+#define     REQpParam(lpP, uNid)            (((LPLPC_REQUEST_PACKET)lpP)->uNid.pParam)
+#define     REQhParam(lpP, uNid)            (((LPLPC_REQUEST_PACKET)lpP)->uNid.hParam)
+#define     REQdParam(lpP, uNid)            (((LPLPC_REQUEST_PACKET)lpP)->uNid.dParam)
+#define     REQlParam(lpP, uNid)            (((LPLPC_REQUEST_PACKET)lpP)->uNid.lParam)
+#define     SetREQpParam(lpP, uNid, V)      do { (((LPLPC_REQUEST_PACKET)lpP)->uNid.pParam) = (V); } while(0)
+#define     SetREQhParam(lpP, uNid, V)      do { (((LPLPC_REQUEST_PACKET)lpP)->uNid.hParam) = (V); } while(0)
+#define     SetREQdParam(lpP, uNid, V)      do { (((LPLPC_REQUEST_PACKET)lpP)->uNid.dParam) = (V); } while(0)
+#define     SetREQlParam(lpP, uNid, V)      do { (((LPLPC_REQUEST_PACKET)lpP)->uNid.lParam) = (V); } while(0)
 
 struct tagLPC_REQUEST_PACKET{
     union{

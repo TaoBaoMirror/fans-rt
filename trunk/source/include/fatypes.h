@@ -46,8 +46,7 @@ typedef unsigned short FAR * LPWORD;
 #define     DWORD_WIDTH             (sizeof(DWORD) * BYTE_WIDTH)
 #define     GET_DWORD_BIT(x, b)     ((x) & (1<<(b)))
 typedef unsigned long DWORD;
-typedef unsigned long * PDWORD;
-typedef unsigned long FAR * LPDWORD;
+typedef unsigned long * DWORD_PTR;
 
 #include <limits.h>
 #ifdef ULLONG_MAX
@@ -102,7 +101,7 @@ typedef unsigned int FAR * LPUINT;
 #ifdef LLONG_MAX
 #define INVALID_TICK        (-1LL)
 #define TICK_INFINITE       (-1LL)
-#define WAIT_INFINITE       (-1LL)
+#define WAIT_INFINITE       (-1L)
 #define SYSTEM_HAVE_TICK64
 typedef long long TICK;
 typedef long long * PTICK;
@@ -221,9 +220,9 @@ typedef enum{
 #define TASK_PRIORITY_NORMAL                (TASK_PRIORITY_IDLE - 1)            /**< 普通任务 */
 #define TASK_PRIORITY_INVALID               (255)                               /**< 无效任务优先级 */
 #define TASK_SLICE_INFINITE                 ((TIME_SLICE_T)(-1))                /**< 任务时间片无限 - 只能 IDLE 使用 */
-#define TASK_SMLTKEY_INVALID                (~0U)
+#define TASK_LSOTKEY_INVALID                (~0U)
 
-typedef unsigned int SMLT_KEY_T;
+typedef unsigned int LSOT_KEY_T;
 typedef short TIME_SLICE_T;
 typedef unsigned char TASK_PRIORITY;
 typedef unsigned char * PTASK_PRIORITY;

@@ -53,6 +53,24 @@ EXPORT RO_CODE HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
     return Packet.u1.hParam; 
 }
 
+EXPORT RO_CODE HANDLE caMallocNoNameObject(DWORD Magic, LPVOID lpParam)
+{
+    LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(Packet));
+
+    Packet.u0.dParam = Magic;
+    Packet.u1.pParam = lpParam;
+
+    if (STATE_SUCCESS != caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_MALLOCNM))
+    {
+        return INVALID_HANDLE_VALUE;
+    }
+    
+    return Packet.u2.hParam; 
+}
+
+
 EXPORT RO_CODE E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
@@ -82,42 +100,6 @@ EXPORT RO_CODE HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
     return Packet.u1.hParam;    
 }
 
-EXPORT RO_CODE E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
-{
-    LPC_REQUEST_PACKET Packet;
-
-    memset(&Packet, 0, sizeof(Packet));
-
-    Packet.u0.hParam = handle;
-    Packet.u1.dParam = WaitTime;
-
-    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_WAIT);
-}
-
-EXPORT RO_CODE E_STATUS caPostObject(HANDLE handle, LPVOID lpParam)
-{
-    LPC_REQUEST_PACKET Packet;
-
-    memset(&Packet, 0, sizeof(Packet));
-
-    Packet.u0.hParam = handle;
-    Packet.u1.pParam = lpParam;
-
-    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_POST);
-}
-
-EXPORT RO_CODE E_STATUS caResetObject(HANDLE handle, LPVOID lpParam)
-{
-    LPC_REQUEST_PACKET Packet;
-
-    memset(&Packet, 0, sizeof(Packet));
-
-    Packet.u0.hParam = handle;
-    Packet.u1.pParam = lpParam;
-
-    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_RESET);
-}
-
 EXPORT RO_CODE E_STATUS caFreeObject(HANDLE handle)
 {
     LPC_REQUEST_PACKET Packet;
@@ -141,3 +123,22 @@ EXPORT RO_CODE E_STATUS caGetObjectName(HANDLE handle, CHAR Name[OBJECT_NAME_MAX
     
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_GETNAME);
 }
+
+EXPORT RO_CODE E_STATUS caRequestMethod(HANDLE handle, LPVOID lpParam, DWORD Method)
+{
+    LPC_REQUEST_PACKET Packet;
+
+    memset(&Packet, 0, sizeof(Packet));
+
+    Packet.u0.hParam = handle;
+    Packet.u1.pParam = lpParam;
+    Packet.u2.dParam = Method;
+
+    return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_METHOD);
+}
+
+EXPORT RO_CODE E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
+{
+    return caRequestMethod(handle, (LPVOID) WAIT_INFINITE, KIPC_METHOD_WAIT);
+}
+

@@ -43,12 +43,14 @@ extern "C" {
     EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority);
     EXPORT E_STATUS caCloseTask(HANDLE hTask);
 
-    EXPORT E_STATUS caCreateLsotObject(HANDLE hTask, DWORD Total);
-    EXPORT E_STATUS caRemoveLsotObject(HANDLE hTask);
-    EXPORT SMLT_KEY_T caGetLsotKey(VOID);
-    EXPORT E_STATUS caPutLsotKey(SMLT_KEY_T SmltKey);
-    EXPORT E_STATUS caGetLsotValue(SMLT_KEY_T SmltKey, LPDWORD lpValue);
-    EXPORT E_STATUS caSetLsotValue(SMLT_KEY_T SmltKey, DWORD Value);
+    EXPORT HANDLE caGetLsotHandle(HANDLE hTask);
+    EXPORT HANDLE caMallocLsotObject(DWORD Total);
+    EXPORT E_STATUS caActiveLsotObject(HANDLE hLsot, HANDLE hTask);
+#define     caCloseLsotObject(hLsot)       caFreeObject(handle)
+    EXPORT LSOT_KEY_T caGetLsotKey(HANDLE hLsot);
+    EXPORT E_STATUS caPutLsotKey(HANDLE hLsot, LSOT_KEY_T LsotKey);
+    EXPORT E_STATUS caGetLsotValue(HANDLE hLsot, LSOT_KEY_T LsotKey, DWORD_PTR lpValue);
+    EXPORT E_STATUS caSetLsotValue(HANDLE hLsot, LSOT_KEY_T LsotKey, DWORD Value);
     
     EXPORT TASK_STATUS caGetTaskState(HANDLE hTask);
     EXPORT E_STATUS ntGetTaskInfor(HANDLE hTask, LPTASK_INFOR lpTaskInfor);
@@ -60,12 +62,13 @@ extern "C" {
     EXPORT RO_CODE E_STATUS caGetObjectName(HANDLE handle,
                                 CHAR Name[OBJECT_NAME_MAX], SIZE_T Length);
     EXPORT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam);
+    EXPORT RO_CODE HANDLE caMallocNoNameObject(DWORD Magic, LPVOID lpParam);
     EXPORT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam);
     EXPORT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam);
-    EXPORT E_STATUS caPostObject(HANDLE handle, LPVOID lpParam);
-    EXPORT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime);
-    EXPORT E_STATUS caResetObject(HANDLE handle, LPVOID lpParam);
     EXPORT E_STATUS caFreeObject(HANDLE handle);
+    EXPORT E_STATUS caRequestMethod(HANDLE handle, LPVOID lpParam, DWORD Method);
+    EXPORT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime);
+
     EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);
     EXPORT E_STATUS caStackFill(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);
     EXPORT E_STATUS caStackFree(HANDLE hTask, E_TASK_PERMISSION Permission);

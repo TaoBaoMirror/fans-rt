@@ -21,7 +21,9 @@
 
 #include "kcore.h"
 #include "ktask.h"
+#include "klsot.h"
 #include "libcal.h"
+#include "libapi.h"
 #include "cadebug.h"
 
 /**
@@ -36,6 +38,7 @@
 FANSAPI RO_CODE HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam)
 {
     HANDLE hTask;
+    
     TASK_CREATE_PARAM TaskParam;
     CHAR TaskName[OBJECT_NAME_MAX];
 
@@ -134,9 +137,9 @@ FANSAPI RO_CODE HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpPa
 
     if (0 != TaskParam.LsotKeys)
     {
-        if (STATE_SUCCESS != caCreateLsotObject(hTask, TaskParam.LsotKeys))
+        if (STATE_SUCCESS != uCreateLsot(hTask, TaskParam.LsotKeys))
         {
-            LOG_ERROR(TRUE, "Fill user stack for task '%s' failed.", TaskName);
+            LOG_ERROR(TRUE, "Task %s create lsot object failed.", TaskName);
             goto lable2;
         }
     }
@@ -150,7 +153,7 @@ FANSAPI RO_CODE HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpPa
 
     if (0 != TaskParam.LsotKeys)
     {
-        caRemoveLsotObject(hTask);
+        uCloseLsotObject(hTask);
     }
 lable2:
     caStackFree(hTask, TASK_PERMISSION_CORE);
@@ -186,7 +189,7 @@ FANSAPI RO_CODE HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnM
     TaskParam.Priority      =   Priority;
     TaskParam.SliceLength   =   CONFIG_TIME_SLICE_NORMAL;
     TaskParam.StackSize     =   CONFIG_DEFAULT_STACK_SIZE;
-//    TaskParam.LsotKeys      =   CONFIG_DEFAULT_SLOT_KEYS;
+    TaskParam.LsotKeys      =   CONFIG_DEFAULT_SLOT_KEYS;
 
     return CreateTaskEx(lpTaskName, &TaskParam);
 }
@@ -416,7 +419,7 @@ FANSAPI RO_CODE TASK_STATUS GetTaskState(HANDLE hTask)
     return caGetTaskState(hTask);
 }
 EXPORT_SYMBOL(GetTaskState);
-
+#if 0
 /**
  * Get free key of static memory local to a task.
  * @return The key id.
@@ -424,9 +427,22 @@ EXPORT_SYMBOL(GetTaskState);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI RO_CODE SMLT_KEY_T GetLsotKey(VOID)
+FANSAPI RO_CODE LSOT_KEY_T GetLsotKey(VOID)
 {
-    return caGetLsotKey();
+    KLSOT_REQUEST_PACKET Packet = {0};
+    HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
+    
+    if (INVALID_HANDLE_VALUE == handle)
+    {
+        return TASK_LSOTKEY_INVALID;
+    }
+    
+    if (STATE_SUCCESS != caActiveObject(handle, &Packet))
+    {
+        return TASK_LSOTKEY_INVALID;
+    }
+    
+    return GetKLPKeyID(&Packet);
 }
 EXPORT_SYMBOL(GetLsotKey);
 
@@ -438,9 +454,20 @@ EXPORT_SYMBOL(GetLsotKey);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS PutLsotKey(SMLT_KEY_T SmtKey)
+FANSAPI RO_CODE E_STATUS PutLsotKey(LSOT_KEY_T LsotKey)
 {
-    return caPutLsotKey(SmtKey);
+    E_STATUS Result;
+    KLSOT_REQUEST_PACKET Packet = {0};
+    HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
+    
+    if (INVALID_HANDLE_VALUE == handle)
+    {
+        return STATE_NOT_FOUND;
+    }
+    
+    SetKLPKeyID(&Packet, LsotKey);
+    
+    //return caDetachObject(handle, &Packet);
 }
 EXPORT_SYMBOL(PutLsotKey);
 
@@ -453,7 +480,7 @@ EXPORT_SYMBOL(PutLsotKey);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS GetLsotValue(SMLT_KEY_T SmtKey, LPDWORD lpValue)
+FANSAPI RO_CODE E_STATUS GetLsotValue(LSOT_KEY_T SmtKey, DWORD_PTR lpValue)
 {
     return caGetLsotValue(SmtKey, lpValue);
 }
@@ -468,12 +495,12 @@ EXPORT_SYMBOL(GetLsotValue);
  * date           author          notes
  * 2015-06-19     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS SetLsotValue(SMLT_KEY_T SmtKey, DWORD Value)
+FANSAPI RO_CODE E_STATUS SetLsotValue(LSOT_KEY_T SmtKey, DWORD Value)
 {
     return caSetLsotValue(SmtKey, Value);
 }
 EXPORT_SYMBOL(caSetLsotValue);
-
+#endif
 /*******************************************************************************************
  *  函 数 名：GetTaskInformation
  *  功    能：查询任务综合信息

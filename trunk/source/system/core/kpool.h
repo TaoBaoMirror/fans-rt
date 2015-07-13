@@ -139,7 +139,7 @@ typedef unsigned long KCONTAINER_ID_T;
 #ifdef __cplusplus
 extern "C" {
 #endif
-    typedef E_STATUS (CALLBACK *POOLHASHCHECK)(LPVOID lpResult, LPDWORD Hash);
+    typedef E_STATUS (CALLBACK *POOLHASHCHECK)(LPVOID lpResult, DWORD_PTR Hash);
     EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
                                         LPBYTE lpTable, BYTE Pools, BYTE BlockPrePool,
                                         DWORD BytePreBlock, BOOL AllocForInit);

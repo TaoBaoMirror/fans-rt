@@ -62,7 +62,7 @@
 #define     CONFIG_OBJECT7_BLOCK_MAX            0           /**< The max blocks for 4096 bytes class */
 
 #define     CONFIG_TASK_PRIORITY_MAX            8           /**< 任务管理器支持的任务优先级数量 */
-#define     CONFIG_DEFAULT_SLOT_KEYS            4           /**< 默认的局部变量KEY数量 */
+#define     CONFIG_DEFAULT_SLOT_KEYS            3           /**< 默认的局部变量KEY数量 */
 #define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
 #define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */

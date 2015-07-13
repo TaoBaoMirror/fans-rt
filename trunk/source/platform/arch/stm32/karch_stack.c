@@ -27,7 +27,7 @@ PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID fnMain, LPVOID lpArgument,
     LPVOID fnLeave;
     DWORD TaskObject;
     DWORD IRQLeaveR;
-    LPDWORD StackPoint = Position;
+    DWORD_PTR StackPoint = Position;
     LPTASK_CONTEXT lpCoreContext = lpTaskContext;
     
     if (GetContextPermission(lpCoreContext) == TASK_PERMISSION_CORE)

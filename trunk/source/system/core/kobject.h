@@ -25,11 +25,10 @@ enum{
     LPC_SOM_OBJECT_MALLOC   =       0,
     LPC_SOM_OBJECT_ACTIVE   =       1,
     LPC_SOM_OBJECT_TAKE     =       2,
-    LPC_SOM_OBJECT_WAIT     =       3,
-    LPC_SOM_OBJECT_POST     =       4,
-    LPC_SOM_OBJECT_RESET    =       5,
-    LPC_SOM_OBJECT_FREE     =       6,
-    LPC_SOM_OBJECT_GETNAME  =       7,
+    LPC_SOM_OBJECT_FREE     =       3,
+    LPC_SOM_OBJECT_GETNAME  =       4,
+    LPC_SOM_OBJECT_METHOD   =       5,
+    LPC_SOM_OBJECT_MALLOCNM =       6,
     LPC_SOM_REQUEST_MAX
 };
 
@@ -37,97 +36,71 @@ typedef struct tagKOBJECT_HEADER KOBJECT_HEADER;
 typedef struct tagKOBJECT_HEADER * PKOBJECT_HEADER;
 typedef struct tagKOBJECT_HEADER FAR * LPKOBJECT_HEADER;
 
+typedef struct tagKCLASS_HEADER KCLASS_HEADER;
+typedef struct tagKCLASS_HEADER * PKCLASS_HEADER;
+typedef struct tagKCLASS_HEADER FAR * LPKCLASS_HEADER;
+
 typedef struct tagKCLASS_DESCRIPTOR KCLASS_DESCRIPTOR;
 typedef struct tagKCLASS_DESCRIPTOR * PKCLASS_DESCRIPTOR;
 typedef struct tagKCLASS_DESCRIPTOR FAR * LPKCLASS_DESCRIPTOR;
 
-struct tagKCLASS_DESCRIPTOR{
-    DWORD               Magic;
-    LPCSTR              ClassName;
+typedef E_STATUS (*FNCLASSMETHOD)(LPKOBJECT_HEADER Header, LPVOID lpParam);
+#define     KCLASS_METHODS_MAX      8
+
+struct tagKCLASS_HEADER{
+    union{
+        struct{
+            DWORD       Magic:24;
+            DWORD       Methods:8;
+        }Bits;
+        DWORD           Magic;
+    }un;
+    LPCSTR              lpClassName;
     SIZE_T              (* fnSizeofObject)(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam);
     E_STATUS            (* fnMallocObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
+    E_STATUS            (* fnActiveObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
+    E_STATUS            (* fnTakeObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
+    E_STATUS            (* fnFreeObject)(LPKOBJECT_HEADER Header);
+};
+
+
+
+struct tagKCLASS_DESCRIPTOR{
+    KCLASS_HEADER           Header;
+    FNCLASSMETHOD           fnClassMethods[KCLASS_METHODS_MAX];
+    
+#if 0
     E_STATUS            (* fnActiveObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
     E_STATUS            (* fnTakeObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
     E_STATUS            (* fnWaitObject)(LPKOBJECT_HEADER Header, LONG WaitTime);
     E_STATUS            (* fnPostObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
     E_STATUS            (* fnResetObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
     E_STATUS            (* fnDetachTask)(LPKOBJECT_HEADER Header, LPVOID lpParam);
-    E_STATUS            (* fnFreeObject)(LPKOBJECT_HEADER Header);
+#endif
 };
 
-#ifdef USE_DUMMY_CLASS
+#define     CLASS_MAGIC(M, Ops)         ((M) + (((Ops)<<(24))))
 
-STATIC E_STATUS object_no_need_malloc(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_SUCCESS;
-}
+#define     DEFINE_KCLASS(KCLASS_NAME, CaseName, M, MaxOP, fnSize, fnMalloc, fnActive, fnTake, fnFree, ...) \
+                                                                                                            \
+            STATIC CONST KCLASS_NAME g_##CaseName = {                                                       \
+                .Header.un.Bits.Magic       =       M,                                                      \
+                .Header.un.Bits.Methods     =       MaxOP,                                                  \
+                .Header.lpClassName         =       #CaseName,                                              \
+                .Header.fnSizeofObject      =       fnSize,                                                 \
+                .Header.fnMallocObject      =       fnMalloc,                                               \
+                .Header.fnActiveObject      =       fnActive,                                               \
+                .Header.fnTakeObject        =       fnTake,                                                 \
+                .Header.fnFreeObject        =       fnFree,                                                 \
+                {__VA_ARGS__},                                                                              \
+            };
 
-STATIC E_STATUS object_no_need_active(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_SUCCESS;
-}
+#define     REGISTER_KCLASS(CaseName)       CORE_RegisterClass((LPVOID)&(g_##CaseName))
 
-STATIC E_STATUS object_no_need_take(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_NOT_SUPPORT;
-}
-STATIC E_STATUS object_no_need_wait(LPKOBJECT_HEADER lpHeader, DWORD WaitTime)
-{
-    return STATE_NOT_SUPPORT;
-}
-
-STATIC E_STATUS object_no_need_post(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_NOT_SUPPORT;
-}
-
-STATIC E_STATUS object_no_need_reset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_NOT_SUPPORT;
-}
-
-STATIC E_STATUS object_no_need_free(LPKOBJECT_HEADER lpHeader)
-{
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS object_no_need_detach(LPKOBJECT_HEADER lpHeader)
-{
-    return STATE_SUCCESS;
-}
-
-#define     DEFINE_DUMMY_CLASS(M, Name, fnSize)                                                 \
-            STATIC CONST KCLASS_DESCRIPTOR Name = {                                             \
-                .Magic          =       M,                                                      \
-                .ClassName      =       #Name,                                                  \
-                .fnSizeofObject =       fnSize,                                                 \
-                .fnMallocObject =       object_no_need_malloc,                                  \
-                .fnActiveObject =       object_no_need_active,                                  \
-                .fnTakeObject   =       object_no_need_take,                                    \
-                .fnWaitObject   =       object_no_need_wait,                                    \
-                .fnPostObject   =       object_no_need_post,                                    \
-                .fnResetObject  =       object_no_need_reset,                                   \
-                .fnDetachTask   =       object_no_need_detach,                                  \
-                .fnFreeObject   =       object_no_need_free,                                    \
-            }
-#endif
-
-#define     DEFINE_CLASS(M, Name, fnSize, fnMalloc, fnActive, fnTake,                           \
-                        fnWait, fnPost, fnReset, fnDetach, fnFree)                              \
-            STATIC CONST KCLASS_DESCRIPTOR Name = {                                             \
-                .Magic          =       M,                                                      \
-                .ClassName      =       #Name,                                                  \
-                .fnSizeofObject =       fnSize,                                                 \
-                .fnMallocObject =       fnMalloc,                                               \
-                .fnActiveObject =       fnActive,                                               \
-                .fnTakeObject   =       fnTake,                                                 \
-                .fnWaitObject   =       fnWait,                                                 \
-                .fnPostObject   =       fnPost,                                                 \
-                .fnResetObject  =       fnReset,                                                \
-                .fnDetachTask   =       fnDetach,                                               \
-                .fnFreeObject   =       fnFree,                                                 \
-            }
-
+#define     GetClassName(lpClass)           ((lpClass)->Header.lpClassName)
+#define     GetClassMagic(lpClass)          ((lpClass)->Header.un.Bits.Magic)
+#define     GetClassMethods(lpClass)        ((lpClass)->Header.un.Bits.Methods)
+#define     GetClassMethodFn(lpClass, Id)   ((lpClass)->fnClassMethods[Id])
 typedef enum{
     KOBJECT_STATE_FREE          =       0,                          /**< ¿ÕÏÐ×´Ì¬ */
     KOBJECT_STATE_CREATE        =       1,                          /**< ´´½¨×´Ì¬ */
@@ -194,10 +167,10 @@ struct tagKOBJECT_HEADER{
         DWORD           daMagic[OBJECT_NAME_MAX/sizeof(DWORD)];
         DWORD           daValue[OBJECT_NAME_MAX/sizeof(DWORD)];
         struct{
-            DWORD       Total:5;
-            DWORD       Marks:27;
-            DWORD       dwArray[1];
-        }s;
+            DWORD               Total:5;
+            DWORD               Marks:27;
+            LPVOID              lpTask;
+        }lsot;
     }un;
 };
 
@@ -302,11 +275,8 @@ extern "C" {
     EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam);
     EXPORT E_STATUS CORE_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
     EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam);
-    EXPORT E_STATUS CORE_WaitObject(LPKOBJECT_HEADER lpHeader, DWORD WaitTime);
-    EXPORT E_STATUS CORE_PostObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
-    EXPORT E_STATUS CORE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
     EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader);
-    EXPORT E_STATUS CORE_DetachIPCQueue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
+    EXPORT E_STATUS CORE_RequestMethod(LPKOBJECT_HEADER lpHeader, LPVOID lpParam, DWORD Method);
 
 #ifdef __cplusplus
 }

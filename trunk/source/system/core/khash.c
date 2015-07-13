@@ -29,7 +29,7 @@ STATIC LONG CheckRepeat(BYTE * Array,LONG Count, LONG * Result)
 }
 
 PUBLIC DWORD CORE_HashSetArray(FNHASHLOADMAGIC fnLoadMagic, LPVOID lpPrivate,
-                               LPDWORD MagicArray, DWORD LastMagic, DWORD Count)
+                               DWORD_PTR MagicArray, DWORD LastMagic, DWORD Count)
 {
     DWORD i = 0, j = 0;
     
@@ -54,7 +54,7 @@ PUBLIC DWORD CORE_HashSetArray(FNHASHLOADMAGIC fnLoadMagic, LPVOID lpPrivate,
     return j+1;
 }
 
-PUBLIC VOID CORE_HashDebug(FNHASHKEY fnHashKey, LPDWORD MagicArray, DWORD Count,
+PUBLIC VOID CORE_HashDebug(FNHASHKEY fnHashKey, DWORD_PTR MagicArray, DWORD Count,
                             DWORD DivLow, DWORD DivHigh, LPCSTR Config, LPCSTR HashFunc)
 {
     LONG Repaet0 = -1, Repaet1 = -1;

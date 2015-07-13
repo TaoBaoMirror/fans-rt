@@ -36,12 +36,6 @@ EXPORT DWORD CORE_GetGlobalTaskCount(VOID)
     return g_SystemTaskCount;
 }
 
-EXPORT LPTASK_CONTEXT CORE_Handle2TaskContextCheck(HANDLE hTask, BOOL Check)
-{
-    return (LPTASK_CONTEXT) CORE_Handle2HeaderCheck(hTask, Check);
-}
-
-
 /************************************************************************************************
                                
 ************************************************************************************************/
@@ -242,7 +236,7 @@ STATIC SMLT_KEY_T MallocSmltKey(LPTASK_CONTEXT lpTaskContext)
     
     if (SmltKey >= SMLT_ARRAY_SIZE)
     {
-        return TASK_SMLTKEY_INVALID;
+        return TASK_LSOTKEY_INVALID;
     }
 
     return SmltKey;
@@ -282,7 +276,7 @@ STATIC E_STATUS SetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey
     return STATE_SUCCESS;
 }
 
-STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, LPDWORD lpValue)
+STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, DWORD_PTR lpValue)
 {
     if (SmltKey >= SMLT_ARRAY_SIZE)
     {
@@ -299,25 +293,6 @@ STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey
     return STATE_SUCCESS;
 }
 #endif
-/************************************************************************************************
-                               Some none object functions
-************************************************************************************************/
-#define     OBJ_TakeContext                         OBJ_DummyOperation
-#define     OBJ_PostContext                         OBJ_DummyOperation
-#define     OBJ_ResetContext                        OBJ_DummyOperation
-#define     OBJ_DetachContext                       OBJ_DummyOperation
-
-STATIC E_STATUS OBJ_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_SUCCESS;
-}
-
-
-STATIC E_STATUS OBJ_WaitContext(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
-{
-    return STATE_NOT_SUPPORT;
-}
-
 
 /************************************************************************************************
                                Some task object functions
@@ -401,6 +376,11 @@ STATIC E_STATUS OBJ_ActiveContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return State;
 }
 
+STATIC E_STATUS OBJ_TakeContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_SUCCESS;
+}
+
 STATIC E_STATUS OBJ_FreeContext(LPKOBJECT_HEADER lpHeader)
 {
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
@@ -411,16 +391,27 @@ STATIC E_STATUS OBJ_FreeContext(LPKOBJECT_HEADER lpHeader)
 }
 
 
-DEFINE_CLASS(TSK_MAGIC, TaskClass,
-            OBJ_SizeofContext,
-            OBJ_MallocContext,
-            OBJ_ActiveContext,
-            OBJ_TakeContext,
-            OBJ_WaitContext,
-            OBJ_PostContext,
-            OBJ_ResetContext,
-            OBJ_DetachContext,
-            OBJ_FreeContext);
+typedef struct tagKTASK_CLASS_DESCRIPTOR KTASK_CLASS_DESCRIPTOR;
+typedef struct tagKTASK_CLASS_DESCRIPTOR * PKTASK_CLASS_DESCRIPTOR;
+typedef struct tagKTASK_CLASS_DESCRIPTOR FAR * LPKTASK_CLASS_DESCRIPTOR;
+
+#define     KTASK_CLASS_METHODS        1
+
+struct tagKTASK_CLASS_DESCRIPTOR{
+    KCLASS_HEADER               Header;
+    FNCLASSMETHOD               fnClassMethods[KTASK_CLASS_METHODS];
+};
+
+DEFINE_KCLASS(KTASK_CLASS_DESCRIPTOR,
+              TaskClass,
+              TSK_MAGIC,
+              KTASK_CLASS_METHODS,
+              OBJ_SizeofContext,
+              OBJ_MallocContext,
+              OBJ_ActiveContext,
+              OBJ_TakeContext,
+              OBJ_FreeContext,
+              NULL);
 
 STATIC E_STATUS SVC_GetTaskError(LPVOID lpPrivate, LPVOID lpParam)
 {
@@ -474,6 +465,33 @@ STATIC E_STATUS SVC_GetTaskStartTick(LPVOID lpPrivate, LPVOID lpParam)
 
     lpPacket->u1.dParam = ((GetContextStartTick(lpTaskContext)>>0) & 0xffffffffL);
     lpPacket->u2.dParam = ((GetContextStartTick(lpTaskContext)>>32) & 0xffffffffL);
+
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS SVC_GetLsotHandle(LPVOID lpPrivate, LPVOID lpParam)
+{
+    LPKOBJECT_HEADER lpHeader;
+    LPTASK_CONTEXT lpTaskContext;
+
+    lpTaskContext = TASK_SELF_HANDLE == REQhParam(lpParam, u0)
+                  ? GetCurrentTaskContext()
+                  : Handle2TaskContext(REQhParam(lpParam, u0));
+
+    if (NULL == lpTaskContext)
+    {
+        CORE_ERROR(TRUE, "BUG: Invalid current task context.");
+        return STATE_INVALID_OBJECT;
+    }
+    
+    lpHeader = GetContextLsotObject(lpTaskContext);
+    
+    if (NULL == lpHeader)
+    {
+        return STATE_NOT_FOUND;
+    }
+
+    SetREQhParam(lpParam, u1, GetObjectHandle(lpHeader));
 
     return STATE_SUCCESS;
 }
@@ -630,14 +648,15 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_GetTaskStartTick,           /* 04.LPC_TSS_GET_STARTTICK */
     SVC_GetTaskPriority,            /* 05.LPC_TSS_GET_PRIORITY */
     SVC_SetTaskPriority,            /* 06.LPC_TSS_SET_PRIORITY */
-    SVC_TaskSchedule,               /* 07.LPC_TSS_SCHEDULE_TIMEOUT */
-    SVC_TaskWakeup,                 /* 08.LPC_TSS_WAKE_UP */
-    SVC_TestCancel,                 /* 09.LPC_TSS_TEST_CANCEL */
-    SVC_PostCancel,                 /* 10.LPC_TSS_POST_CANCEL */
-    SVC_CloseTask,                  /* 11.LPC_TSS_CLOSE_TASK */
-    SVC_GetTaskInfo,                /* 12.LPC_TSS_GET_TASKINFO */
-    SVC_EnumTask,                   /* 13.LPC_TSS_SYS_ENUMTASK */
-    SVC_SystemPerformance,          /* 14.LPC_TSS_PERFORMANCE */
+    SVC_GetLsotHandle,              /* 07.LPC_TSS_GET_LSOTHANDLE */
+    SVC_TaskSchedule,               /* 08.LPC_TSS_SCHEDULE_TIMEOUT */
+    SVC_TaskWakeup,                 /* 09.LPC_TSS_WAKE_UP */
+    SVC_TestCancel,                 /* 10.LPC_TSS_TEST_CANCEL */
+    SVC_PostCancel,                 /* 11.LPC_TSS_POST_CANCEL */
+    SVC_CloseTask,                  /* 12.LPC_TSS_CLOSE_TASK */
+    SVC_GetTaskInfo,                /* 13.LPC_TSS_GET_TASKINFO */
+    SVC_EnumTask,                   /* 14.LPC_TSS_SYS_ENUMTASK */
+    SVC_SystemPerformance,          /* 15.LPC_TSS_PERFORMANCE */
 };
 
 DEFINE_LPC_SERVICE(LPCService, STM_MAGIC, SIZEOF_ARRAY(fnHandlers), NULL, fnHandlers);
@@ -980,7 +999,7 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
     SystemSchedulerInitialize();
 
     /* ◊¢≤·Task context∂‘œÛ¿‡ */
-    State = CORE_RegisterClass(&TaskClass);
+    State = REGISTER_KCLASS(TaskClass);
 
     CORE_ASSERT(STATE_SUCCESS == State, SYSTEM_CALL_OOPS(),
         "Register task context class failed, result = %d !", State);

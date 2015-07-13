@@ -29,7 +29,7 @@
 #define     MTX_MAGIC                   MAKE_DWORD('M', 'T', 'X')               /**< The mutex object */
 #define     SEM_MAGIC                   MAKE_DWORD('S', 'E', 'M')               /**< The semaphore object */
 #define     SET_MAGIC                   MAKE_DWORD('S', 'E', 'T')               /**< The semset object */
-//#define     LST_MAGIC                   MAKE_DWORD('S', 'L', 'T')               /**< System local storage of task */
+#define     LST_MAGIC                   MAKE_DWORD('S', 'L', 'T')               /**< System local storage of task */
 
 /* The some system modules magic */
 #define     APP_MAGIC                   MAKE_DWORD('A', 'P', 'P')               /**< Application */
@@ -43,7 +43,7 @@
 #define     SDM_MAGIC                   MAKE_DWORD('S', 'D', 'M')               /**< System debug manager */
 #define     SOM_MAGIC                   MAKE_DWORD('S', 'O', 'M')               /**< System object manager*/
 #define     STK_MAGIC                   MAKE_DWORD('S', 'T', 'K')               /**< System stack manager */
-#define     LST_MAGIC                   MAKE_DWORD('S', 'L', 'T')               /**< System local storage of task */
+
 #define     SYSTEM_CALL_OOPS()          kSystemOops()
 
 
