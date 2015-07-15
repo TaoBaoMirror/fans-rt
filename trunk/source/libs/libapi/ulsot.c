@@ -19,7 +19,15 @@
 
 #include "libcal.h"
 
-
+/**
+ * Set the value of static memory local to a task.
+ * @param The key id.
+ * @param The value to set.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-06-19     JiangYong       new function
+ */
 PUBLIC RO_CODE E_STATUS uCreateLsot(HANDLE hTask, DWORD Total)
 {
     HANDLE handle;

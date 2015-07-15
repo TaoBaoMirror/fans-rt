@@ -16,6 +16,12 @@
 #include <fadefs.h>
 #include <fatypes.h>
 
+EXTERN CONST DWORD g_MaskBitsTable[32];
+
+STATIC INLINE DWORD GetBitsMaskValue(BYTE Bits)
+{
+    return g_MaskBitsTable[(Bits & 0x1f)];
+}
 
 #if (CONFIG_BUILD_MINI_MAP == TRUE)
 

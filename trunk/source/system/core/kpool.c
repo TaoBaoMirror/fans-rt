@@ -61,30 +61,26 @@ EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpNa
                                 LPBYTE lpTable, BYTE Pools, BYTE BlockPrePool, 
                                 SIZE_T BytePreBlock, BOOL AllocForInit)
 {
-    BYTE Pid, Bid;
-    
-    
+    KPOOL_ID_T Pid = 0;
+
     memset(lpManager, 0, sizeof(CORE_CONTAINER));
     
     SetContainerName(lpManager, lpName);
     SetTotalPools(lpManager, Pools);
     SetBlocksPrePool(lpManager, BlockPrePool);
+    SetFreeBitmapMask2Container(lpManager, GetBitsMaskValue(Pools));
     
-    for (Pid = 0; Pid < CONFIG_CORE_POOL_MAX; Pid ++)
+    for (; Pid < Pools; Pid ++)
     {
         LPCORE_POOL lpCorePool = GetPoolForID(lpManager, Pid);
 
-        AddContainerBitmap(lpManager, ((MANA_MAP_T) (1 << Pid)));
         SetPoolMagic(lpCorePool, POOL_INITIALIZE_MAGIC);
         
         SetPoolTotalBlocks(lpCorePool, BlockPrePool);
         SetPoolRemainBlocks(lpCorePool, BlockPrePool);
         SetPoolBlockLength(lpCorePool, BytePreBlock);
-
-        for (Bid = 0; Bid < CONFIG_POOL_BLOCK_MAX; Bid ++)
-        {
-            AddPoolBitmap(lpCorePool, ((POOL_MAP_T) (1 << Bid)));
-        }
+        
+        SetFreeBitmapMask2Pool(lpCorePool, GetBitsMaskValue(BlockPrePool));
 
         if (NULL != lpTable)
         {
@@ -113,7 +109,8 @@ EXPORT_SYMBOL(CORE_CreatePoolContainer)
 
 EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
 {
-    BYTE Pid, Bid;
+    KPOOL_ID_T Pid;
+    KBLOCK_ID_T Bid;
     KCONTAINER_ID_T Kid;
     LPCORE_POOL lpCorePool = NULL;
 
@@ -149,12 +146,12 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
     if (Bid >= GetPoolTotalBlocks(lpCorePool))
     {
         CORE_ERROR(TRUE, "No free block in pool %d for '%s', bitmap(0x%08x), Bid(%d).",
-            Pid, GetContainerName(lpManager), GetPoolBitmap(lpCorePool), Bid);
+            Pid, GetContainerName(lpManager), GetFreeBitmapMask4mPool(lpCorePool), Bid);
         return INVALID_CONTAINER_ID;
     }
 
-    SubPoolBitmap(lpCorePool, 1 << Bid);
-    SetContainerBitmap(lpManager, Pid, TRUE && GetPoolBitmap(lpCorePool));
+    GetBlock4mPoolFreeBitmap(lpCorePool, Bid);
+    SetFreeBitmap4mPool2Container(lpManager, Pid, !!GetFreeBitmapMask4mPool(lpCorePool));
     
     Kid = GetContainerID(lpManager, Pid, Bid);
 
@@ -168,8 +165,8 @@ EXPORT_SYMBOL(CORE_PoolMallocMapFast)
 EXPORT LPVOID CORE_PoolTakeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T Kid)
 {
     LPCORE_POOL lpCorePool;
-    BYTE Pid = ContainerID2PoolID(lpManager, Kid);
-    BYTE Bid = ContainerID2BlockID(lpManager, Kid);
+    KPOOL_ID_T Pid = ContainerID2PoolID(lpManager, Kid);
+    KBLOCK_ID_T Bid = ContainerID2BlockID(lpManager, Kid);
 
     if (Pid >= GetTotalPools(lpManager))
     {
@@ -200,8 +197,8 @@ EXPORT LPVOID CORE_PoolTakeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T Kid
 PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T Kid)
 {
     LPCORE_POOL lpCorePool;
-    BYTE Pid = ContainerID2PoolID(lpManager, Kid);
-    BYTE Bid = ContainerID2BlockID(lpManager, Kid);
+    KPOOL_ID_T Pid = ContainerID2PoolID(lpManager, Kid);
+    KBLOCK_ID_T Bid = ContainerID2BlockID(lpManager, Kid);
     
     lpCorePool = GetPoolForID(lpManager, Pid);
     
@@ -212,8 +209,8 @@ PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T K
         return STATE_SYSTEM_FAULT;
     }
 
-    AddPoolBitmap(lpCorePool, 1 << Bid);
-    SetContainerBitmap(lpManager, Pid, TRUE && GetPoolBitmap(lpCorePool));
+    PutBlock2PoolFreeBitmap(lpCorePool, Bid);
+    SetFreeBitmap4mPool2Container(lpManager, Pid,  !!GetFreeBitmapMask4mPool(lpCorePool));
 
     return STATE_SUCCESS;
 }

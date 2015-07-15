@@ -71,6 +71,12 @@ struct tagTASK_CONTEXT{
     DWORD                   TickReserved[2];
 #endif
     ARCH_CONTEXT            ArchContext;
+#ifdef SYSTEM_HAVE_QWORD
+    QWORD                   WorkTimes;
+#else
+    DWORD                   WorkTimesL;                         /* 任务被调度的次数，低位 */
+    DWORD                   WorkTimesH;                         /* 任务被调度的次数，高位 */
+#endif
     union{
         struct {
             DWORD           CPUPercent:8;                       /* 单位时间内任务的CPU占用率 */
@@ -82,12 +88,6 @@ struct tagTASK_CONTEXT{
         }Bits;
         DWORD               MiscBits;
     }ub;
-#ifdef SYSTEM_HAVE_QWORD
-    QWORD                   WorkTimes;
-#else
-    DWORD                   WorkTimesL;                         /* 任务被调度的次数，低位 */
-    DWORD                   WorkTimesH;                         /* 任务被调度的次数，高位 */
-#endif
     TASK_PRIORITY           ThisPriority;                       /* 当前优先级 */
     TASK_PRIORITY           InitPriority;                       /* 初始优先级 */
     TIME_SLICE_T            SliceRemain;                        /* W时间片剩余TICK数 */

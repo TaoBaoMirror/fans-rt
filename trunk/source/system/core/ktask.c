@@ -86,6 +86,7 @@ STATIC VOID SetContextParam(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE_PARAM lp
     SetContextThisPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextInitPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextTaskError(lpTaskContext, STATE_SUCCESS);
+    SetContextLsotObject(lpTaskContext, NULL);
     //SetContextPermission(lpTaskContext, TASK_PERMISSION_USER);  /* no need see @SetContextMiscBits*/
     CORE_SetArchContextParam(GetContextArchParameter(lpTaskContext), lpTaskParam);
 
@@ -987,13 +988,12 @@ EXPORT E_STATUS CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext)
 
 PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
 {
-    DWORD CpuID = 0;
     E_STATUS State;
 
     CORE_INFOR(TRUE, "ArchContext offset of TaskContext is %d.", OFFSET_OF(TASK_CONTEXT, ArchContext));
     CORE_INFOR(TRUE, "Max priority is %d, Show the size of tss type for debug:", CONFIG_TASK_PRIORITY_MAX);
-    CORE_INFOR(TRUE, "POOL_MAP_T: %d  MANA_MAP_T: %d  TASK_CONTEXT: %d   KOBJECT_HEADER: %d",
-        sizeof(POOL_MAP_T), sizeof(MANA_MAP_T), sizeof(TASK_CONTEXT), sizeof(KOBJECT_HEADER));
+    CORE_INFOR(TRUE, "ARCH_CONTEXT: %d  MANA_MAP_T: %d  TASK_CONTEXT: %d   KOBJECT_HEADER: %d",
+        sizeof(ARCH_CONTEXT), sizeof(MANA_MAP_T), sizeof(TASK_CONTEXT), sizeof(KOBJECT_HEADER));
     CORE_INFOR(TRUE, "TASK_STATUS: %d  TIME_SLICE_T: %d", sizeof(TASK_STATUS), sizeof(TIME_SLICE_T));
     
     SystemSchedulerInitialize();
@@ -1012,17 +1012,10 @@ PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)
         SYSTEM_CALL_OOPS();
     }
 
-    for (CpuID = 0; CpuID < CORE_GetCPUNumbers(); CpuID ++)
+    if (NULL == CORE_CreatePriorityTask(IDLE_TASK_NAME, CORE_IdleMain, NULL, TASK_PRIORITY_IDLE))
     {
-        CHAR IdleTaskName[OBJECT_NAME_MAX];
-
-        memset(IdleTaskName, 0, sizeof(IdleTaskName));
-        snprintf(IdleTaskName, OBJECT_NAME_MAX - 1, "%s%02d", IDLE_TASK_NAME, CpuID);
-        
-        if (NULL == CORE_CreatePriorityTask(IdleTaskName, CORE_IdleMain, NULL, TASK_PRIORITY_IDLE))
-        {
-            CORE_ERROR(TRUE, "Create idle task(%s) failed, result = %d !", IdleTaskName, CORE_GetError());
-        }
+        CORE_ERROR(TRUE, "Create idle task(%s) failed, result %d !", IDLE_TASK_NAME, CORE_GetError());
+        SYSTEM_CALL_OOPS();
     }
 
     ScheduleStartup();
