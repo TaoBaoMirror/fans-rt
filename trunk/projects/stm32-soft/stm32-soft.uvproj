@@ -672,11 +672,6 @@
               <FilePath>..\..\source\testcode\main.c</FilePath>
             </File>
             <File>
-              <FileName>tasktest.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\tasktest.c</FilePath>
-            </File>
-            <File>
               <FileName>testbase.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\testbase.c</FilePath>
@@ -695,6 +690,11 @@
               <FileName>amodule.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\stm32\soft\amodule.c</FilePath>
+            </File>
+            <File>
+              <FileName>testlsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testlsot.c</FilePath>
             </File>
           </Files>
         </Group>

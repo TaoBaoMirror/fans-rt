@@ -20,8 +20,3 @@
 
 #include "karch.h"
 #include "kcore.h"
-
-PUBLIC DWORD CORE_GetCPUNumbers(VOID)
-{
-    return 1;
-}

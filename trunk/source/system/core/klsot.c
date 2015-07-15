@@ -28,6 +28,17 @@
 
 #define     SIZE_OF_KLSOT_FOR_PARAM(lpParam)                                                                          \
                 (sizeof(KOBJECT_HEADER) + GetKLPTotal(lpParam) * sizeof(DWORD))
+                
+typedef struct tagKLSOT_CLASS_DESCRIPTOR KLSOT_CLASS_DESCRIPTOR;
+typedef struct tagKLSOT_CLASS_DESCRIPTOR * PKLSOT_CLASS_DESCRIPTOR;
+typedef struct tagKLSOT_CLASS_DESCRIPTOR FAR * LPKLSOT_CLASS_DESCRIPTOR;
+
+
+struct tagKLSOT_CLASS_DESCRIPTOR{
+    KCLASS_HEADER               Header;
+    FNCLASSMETHOD               fnClassMethods[KLSOT_CLASS_METHODS];
+};
+
 
 typedef struct tagKLSOT_OBJECT KLSOT_OBJECT;
 typedef struct tagKLSOT_OBJECT * PKLSOT_OBJECT;
@@ -45,14 +56,15 @@ struct tagKLSOT_OBJECT{
 #define     GetLsotKeyValue(lpHeader, Id)               (((LPKLSOT_OBJECT)(lpHeader))->Array[Id])
 #define     SetLsotKeyValue(lpHeader, Id, Value)        do { (((LPKLSOT_OBJECT)(lpHeader))->Array[Id]) = (Value); } while(0)
 #define     GetLsotMarkBits(lpHeader)                   ((lpHeader)->un.lsot.Marks)
-#define     SetLsotMarkBit(lpHeader, Shift)             ((lpHeader)->un.lsot.Marks | (1UL<<(Shift)))
+#define     SetLsotMarkValue(lpHeader, V)               do { ((lpHeader)->un.lsot.Marks) = (V); } while(0);
+#define     SetLsotMarkBit(lpHeader, Shift)             ((lpHeader)->un.lsot.Marks |= (1UL<<(Shift)))
+#define     ClrLsotMarkBit(lpHeader, Shift)             ((lpHeader)->un.lsot.Marks ^= (1UL<<(Shift)))
 
 STATIC SIZE_T KLSOT_SizeofObject(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
 {
-    CORE_INFOR(TRUE, "This object size is %u bytes.", SIZE_OF_KLSOT_FOR_PARAM(lpParam));
-
-    if (SIZE_OF_KLSOT_FOR_PARAM(lpParam) > 128)
+    if (NULL == lpParam || SIZE_OF_KLSOT_FOR_PARAM(lpParam) > 128)
     {
+        CORE_INFOR(TRUE, "This object size invalid.");
         return INVALID_SIZE;
     }
 
@@ -62,6 +74,10 @@ STATIC SIZE_T KLSOT_SizeofObject(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
 STATIC E_STATUS KLSOT_MallocObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     SetLsotTotal(lpHeader, GetKLPTotal(lpParam));
+    SetLsotMarkValue(lpHeader, GetBitsMaskValue(GetKLPTotal(lpParam)-1))
+ 
+    CORE_INFOR(TRUE, "The mark value is 0x%08X, total is %d.",
+            GetLsotMarkBits(lpHeader), GetLsotTotal(lpHeader));
 
     return STATE_SUCCESS;
 }
@@ -69,6 +85,11 @@ STATIC E_STATUS KLSOT_MallocObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 STATIC E_STATUS KLSOT_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     LPTASK_CONTEXT lpTaskContext;
+    
+    if (NULL == lpParam)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
 
     lpTaskContext = TASK_SELF_HANDLE == GetKLPhTask(lpParam)
                   ? CORE_GetCurrentTask()
@@ -92,21 +113,67 @@ STATIC E_STATUS KLSOT_TakeObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS KLSOT_FreeObject(LPKOBJECT_HEADER lpHeader)
 {
+    if (NULL == GetLsotTask(lpHeader))
+    {
+        return STATE_INVALID_OBJECT;
+    }
+    
     SetContextLsotObject(GetLsotTask(lpHeader), NULL);
     SetLsotTask(lpHeader, NULL);
     
     return STATE_SUCCESS;
 }
 
-typedef struct tagKLSOT_CLASS_DESCRIPTOR KLSOT_CLASS_DESCRIPTOR;
-typedef struct tagKLSOT_CLASS_DESCRIPTOR * PKLSOT_CLASS_DESCRIPTOR;
-typedef struct tagKLSOT_CLASS_DESCRIPTOR FAR * LPKLSOT_CLASS_DESCRIPTOR;
+STATIC E_STATUS KLSOT_GetKey(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    LSOT_KEY_T LsotKey;
+    
+    if (NULL == lpParam)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+    
+    LsotKey = GetDwordLowestBit(GetLsotMarkBits(lpHeader));
 
+    if (LsotKey >= GetLsotTotal(lpHeader))
+    {
+        SetKLPKeyID(lpParam, TASK_LSOTKEY_INVALID);
+        return STATE_OVER_RANGE;
+    }
 
-struct tagKLSOT_CLASS_DESCRIPTOR{
-    KCLASS_HEADER               Header;
-    FNCLASSMETHOD               fnClassMethods[KLSOT_CLASS_METHODS];
-};
+    SetKLPKeyID(lpParam, LsotKey);
+    ClrLsotMarkBit(lpHeader, LsotKey);
+    CORE_INFOR(TRUE, "The mark bits value is: 0x%X", GetLsotMarkBits(lpHeader));
+    
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS KLSOT_PutKey(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    if (NULL == lpParam)
+    {
+        return STATE_INVALID_PARAMETER;
+    }
+    
+    if (GetKLPKeyID(lpParam) >= GetLsotTotal(lpHeader))
+    {
+        return STATE_OVER_RANGE;
+    }
+
+    SetLsotMarkBit(lpHeader, GetKLPKeyID(lpParam));
+
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS KLSOT_GetValue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS KLSOT_SetValue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_SUCCESS;
+}
 
 DEFINE_KCLASS(KLSOT_CLASS_DESCRIPTOR,
             KlsotClass,
@@ -117,7 +184,10 @@ DEFINE_KCLASS(KLSOT_CLASS_DESCRIPTOR,
             KLSOT_ActiveObject,
             KLSOT_TakeObject,
             KLSOT_FreeObject,
-            NULL);
+            KLSOT_GetKey,
+            KLSOT_PutKey,
+            KLSOT_GetValue,
+            KLSOT_SetValue);
 
 
 #if 0

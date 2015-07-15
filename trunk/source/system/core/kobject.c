@@ -436,12 +436,18 @@ STATIC DWORD LoadMagic(LPVOID lpPrivate, DWORD Id)
 }
 #endif
 
-STATIC INLINE BYTE Class2Tid(SIZE_T Length)
+STATIC INLINE KOBJTABLE_ID_T Size2Tid(SIZE_T Length)
 {
+    KOBJTABLE_ID_T Tid = GetWordHighestBit(Length);
+    DWORD Adjust = (!!(Length ^ (1 << Tid)));
+
+    return (Tid - CONFIG_OBJECT_SIZE_SHIFT) + Adjust;
+#if 0
     WORD Magic = (Length >> CONFIG_OBJECT_SIZE_SHIFT) & 0xffff;
     BYTE Highest = GetWordHighestBit(Magic);
    
     return (BYTE) (Highest + (!!(Magic ^ (1 << Highest))));
+#endif
 }
 
 
@@ -565,14 +571,14 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
     LPKOBJECT_HEADER lpHeader = NULL;
     LPCORE_CONTAINER lpManager = NULL;
     KCONTAINER_ID_T Pid = INVALID_CONTAINER_ID;
-    KOBJTABLE_ID_T Tid = Class2Tid(ObjectSize);
+    KOBJTABLE_ID_T Tid = Size2Tid(ObjectSize);
 
     CORE_ASSERT(Tid < CONFIG_OBJECT_POOL_TABLE_MAX, SYSTEM_CALL_OOPS(),
         "BUG: Invalid tid value %u, from object size %d bytes.", Tid, ObjectSize);
 
     lpManager = TID2PoolContainer(Tid);
     
-    CORE_DEBUG(TRUE, "Malloc pool from '%s', Tid(%d).", GetClassName(lpClass), Tid);
+    CORE_INFOR(TRUE, "Malloc pool from '%s', Tid(%d), ObjectSize(%u).", GetClassName(lpClass), Tid, ObjectSize);
     
     if (NULL == lpManager)
     {

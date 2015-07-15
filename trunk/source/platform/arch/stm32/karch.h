@@ -39,7 +39,6 @@ extern "C" {
     PUBLIC VOID CORE_RestoreIRQ(DWORD dwFlags);
     PUBLIC DWORD CORE_DisableIRQ(VOID);
     PUBLIC DWORD CORE_SaveIRQFlags(VOID);
-    PUBLIC DWORD CORE_GetCPUNumbers(VOID);
     PUBLIC E_STATUS CORE_Switch2UserMode(VOID);
     PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID fnMain, LPVOID lpArgument,
                                  LPVOID lpTaskContext, HANDLE hTask,

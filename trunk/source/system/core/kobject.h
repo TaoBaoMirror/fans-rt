@@ -68,15 +68,6 @@ struct tagKCLASS_HEADER{
 struct tagKCLASS_DESCRIPTOR{
     KCLASS_HEADER           Header;
     FNCLASSMETHOD           fnClassMethods[KCLASS_METHODS_MAX];
-    
-#if 0
-    E_STATUS            (* fnActiveObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
-    E_STATUS            (* fnTakeObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
-    E_STATUS            (* fnWaitObject)(LPKOBJECT_HEADER Header, LONG WaitTime);
-    E_STATUS            (* fnPostObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
-    E_STATUS            (* fnResetObject)(LPKOBJECT_HEADER Header, LPVOID lpParam);
-    E_STATUS            (* fnDetachTask)(LPKOBJECT_HEADER Header, LPVOID lpParam);
-#endif
 };
 
 #define     CLASS_MAGIC(M, Ops)         ((M) + (((Ops)<<(24))))

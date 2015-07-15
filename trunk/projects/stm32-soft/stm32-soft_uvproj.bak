@@ -30,6 +30,7 @@
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
           <SFDFile>SFD\ST\STM32F1xx\STM32F103xx.sfr</SFDFile>
+          <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
           <IncludePath></IncludePath>
@@ -71,6 +72,8 @@
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
+            <nStopB1X>0</nStopB1X>
+            <nStopB2X>0</nStopB2X>
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>0</RunUserProg1>
@@ -97,6 +100,7 @@
           <StopOnExitCode>3</StopOnExitCode>
           <CustomArgument></CustomArgument>
           <IncludeLibraryModules></IncludeLibraryModules>
+          <ComprImg>1</ComprImg>
         </CommonProperty>
         <DllOption>
           <SimDllName>SARMCM3.DLL</SimDllName>
@@ -126,6 +130,7 @@
             <RestoreFunctions>1</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
             <LimitSpeedToRealTime>0</LimitSpeedToRealTime>
+            <RestoreSysVw>1</RestoreSysVw>
           </Simulator>
           <Target>
             <UseTarget>1</UseTarget>
@@ -137,9 +142,11 @@
             <RestoreFunctions>0</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
             <RestoreTracepoints>1</RestoreTracepoints>
+            <RestoreSysVw>1</RestoreSysVw>
+            <UsePdscDebugDescription>1</UsePdscDebugDescription>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-          <TargetSelection>7</TargetSelection>
+          <TargetSelection>6</TargetSelection>
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>
@@ -165,9 +172,14 @@
             <Capability>1</Capability>
             <DriverSelection>4099</DriverSelection>
           </Flash1>
+          <bUseTDR>0</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
           <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
+          <pFcarmOut></pFcarmOut>
+          <pFcarmGrp></pFcarmGrp>
+          <pFcArmRoot></pFcArmRoot>
+          <FcArmLst>0</FcArmLst>
         </Utilities>
         <TargetArmAds>
           <ArmAdsMisc>
@@ -346,6 +358,8 @@
             <wLevel>0</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>1</uSurpInc>
+            <uC99>0</uC99>
+            <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--c99</MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER,__DEBUG__,__LITTLE_ENDIAN__,ARCH=STM32</Define>
@@ -362,6 +376,7 @@
             <SwStkChk>0</SwStkChk>
             <NoWarn>0</NoWarn>
             <uSurpInc>1</uSurpInc>
+            <useXO>0</useXO>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -378,6 +393,7 @@
             <useFile>0</useFile>
             <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
+            <pXoBase></pXoBase>
             <ScatterFile>..\..\source\platform\board\stm32\soft\armcc\stm32-soft.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
@@ -647,14 +663,14 @@
               <FilePath>..\..\source\system\core\stack\static_stack.c</FilePath>
             </File>
             <File>
-              <FileName>ktlocal.c</FileName>
+              <FileName>klsot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\system\core\ktlocal.c</FilePath>
+              <FilePath>..\..\source\system\core\klsot.c</FilePath>
             </File>
             <File>
-              <FileName>ktlocal.h</FileName>
+              <FileName>klsot.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\source\system\core\ktlocal.h</FilePath>
+              <FilePath>..\..\source\system\core\klsot.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -670,11 +686,6 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>tasktest.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\tasktest.c</FilePath>
             </File>
             <File>
               <FileName>testbase.c</FileName>
@@ -695,6 +706,11 @@
               <FileName>amodule.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\stm32\soft\amodule.c</FilePath>
+            </File>
+            <File>
+              <FileName>testlsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testlsot.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -830,6 +846,11 @@
               <FileName>ulsot.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libapi\ulsot.c</FilePath>
+            </File>
+            <File>
+              <FileName>libapi.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\libs\libapi\libapi.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -967,9 +988,9 @@
               <FilePath>..\..\source\libs\libcal\catick.c</FilePath>
             </File>
             <File>
-              <FileName>catlocal.c</FileName>
+              <FileName>calsot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\libs\libcal\catlocal.c</FilePath>
+              <FilePath>..\..\source\libs\libcal\calsot.c</FilePath>
             </File>
           </Files>
         </Group>

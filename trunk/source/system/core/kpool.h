@@ -80,6 +80,8 @@ struct tagCORE_CONTAINER{
 };
 
 typedef unsigned long KCONTAINER_ID_T;
+typedef unsigned char KPOOL_ID_T;
+typedef unsigned char KBLOCK_ID_T;
 
 #define     INVALID_CONTAINER_ID                    INVALID_VALUE
 
@@ -101,11 +103,11 @@ typedef unsigned long KCONTAINER_ID_T;
 
 #define     GetPoolForID(lpM, Id)                   (&(lpM)->Pool[Id])
 #define     GetPoolBlockForID(lpP, Id)              ((LPVOID)&(lpP)->lpBuffer[(Id) * GetPoolBlockLength(lpP)])
-#define     GetPoolBitmap(lpP)                      ((lpP)->PoolBitmap)
-#define     AddPoolBitmap(lpP, Mask)                (((lpP)->PoolBitmap) |= (Mask))
-#define     SubPoolBitmap(lpP, Mask)                (((lpP)->PoolBitmap) ^= (Mask))
-#define     CheckBlockIsFree(lpM, Pid, Eid)                                     \
-            (((lpM)->Pool[Pid].PoolBitmap & (1 << (Eid))) != 0)
+#define     GetFreeBitmapMask4mPool(lpP)                    ((lpP)->PoolBitmap)
+#define     SetFreeBitmapMask2Pool(lpP, Mask)               do { ((lpP)->PoolBitmap) = (Mask); } while(0)
+#define     PutBlock2PoolFreeBitmap(lpP, ID)                do { (((lpP)->PoolBitmap) |= (1<<(ID))); } while(0)
+#define     GetBlock4mPoolFreeBitmap(lpP, ID)               do { (((lpP)->PoolBitmap) ^= (1<<(ID))); } while(0)
+#define     CheckBlockIsFree(lpM, Pid, Eid)                 (((lpM)->Pool[Pid].PoolBitmap & (1 << (Eid))) != 0)
 
 #define     GetContainerName(lpM)                   ((lpM)->Attribute.lpContainerName)
 #define     SetContainerName(lpM, Name)             do {(lpM)->Attribute.lpContainerName = (Name);} while(0)
@@ -115,16 +117,17 @@ typedef unsigned long KCONTAINER_ID_T;
 #define     SetBlocksPrePool(lpM, Blocks)           do {(lpM)->Attribute.BlocksPrePool = (Blocks);} while(0)
 
 #if (CONFIG_CORE_POOL_MAX > 1)
-#define     GetContainerBitmap(lpM)                 ((lpM)->Attribute.ContainerBitmap)
-#define     SetContainerBitmap(lpM, ID, V)          SET_BIT_VALUE((lpM)->Attribute.ContainerBitmap, ID, V)
-#define     AddContainerBitmap(lpM, Mask)           (((lpM)->Attribute.ContainerBitmap) |= (Mask))
-#define     SubContainerBitmap(lpM, Mask)           (((lpM)->Attribute.ContainerBitmap) ^= (Mask))
+#define     GetFreeBitmapMask4mContainer(lpM)               ((lpM)->Attribute.ContainerBitmap)
+#define     SetFreeBitmapMask2Container(lpM, Mask)          do { ((lpM)->Attribute.ContainerBitmap) = (Mask); } while(0)
+#define     SetFreeBitmap4mPool2Container(lpM, ID, V)       SET_BIT_VALUE((lpM)->Attribute.ContainerBitmap, ID, V)
+#define     PutPool2ContainerFreeBitmap(lpM, ID)            (((lpM)->Attribute.ContainerBitmap) |= (1<<(ID)))
+#define     GetPool4mContainerFreeBitmap(lpM, ID)           (((lpM)->Attribute.ContainerBitmap) ^= (1<<(ID)))
 #else
 
-#define     GetContainerBitmap(lpM)                   1
-#define     SetContainerBitmap(lpM, ID, V)
-#define     AddContainerBitmap(lpM, Mask)
-#define     SubContainerBitmap(lpM, Mask)
+#define     GetFreeBitmapMask4Container(lpM)                 1
+#define     SetFreeBitmap4mPool2Container(lpM, ID, V)
+#define     PutPool2ContainerFreeBitmap(lpM, ID)
+#define     GetPool4mContainerFreeBitmap(lpM, ID)
 #endif
 
 #define     POOL_INITIALIZE_TABLE(lpTable, Pid, Size)                                   \
