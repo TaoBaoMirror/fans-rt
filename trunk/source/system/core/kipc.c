@@ -157,8 +157,7 @@ STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     }
     
     LIST_HEAD_INIT(GetIPCWaitQueue(lpHeader));
-    SetEventMarks(lpHeader, lpAttribute->Value);
-    SetObjectState(lpHeader, KOBJECT_STATE_ACTIVE);
+    SetEventMarks(lpHeader, lpAttribute->Value);    
 
     return STATE_SUCCESS;
 }
@@ -347,8 +346,6 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         SetMutexAttribute(lpHeader, GetContextHandle(lpCurrentTask), 0);
         SetContextLockedMutex(lpCurrentTask, GetObjectHandle(lpHeader));
     }
-    
-    SetObjectState(lpHeader, KOBJECT_STATE_ACTIVE);
 
     return STATE_SUCCESS;
 }

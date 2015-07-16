@@ -23,7 +23,8 @@ typedef enum emSTATUS{
     STATE_NOT_READY                 =       -4,
     STATE_NOT_MATCH                 =       -5,
     STATE_NOT_FOUND                 =       -6,
-    STATE_EXISTING                  =       -7,
+    STATE_NOT_EXIST                 =       -7,
+    STATE_EXISTING                  =       -8,
     STATE_REMOVED                   =       -8,
     /**/
     STATE_UNKNOW_ERROR              =       -21,

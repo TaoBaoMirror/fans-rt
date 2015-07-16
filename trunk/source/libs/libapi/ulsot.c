@@ -20,15 +20,15 @@
 #include "libcal.h"
 
 /**
- * Set the value of static memory local to a task.
- * @param The key id.
- * @param The value to set.
+ * Create local store of task object.
+ * @param The handle of the task.
+ * @param The total keys of this object.
  * @return The state of current operating result.
  *
  * date           author          notes
- * 2015-06-19     JiangYong       new function
+ * 2015-07-16     JiangYong       new function
  */
-PUBLIC RO_CODE E_STATUS uCreateLsot(HANDLE hTask, DWORD Total)
+PUBLIC RO_USER_CODE E_STATUS uCreateLsot(HANDLE hTask, DWORD Total)
 {
     HANDLE handle;
     E_STATUS Result;
@@ -55,7 +55,15 @@ PUBLIC RO_CODE E_STATUS uCreateLsot(HANDLE hTask, DWORD Total)
     return Result;
 }
 
-EXPORT RO_CODE E_STATUS uCloseLsotObject(HANDLE hTask)
+/**
+ * Close local store of task.
+ * @param The handle of the task.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
+EXPORT RO_USER_CODE E_STATUS uCloseLsotObject(HANDLE hTask)
 {
     HANDLE handle = caGetLsotHandle(hTask);
 
@@ -67,6 +75,13 @@ EXPORT RO_CODE E_STATUS uCloseLsotObject(HANDLE hTask)
     return caCloseLsotObject(handle);
 }
 
+/**
+ * Get the key ID from current task lsot.
+ * @return The free key ID of this lsot object.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 FANSAPI RO_CODE LSOT_KEY_T GetLsotKey(VOID)
 {
     HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
@@ -89,39 +104,63 @@ FANSAPI RO_CODE LSOT_KEY_T GetLsotKey(VOID)
     return caGetLsotKey(handle);
 }
 
-
+/**
+ * Put specified key to current task lsot.
+ * @param The key ID want to put.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 FANSAPI RO_CODE E_STATUS PutLsotKey(LSOT_KEY_T LsotKey)
 {
     HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
     
     if (INVALID_HANDLE_VALUE == handle)
     {
-        return STATE_INVALID_OBJECT;
+        return STATE_NOT_EXIST;
     }
 
     return caPutLsotKey(handle, LsotKey);
 }
 
+/**
+ * Get the value of specified key.
+ * @param The key ID want to get.
+ * @param The pointer to store result value.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 FANSAPI RO_CODE E_STATUS GetLsotValue(LSOT_KEY_T LsotKey, DWORD_PTR lpValue)
 {
     HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
 
     if (INVALID_HANDLE_VALUE == handle)
     {
-        return STATE_INVALID_OBJECT;
+        return STATE_NOT_EXIST;
     }
     
     return caGetLsotValue(handle, LsotKey, lpValue);
 }
 
-
+/**
+ * Set value to specified key.
+ * @param The key ID want to set.
+ * @param The value want to set.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 FANSAPI RO_CODE E_STATUS SetLsotValue(LSOT_KEY_T LsotKey, DWORD Value)
 {
     HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
 
     if (INVALID_HANDLE_VALUE == handle)
     {
-        return STATE_INVALID_OBJECT;
+        return STATE_NOT_EXIST;
     }
     
     return caSetLsotValue(handle, LsotKey, Value);
