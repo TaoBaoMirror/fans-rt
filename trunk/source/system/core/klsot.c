@@ -49,16 +49,17 @@ struct tagKLSOT_OBJECT{
     DWORD                       Array[CONFIG_DEFAULT_SLOT_KEYS]; 
 };
 
-#define     GetLsotTask(lpHeader)                       ((LPTASK_CONTEXT)((lpHeader)->un.lsot.lpTask))
-#define     SetLsotTask(lpHeader, Task)                  do { ((lpHeader)->un.lsot.lpTask) = (Task); } while(0)
-#define     GetLsotTotal(lpHeader)                      ((lpHeader)->un.lsot.Total)
-#define     SetLsotTotal(lpHeader, Value)               do { ((lpHeader)->un.lsot.Total) = (Value); } while(0)
-#define     GetLsotKeyValue(lpHeader, Id)               (((LPKLSOT_OBJECT)(lpHeader))->Array[Id])
-#define     SetLsotKeyValue(lpHeader, Id, Value)        do { (((LPKLSOT_OBJECT)(lpHeader))->Array[Id]) = (Value); } while(0)
-#define     GetLsotMarkBits(lpHeader)                   ((lpHeader)->un.lsot.Marks)
-#define     SetLsotMarkValue(lpHeader, V)               do { ((lpHeader)->un.lsot.Marks) = (V); } while(0);
-#define     SetLsotMarkBit(lpHeader, Shift)             ((lpHeader)->un.lsot.Marks |= (1UL<<(Shift)))
-#define     ClrLsotMarkBit(lpHeader, Shift)             ((lpHeader)->un.lsot.Marks ^= (1UL<<(Shift)))
+#define     GetTask4mLsotObject(lpHeader)                   ((LPTASK_CONTEXT)((lpHeader)->un.lsot.lpTask))
+#define     SetTask2LsotObject(lpHeader, Task)              do { ((lpHeader)->un.lsot.lpTask) = (Task); } while(0)
+#define     GetTotalKeys4mLsotObject(lpHeader)              ((lpHeader)->un.lsot.Total)
+#define     SetTotalKeys2LsotObject(lpHeader, Value)        do { ((lpHeader)->un.lsot.Total) = (Value); } while(0)
+#define     GetKeyValue4mLsotObject(lpHeader, Id)           (((LPKLSOT_OBJECT)(lpHeader))->Array[Id])
+#define     SetKeyValue2LsotObject(lpHeader, Id, Value)     do { (((LPKLSOT_OBJECT)(lpHeader))->Array[Id]) = (Value); } while(0)
+#define     GetFreeBitmap4mLsotObject(lpHeader)             ((lpHeader)->un.lsot.Marks)
+#define     CheckKeyIsFree(lpHeader, ID)                    (0 != (((lpHeader)->un.lsot.Marks) & (1UL << (ID))))
+#define     SetFreeBitmap2LsotObject(lpHeader, V)           do { ((lpHeader)->un.lsot.Marks) = (V); } while(0);
+#define     PutKey2LsotObject(lpHeader, Shift)              ((lpHeader)->un.lsot.Marks |= (1UL<<(Shift)))
+#define     GetKey4mLsotObject(lpHeader, Shift)             ((lpHeader)->un.lsot.Marks ^= (1UL<<(Shift)))
 
 STATIC SIZE_T KLSOT_SizeofObject(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
 {
@@ -73,11 +74,11 @@ STATIC SIZE_T KLSOT_SizeofObject(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
 
 STATIC E_STATUS KLSOT_MallocObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    SetLsotTotal(lpHeader, GetKLPTotal(lpParam));
-    SetLsotMarkValue(lpHeader, GetBitsMaskValue(GetKLPTotal(lpParam)-1))
+    SetTotalKeys2LsotObject(lpHeader, GetKLPTotal(lpParam));
+    SetFreeBitmap2LsotObject(lpHeader, GetBitsMaskValue(GetKLPTotal(lpParam)-1))
  
     CORE_INFOR(TRUE, "The mark value is 0x%08X, total is %d.",
-            GetLsotMarkBits(lpHeader), GetLsotTotal(lpHeader));
+            GetFreeBitmap4mLsotObject(lpHeader), GetTotalKeys4mLsotObject(lpHeader));
 
     return STATE_SUCCESS;
 }
@@ -99,8 +100,13 @@ STATIC E_STATUS KLSOT_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     {
         return STATE_INVALID_TASK;
     }
+    
+    if (NULL != GetContextLsotObject(lpTaskContext))
+    {
+        return STATE_EXISTING;
+    }
 
-    SetLsotTask(lpHeader, lpTaskContext);
+    SetTask2LsotObject(lpHeader, lpTaskContext);
     SetContextLsotObject(lpTaskContext, lpHeader);
     
     return STATE_SUCCESS;
@@ -113,13 +119,13 @@ STATIC E_STATUS KLSOT_TakeObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS KLSOT_FreeObject(LPKOBJECT_HEADER lpHeader)
 {
-    if (NULL == GetLsotTask(lpHeader))
+    if (NULL == GetTask4mLsotObject(lpHeader))
     {
         return STATE_INVALID_OBJECT;
     }
     
-    SetContextLsotObject(GetLsotTask(lpHeader), NULL);
-    SetLsotTask(lpHeader, NULL);
+    SetContextLsotObject(GetTask4mLsotObject(lpHeader), NULL);
+    SetTask2LsotObject(lpHeader, NULL);
     
     return STATE_SUCCESS;
 }
@@ -133,17 +139,18 @@ STATIC E_STATUS KLSOT_GetKey(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
     
-    LsotKey = GetDwordLowestBit(GetLsotMarkBits(lpHeader));
+    LsotKey = GetDwordLowestBit(GetFreeBitmap4mLsotObject(lpHeader));
 
-    if (LsotKey >= GetLsotTotal(lpHeader))
+    if (LsotKey >= GetTotalKeys4mLsotObject(lpHeader))
     {
         SetKLPKeyID(lpParam, TASK_LSOTKEY_INVALID);
         return STATE_OVER_RANGE;
     }
 
+    GetKey4mLsotObject(lpHeader, LsotKey);
     SetKLPKeyID(lpParam, LsotKey);
-    ClrLsotMarkBit(lpHeader, LsotKey);
-    CORE_INFOR(TRUE, "The mark bits value is: 0x%X", GetLsotMarkBits(lpHeader));
+    
+    CORE_INFOR(TRUE, "The mark bits value is: 0x%X", GetFreeBitmap4mLsotObject(lpHeader));
     
     return STATE_SUCCESS;
 }
@@ -155,24 +162,63 @@ STATIC E_STATUS KLSOT_PutKey(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
     
-    if (GetKLPKeyID(lpParam) >= GetLsotTotal(lpHeader))
+    if (GetKLPKeyID(lpParam) >= GetTotalKeys4mLsotObject(lpHeader))
     {
         return STATE_OVER_RANGE;
     }
 
-    SetLsotMarkBit(lpHeader, GetKLPKeyID(lpParam));
+    PutKey2LsotObject(lpHeader, GetKLPKeyID(lpParam));
 
     return STATE_SUCCESS;
 }
 
 STATIC E_STATUS KLSOT_GetValue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    return STATE_SUCCESS;
+    if (NULL != lpParam)
+    {
+        DWORD KeyID = GetKLPKeyID(lpParam);
+
+        if (KeyID >= GetTotalKeys4mLsotObject(lpHeader))
+        {
+            return STATE_OVER_RANGE;
+        }
+        
+        if (CheckKeyIsFree(lpHeader, KeyID))
+        {
+            return STATE_NOT_EXIST;
+        }
+        
+        SetKLPValue(lpParam, GetKeyValue4mLsotObject(lpHeader, KeyID));
+        
+        return STATE_SUCCESS;;
+    }
+    
+    return STATE_INVALID_PARAMETER;
 }
+
 
 STATIC E_STATUS KLSOT_SetValue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    return STATE_SUCCESS;
+    if (NULL != lpParam)
+    {
+        DWORD KeyID = GetKLPKeyID(lpParam);
+        
+        if (KeyID >= GetTotalKeys4mLsotObject(lpHeader))
+        {
+            return STATE_OVER_RANGE;
+        }
+
+        if (CheckKeyIsFree(lpHeader, KeyID))
+        {
+            return STATE_NOT_EXIST;
+        }
+        
+        SetKeyValue2LsotObject(lpHeader, KeyID, GetKLPValue(lpParam));
+
+        return STATE_SUCCESS;;
+    }
+    
+    return STATE_INVALID_PARAMETER;
 }
 
 DEFINE_KCLASS(KLSOT_CLASS_DESCRIPTOR,
@@ -188,57 +234,6 @@ DEFINE_KCLASS(KLSOT_CLASS_DESCRIPTOR,
             KLSOT_PutKey,
             KLSOT_GetValue,
             KLSOT_SetValue);
-
-
-#if 0
-STATIC E_STATUS SVC_GetSmltKey(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
-    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-
-    lpPacket->u0.dParam = MallocSmltKey(lpCurrentTask);
-    
-    if (TASK_SMLTKEY_INVALID == (SMLT_KEY_T) lpPacket->u0.dParam)
-    {
-        SetTaskError(STATE_OUT_OF_MEMORY);
-        return STATE_OUT_OF_MEMORY;
-    }
-    
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS SVC_PutSmltKey(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
-    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-
-    return FreeSmltKey(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam);
-}
-
-STATIC E_STATUS SVC_GetSmltValue(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
-    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-    
-    return GetSmltKeyValue(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam, (DWORD_PTR)&lpPacket->u1.dParam);
-}
-
-STATIC E_STATUS SVC_SetSmltValue(LPVOID lpPrivate, LPVOID lpParam)
-{
-    LPLPC_REQUEST_PACKET lpPacket = lpParam;
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
-    
-    CORE_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS();, "BUG: Invalid current task context.");
-    
-    return SetSmltKeyValue(lpCurrentTask, (SMLT_KEY_T)lpPacket->u0.dParam, lpPacket->u1.dParam);
-}
-#endif
 
 PUBLIC E_STATUS initCoreLocalStorageOfTaskManager(VOID)
 {

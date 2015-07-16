@@ -229,72 +229,6 @@ STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
     return Result;
 }
 
-#if 0
-STATIC SMLT_KEY_T MallocSmltKey(LPTASK_CONTEXT lpTaskContext)
-{
-    DWORD MarkBits = GetContextSmltMarkBits(lpTaskContext);
-    SMLT_KEY_T SmltKey = (SMLT_KEY_T) GetDwordLowestBit(MarkBits);
-    
-    if (SmltKey >= SMLT_ARRAY_SIZE)
-    {
-        return TASK_LSOTKEY_INVALID;
-    }
-
-    return SmltKey;
-}
-
-STATIC E_STATUS FreeSmltKey(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey)
-{
-    if (SmltKey >= SMLT_ARRAY_SIZE)
-    {
-        return STATE_OVER_RANGE;
-    }
-    
-    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
-    {
-        return STATE_MEMORY_OVERFLOW;
-    }
-    
-    SetContextSmltKeyToFree(lpTaskContext, SmltKey);
-    
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS SetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, DWORD Value)
-{
-    if (SmltKey >= SMLT_ARRAY_SIZE)
-    {
-        return STATE_OVER_RANGE;
-    }
-
-    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
-    {
-        return STATE_MEMORY_OVERFLOW;
-    }
-
-    SetContextSmltValue(lpTaskContext, SmltKey, Value);
-
-    return STATE_SUCCESS;
-}
-
-STATIC E_STATUS GetSmltKeyValue(LPTASK_CONTEXT lpTaskContext, SMLT_KEY_T SmltKey, DWORD_PTR lpValue)
-{
-    if (SmltKey >= SMLT_ARRAY_SIZE)
-    {
-        return STATE_OVER_RANGE;
-    }
-
-    if (TRUE == GetContextSmltKeyIsFree(lpTaskContext, SmltKey))
-    {
-        return STATE_MEMORY_OVERFLOW;
-    }
-
-    *lpValue = GetContextSmltValue(lpTaskContext, SmltKey);
-
-    return STATE_SUCCESS;
-}
-#endif
-
 /************************************************************************************************
                                Some task object functions
 ************************************************************************************************/
@@ -363,18 +297,12 @@ STATIC E_STATUS OBJ_MallocContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS OBJ_ActiveContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    E_STATUS State;
     LPTASK_CREATE_PARAM lpTaskParam = lpParam;
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
     
     CORE_DEBUG(TRUE, "Active task '%s' ...", GetObjectName(lpHeader));
     
-    if (STATE_SUCCESS == (State = AttachContext2System(lpTaskContext, lpTaskParam)))
-    {
-        SetObjectState(lpHeader, KOBJECT_STATE_ACTIVE);
-    }
-
-    return State;
+    return AttachContext2System(lpTaskContext, lpTaskParam);
 }
 
 STATIC E_STATUS OBJ_TakeContext(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)

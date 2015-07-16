@@ -925,6 +925,7 @@ EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam)
 
 EXPORT E_STATUS CORE_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
+    E_STATUS Result;
     LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
     
     if (NULL == lpClass)
@@ -943,7 +944,14 @@ EXPORT E_STATUS CORE_ActiveObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         "BUG: Not support function for class(%s) to wait object '%s'.",
         GetClassName(lpClass), GetObjectName(lpHeader));
 
-    return lpClass->Header.fnActiveObject(lpHeader, lpParam);
+    Result = lpClass->Header.fnActiveObject(lpHeader, lpParam);
+    
+    if (STATE_SUCCESS == Result)
+    {
+        SetObjectState(lpHeader, KOBJECT_STATE_ACTIVE);
+    }
+    
+    return Result;
 }
 
 

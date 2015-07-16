@@ -295,6 +295,7 @@ STATIC CONST TEST_CASE_DESCRIPTOR g_TestCase[] =
 PUBLIC RO_CODE E_STATUS TASK_TEST_CASE(VOID)
 {
     LONG i = 0;
+    E_STATUS Temp;
     E_STATUS Result = STATE_SUCCESS;
     
     g_TestHandles[TEST_MUTEX_ID] = CreateMutex(_TEXT("TASKMTX"), FALSE);
@@ -309,9 +310,12 @@ PUBLIC RO_CODE E_STATUS TASK_TEST_CASE(VOID)
     
     for (i = 0; i < SIZEOF_ARRAY(g_TestCase); i ++)
     {
-        if (STATE_SUCCESS != g_TestCase[i].fnTestCase())
+        Temp = g_TestCase[i].fnTestCase();
+        
+        if (STATE_SUCCESS != Temp)
         {
             LOG_ERROR(TRUE, "%s .... [FAILED]", g_TestCase[i].lpTestName);
+            Result = Temp;
         }
         else
         {
