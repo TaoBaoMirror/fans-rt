@@ -200,6 +200,11 @@ PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T K
     KPOOL_ID_T Pid = ContainerID2PoolID(lpManager, Kid);
     KBLOCK_ID_T Bid = ContainerID2BlockID(lpManager, Kid);
     
+    if (Pid >= GetTotalPools(lpManager))
+    {
+        return STATE_OVER_RANGE;
+    }
+    
     lpCorePool = GetPoolForID(lpManager, Pid);
     
     if (POL_MAGIC != GetPoolMagic(lpCorePool))
