@@ -707,11 +707,6 @@
               <FilePath>..\..\source\platform\board\stm32\kbstm32_misc.c</FilePath>
             </File>
             <File>
-              <FileName>readme.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\platform\board\stm32\huge\readme.txt</FilePath>
-            </File>
-            <File>
               <FileName>config.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\platform\board\stm32\huge\config.h</FilePath>

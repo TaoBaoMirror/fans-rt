@@ -48,10 +48,12 @@ extern "C" {
     FANSAPI TASK_PRIORITY GetPriority(HANDLE hTask);
     FANSAPI E_STATUS SetPriority(HANDLE hTask, TASK_PRIORITY Priority);
 
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
     FANSAPI LSOT_KEY_T GetLsotKey(VOID);
     FANSAPI E_STATUS PutLsotKey(LSOT_KEY_T LsotKey);
     FANSAPI E_STATUS GetLsotValue(LSOT_KEY_T LsotKey, DWORD_PTR lpValue);
     FANSAPI E_STATUS SetLsotValue(LSOT_KEY_T LsotKey, DWORD Value);
+#endif
 
     FANSAPI TASK_STATUS GetTaskState(HANDLE hTask);
 

@@ -96,7 +96,7 @@ struct tagTASK_CONTEXT{
     BYTE                    bReserved[3];
     LPLPC_REQUEST_PACKET    lpLPCPacket;                        /* LPC 请求包指针 for wait object */
     LPKOBJECT_HEADER        lpLsotObject;                       /* 局部变量对象 */
-    DWORD                   Reserved[5];                        /* 保留 */
+    DWORD                   Reserved[2];                        /* 保留 */
 #if (CONFIG_BUILD_TASK_PATH == TRUE)
     CHAR                    cbTaskPath[MAX_PATH];               /* 任务当前路径 */
 #endif

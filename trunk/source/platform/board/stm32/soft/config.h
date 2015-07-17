@@ -15,6 +15,8 @@
 
 #define     CONFIG_BUILD_MINI_MAP               FALSE       /* ktable.c 中索引数组选择*/
 #define     CONFIG_BUILD_DYNAMIC_SYMBOL         FALSE       /* 动态符号加载，编译为 ELF 文件 */
+#define     CONFIG_BUILD_LOCAL_STORE            TRUE        /* 编译局部变量支持 */
+#define     CONFIG_BUILD_LOCAL_HEAP             TRUE        /* 编译局部堆支持 */
 #define     CONFIG_MEM_DEBUG_ENABLE             TRUE        /* 内存管理模块 DEBUG 支持 */
 #define     CONFIG_MEM_STATIC_FUNCTION          FALSE       /* 内存管理模块静态函数支持 */
 #define     CONFIG_MEM_STATIC_PAGETABLE         TRUE        /* 内存管理模块静态页表支持 */

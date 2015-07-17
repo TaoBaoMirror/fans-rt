@@ -19,6 +19,7 @@
 
 #include "libcal.h"
 
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
 /**
  * Create local store of task object.
  * @param The handle of the task.
@@ -63,7 +64,7 @@ PUBLIC RO_USER_CODE E_STATUS uCreateLsot(HANDLE hTask, DWORD Total)
  * date           author          notes
  * 2015-07-16     JiangYong       new function
  */
-EXPORT RO_USER_CODE E_STATUS uCloseLsotObject(HANDLE hTask)
+PUBLIC RO_USER_CODE E_STATUS uCloseLsotObject(HANDLE hTask)
 {
     HANDLE handle = caGetLsotHandle(hTask);
 
@@ -165,4 +166,4 @@ FANSAPI RO_CODE E_STATUS SetLsotValue(LSOT_KEY_T LsotKey, DWORD Value)
     
     return caSetLsotValue(handle, LsotKey, Value);
 }
-
+#endif

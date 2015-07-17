@@ -54,8 +54,8 @@ extern "C" {
     typedef DWORD (*FNHASHKEY)(DWORD Magic);
     typedef DWORD (*FNHASHLOADMAGIC)(LPVOID lpPrivate, DWORD Id);
     PUBLIC DWORD CORE_HashSetArray(FNHASHLOADMAGIC fnLoadMagic, LPVOID lpPrivate,
-                                LPDWORD MagicArray, DWORD LastMagic, DWORD Count);
-    PUBLIC VOID CORE_HashDebug(FNHASHKEY fnHashKey, LPDWORD MagicArray,
+                                DWORD_PTR MagicArray, DWORD LastMagic, DWORD Count);
+    PUBLIC VOID CORE_HashDebug(FNHASHKEY fnHashKey, DWORD_PTR MagicArray,
                                 DWORD Count, DWORD DivLow, DWORD DivHigh,
                                 LPCSTR Config, LPCSTR HashFunc);
     

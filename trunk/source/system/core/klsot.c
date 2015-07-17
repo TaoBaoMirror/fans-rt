@@ -23,7 +23,7 @@
 #include "kdebug.h"
 #include "kobject.h"
 
-
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
 #define     LSOT_OBJECT_TOTAL_KEYS              ((3) + (32/4) + (64/4))
 
 #define     SIZE_OF_KLSOT_FOR_PARAM(lpParam)                                                                          \
@@ -182,14 +182,14 @@ STATIC E_STATUS KLSOT_GetValue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         {
             return STATE_OVER_RANGE;
         }
-        
+
         if (CheckKeyIsFree(lpHeader, KeyID))
         {
             return STATE_NOT_EXIST;
         }
-        
+
         SetKLPValue(lpParam, GetKeyValue4mLsotObject(lpHeader, KeyID));
-        
+
         return STATE_SUCCESS;;
     }
     
@@ -246,4 +246,9 @@ PUBLIC E_STATUS initCoreLocalStorageOfTaskManager(VOID)
     
     return STATE_SUCCESS;
 }
-
+#else
+PUBLIC E_STATUS initCoreLocalStorageOfTaskManager(VOID)
+{
+    return STATE_SUCCESS;
+}
+#endif

@@ -43,6 +43,7 @@ extern "C" {
     EXPORT E_STATUS caSetPriority(HANDLE hTask, TASK_PRIORITY Priority);
     EXPORT E_STATUS caCloseTask(HANDLE hTask);
 
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
     EXPORT HANDLE caGetLsotHandle(HANDLE hTask);
     EXPORT HANDLE caMallocLsotObject(DWORD Total);
     EXPORT E_STATUS caActiveLsotObject(HANDLE hLsot, HANDLE hTask);
@@ -51,7 +52,8 @@ extern "C" {
     EXPORT E_STATUS caPutLsotKey(HANDLE hLsot, LSOT_KEY_T LsotKey);
     EXPORT E_STATUS caGetLsotValue(HANDLE hLsot, LSOT_KEY_T LsotKey, DWORD_PTR lpValue);
     EXPORT E_STATUS caSetLsotValue(HANDLE hLsot, LSOT_KEY_T LsotKey, DWORD Value);
-    
+#endif
+
     EXPORT TASK_STATUS caGetTaskState(HANDLE hTask);
     EXPORT E_STATUS ntGetTaskInfor(HANDLE hTask, LPTASK_INFOR lpTaskInfor);
     EXPORT HANDLE ntEnumNextTask(HANDLE hTask);

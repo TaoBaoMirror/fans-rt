@@ -641,6 +641,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\system\core\stack\dynamic_stack.c</FilePath>
             </File>
+            <File>
+              <FileName>klsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\system\core\klsot.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -655,11 +660,6 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>tasktest.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\tasktest.c</FilePath>
             </File>
             <File>
               <FileName>testbase.c</FileName>
@@ -680,6 +680,11 @@
               <FileName>amodule.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\stm32\huge\amodule.c</FilePath>
+            </File>
+            <File>
+              <FileName>testlsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testlsot.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -810,6 +815,16 @@
               <FileName>uobject.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libapi\uobject.c</FilePath>
+            </File>
+            <File>
+              <FileName>ulsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libapi\ulsot.c</FilePath>
+            </File>
+            <File>
+              <FileName>libapi.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\libs\libapi\libapi.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -945,6 +960,11 @@
               <FileName>utentry.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libcal\utentry.c</FilePath>
+            </File>
+            <File>
+              <FileName>calsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libcal\calsot.c</FilePath>
             </File>
           </Files>
         </Group>
