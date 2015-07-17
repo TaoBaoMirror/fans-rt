@@ -87,10 +87,10 @@ PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpPara
     SetStackCapacity(GetArchUserSD(lpArchContext), 0);
     SetStackBuffer(GetArchUserSD(lpArchContext), NULL); 
     SetStackPosition(GetArchUserSD(lpArchContext), NULL);
-    SetStackHandle(GetArchUserSD(lpArchContext), INVALID_HANDLE_VALUE);
+    SetStackContainerID(GetArchUserSD(lpArchContext), INVALID_VALUE);
     SetStackCapacity(GetArchCoreSD(lpArchContext), 0);
     SetStackBuffer(GetArchCoreSD(lpArchContext), NULL); 
     SetStackPosition(GetArchCoreSD(lpArchContext), NULL);
-    SetStackHandle(GetArchCoreSD(lpArchContext), INVALID_HANDLE_VALUE);
+    SetStackContainerID(GetArchCoreSD(lpArchContext), INVALID_VALUE);
 }
 

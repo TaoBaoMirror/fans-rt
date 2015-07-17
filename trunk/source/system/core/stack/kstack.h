@@ -16,6 +16,7 @@
 #include "config.h"
 #include <fadefs.h>
 #include <fatypes.h>
+#include "kobject.h"
 
 enum{
     LPC_STK_STACK_MALLOC,
@@ -28,28 +29,25 @@ typedef struct tagSTACK_DESCRIPTOR * PSTACK_DESCRIPTOR;
 typedef struct tagSTACK_DESCRIPTOR FAR * LPSTACK_DESCRIPTOR;
 
 struct tagSTACK_DESCRIPTOR{
-    SIZE_T                  StackCapacity;                      /* ¶ÑÕ»ÈÝÁ¿ */
+    union{
+        struct{
+            SIZE_T              StackCapacity:22;                   /* ¶ÑÕ»ÈÝÁ¿ */
+            HANDLE              StackContainerID:OBJECT_PID_BITS;   /* */
+        }Bits;
+        DWORD               Attribute;
+    }un;
     LPVOID                  lpStackBuffer;                      /* ¶ÑÕ»Ö¸Õë */
     LPVOID                  lpStackPosition;                    /* Õ»¶¥Ö¸Õë */
-#if (FALSE == CONFIG_DYNAMIC_STACK_ENABLE)
-    HANDLE                  StackHandle;
-#else
-    DWORD                   Reserved;
-#endif
 };
 
-#define     SetStackCapacity(lpSD, Capacity)            do { (lpSD)->StackCapacity = (Capacity); } while(0)
-#define     GetStackCapacity(lpSD)                      ((lpSD)->StackCapacity)
+#define     SetStackCapacity(lpSD, Capacity)            do { (lpSD)->un.Bits.StackCapacity = (Capacity); } while(0)
+#define     GetStackCapacity(lpSD)                      ((lpSD)->un.Bits.StackCapacity)
 #define     SetStackPosition(lpSD, lpPosition)          do { (lpSD)->lpStackPosition = (lpPosition); } while(0)
 #define     GetStackPosition(lpSD)                      ((lpSD)->lpStackPosition)
 #define     SetStackBuffer(lpSD, lpBuffer)              do { (lpSD)->lpStackBuffer = (lpBuffer); } while(0)
 #define     GetStackBuffer(lpSD)                        ((lpSD)->lpStackBuffer)
-#if (FALSE == CONFIG_DYNAMIC_STACK_ENABLE)
-#define     SetStackHandle(lpSD, hStack)                do { (lpSD)->StackHandle = (hStack); } while(0)
-#define     GetStackHandle(lpSD)                        ((lpSD)->StackHandle)
-#else
-#define     SetStackHandle(lpSD, hStack)
-#endif
+#define     SetStackContainerID(lpSD, hStack)           do { (lpSD)->un.Bits.StackContainerID = GetHandleObjectPid(hStack); } while(0)
+#define     GetStackContainerID(lpSD)                   ((lpSD)->un.Bits.StackContainerID)
 
 
 #ifdef __cplusplus

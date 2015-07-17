@@ -260,6 +260,7 @@ extern "C" {
 #endif
 #define     CORE_Handle2Header(handle)          CORE_Handle2HeaderCheck(handle, TRUE)
     EXPORT LPKOBJECT_HEADER CORE_Handle2HeaderCheck(HANDLE handle, BOOL Check);
+    EXPORT HANDLE CORE_RebuildHandle(DWORD Magic, SIZE_T Length, KOBJECT_STATE State, DWORD Pid);
     PUBLIC E_STATUS CORE_RegisterClass(CONST KCLASS_DESCRIPTOR * Class);
 
     EXPORT LPKOBJECT_HEADER CORE_MallocObject(DWORD Magic, LPCSTR lpName, LPVOID lpParam);

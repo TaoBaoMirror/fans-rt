@@ -576,6 +576,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\system\core\ktentry.c</FilePath>
             </File>
+            <File>
+              <FileName>kstack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\system\core\kstack.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -662,14 +667,14 @@
               <FilePath>..\..\source\platform\board\stm32\kbstm32_init.c</FilePath>
             </File>
             <File>
-              <FileName>kbmini_interrupt.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\source\platform\board\stm32\mini\armcc\kbmini_interrupt.s</FilePath>
-            </File>
-            <File>
               <FileName>kbstm32_stack.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\platform\board\stm32\kbstm32_stack.c</FilePath>
+            </File>
+            <File>
+              <FileName>kboard_interrupt.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\source\platform\board\stm32\mini\armcc\kboard_interrupt.s</FilePath>
             </File>
           </Files>
         </Group>

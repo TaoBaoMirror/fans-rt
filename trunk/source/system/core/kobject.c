@@ -712,6 +712,11 @@ EXPORT LPKOBJECT_HEADER CORE_Handle2HeaderCheck(HANDLE handle, BOOL Check)
     return lpHeader;
 }
 
+EXPORT HANDLE CORE_RebuildHandle(DWORD Magic, SIZE_T Length, KOBJECT_STATE State, DWORD Pid)
+{
+    return MakeHandle(Magic2ClassID(Magic), Pid, State, 0, Size2Tid(Length));
+}
+
 EXPORT LPKOBJECT_HEADER CORE_MallocNoNameObject(DWORD Magic, LPVOID lpParam)
 {
     E_STATUS State;
@@ -960,12 +965,12 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
     E_STATUS Result;
     KOBJECT_STATE State;
     LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
-    
+
     if (NULL == lpClass)
     {
         return CORE_GetError();
     }
-    
+
     State = SetObjectStateSafe(lpHeader, KOBJECT_STATE_DEATH);
 
     if (KOBJECT_STATE_FREE == State || KOBJECT_STATE_DEATH == State)
@@ -997,78 +1002,6 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
 
     return Result;
 }
-
-
-#if 0
-EXPORT E_STATUS CORE_WaitObject(LPKOBJECT_HEADER lpHeader, DWORD WaitTime)
-{
-    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
-    
-    if (NULL == lpClass)
-    {
-        return CORE_GetError();
-    }
-
-    if (KOBJECT_STATE_ACTIVE != GetObjectState(lpHeader))
-    {
-        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
-                lpHeader, GetObjectState(lpHeader));
-        return STATE_INVALID_STATE;
-    }
-
-    CORE_ASSERT(lpClass->fnWaitObject, SYSTEM_CALL_OOPS(), 
-        "BUG: Not support function for class(%s) to wait object '%s'.",
-        GetClassName(lpClass), GetObjectName(lpHeader));
-    
-    return lpClass->fnWaitObject(lpHeader, WaitTime);
-}
-
-EXPORT E_STATUS CORE_PostObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
-    
-    if (NULL == lpClass)
-    {
-        return CORE_GetError();
-    }
-
-    if (KOBJECT_STATE_ACTIVE != GetObjectState(lpHeader))
-    {
-        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
-                lpHeader, GetObjectState(lpHeader));
-        return STATE_INVALID_STATE;
-    }
-
-    CORE_ASSERT(lpClass->fnPostObject, SYSTEM_CALL_OOPS(), 
-        "BUG: Not support function for class(%s) to post object '%s'.",
-        GetClassName(lpClass), GetObjectName(lpHeader));
-    
-    return lpClass->fnPostObject(lpHeader, lpParam);
-}
-
-EXPORT E_STATUS CORE_ResetObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
-    
-    if (NULL == lpClass)
-    {
-        return CORE_GetError();
-    }
-
-    if (KOBJECT_STATE_ACTIVE != GetObjectState(lpHeader))
-    {
-        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
-                lpHeader, GetObjectState(lpHeader));
-        return STATE_INVALID_STATE;
-    }
-
-    CORE_ASSERT(lpClass->fnResetObject, SYSTEM_CALL_OOPS(), 
-        "BUG: Not support function for class(%s) to reset object '%s'.",
-        GetClassName(lpClass), GetObjectName(lpHeader));
-    
-    return lpClass->fnResetObject(lpHeader, lpParam);
-}
-#endif
 
 
 EXPORT E_STATUS CORE_DetachIPCQueue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)

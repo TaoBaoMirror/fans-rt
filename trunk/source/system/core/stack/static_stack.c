@@ -67,71 +67,75 @@ STATIC SIZE_T OBJ_SizeofKtaskStack(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
     return CONFIG_KTASK_STACK_SIZE;
 }
 
-
-
-STATIC E_STATUS OBJ_WaitObject(LPKOBJECT_HEADER lpHeader, LONG WaitTime)
-{
-    return STATE_NOT_SUPPORT;
-}
-
 STATIC E_STATUS OBJ_FreeStack(LPKOBJECT_HEADER lpHeader)
 {
     return STATE_SUCCESS;
 }
 
 
-typedef tagKCLASS_USER_STACK KCLASS_USER_STACK;
-typedef tagKCLASS_USER_STACK * PKCLASS_USER_STACK;
-typedef tagKCLASS_USER_STACK FAR * LPKCLASS_USER_STACK;
+typedef struct tagKCLASS_USER_STACK KCLASS_USER_STACK;
+typedef struct tagKCLASS_USER_STACK * PKCLASS_USER_STACK;
+typedef struct tagKCLASS_USER_STACK FAR * LPKCLASS_USER_STACK;
+
+#define     KCLASS_STACK_METHODS        1
 
 struct tagKCLASS_USER_STACK{
-    KCLASS_HEADER               Header;
+    KCLASS_HEADER           Header;
+    FNCLASSMETHOD           fnClassMethods[KCLASS_STACK_METHODS];
 };
 
-typedef tagKCLASS_CORE_STACK KCLASS_CORE_STACK;
-typedef tagKCLASS_CORE_STACK * PKCLASS_CORE_STACK;
-typedef tagKCLASS_CORE_STACK FAR * LPKCLASS_CORE_STACK;
+typedef struct tagKCLASS_CORE_STACK KCLASS_CORE_STACK;
+typedef struct tagKCLASS_CORE_STACK * PKCLASS_CORE_STACK;
+typedef struct tagKCLASS_CORE_STACK FAR * LPKCLASS_CORE_STACK;
 
 struct tagKCLASS_CORE_STACK{
-    KCLASS_HEADER               Header;
+    KCLASS_HEADER           Header;
+    FNCLASSMETHOD           fnClassMethods[KCLASS_STACK_METHODS];
 };
 
-typedef tagKCLASS_KTASK_STACK KCLASS_KTASK_STACK;
-typedef tagKCLASS_KTASK_STACK * PKCLASS_KTASK_STACK;
-typedef tagKCLASS_KTASK_STACK FAR * LPKCLASS_KTASK_STACK;
+typedef struct tagKCLASS_KTASK_STACK KCLASS_KTASK_STACK;
+typedef struct tagKCLASS_KTASK_STACK * PKCLASS_KTASK_STACK;
+typedef struct tagKCLASS_KTASK_STACK FAR * LPKCLASS_KTASK_STACK;
 
 struct tagKCLASS_KTASK_STACK{
-    KCLASS_HEADER               Header;
+    KCLASS_HEADER           Header;
+    FNCLASSMETHOD           fnClassMethods[KCLASS_STACK_METHODS];
 };
 
 DEFINE_KCLASS(KCLASS_USER_STACK,
               UserStackClass,
-              SUU_MAGIC, 0,
+              SUU_MAGIC,
+              KCLASS_STACK_METHODS,
               OBJ_SizeofUserStack,
               OBJ_MallocStack,
               OBJ_ActiveStack,
               OBJ_TakeStack,
-              OBJ_FreeStack);
+              OBJ_FreeStack,
+              NULL);
 
 #if (CONFIG_ARCH_SUPPORT_KSTACK == FALSE && 0 != CONFIG_CORE_STACK_SIZE)
 DEFINE_KCLASS(KCLASS_CORE_STACK,
               CoreStackClass,
-              SCU_MAGIC, 0,
+              SCU_MAGIC,
+              KCLASS_STACK_METHODS,
               OBJ_SizeofCoreStack,
               OBJ_MallocStack,
               OBJ_ActiveStack,
               OBJ_TakeStack,
-              OBJ_FreeStack);
+              OBJ_FreeStack,
+              NULL);
 #endif
 
 DEFINE_KCLASS(KCLASS_KTASK_STACK,
               KTaskStackClass,
-              SCC_MAGIC, 0,
+              SCC_MAGIC,
+              KCLASS_STACK_METHODS,
               OBJ_SizeofKtaskStack,
               OBJ_MallocStack,
               OBJ_ActiveStack,
               OBJ_TakeStack,
-              OBJ_FreeStack);
+              OBJ_FreeStack,
+              NULL);
 
 PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERMISSION Permission)
 {
@@ -316,7 +320,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
                               GetContextHandle(lpCoreContext), Permission);
         }
 
-        SetStackHandle(GetArchSD(lpArchContext, Permission), GetStackObjectHandle(lpHeader));
+        SetStackContainerID(GetArchSD(lpArchContext, Permission), GetStackObjectHandle(lpHeader));
         SetStackPosition(GetArchSD(lpArchContext, Permission), lpStackPosition);
         SetStackObjectMagic(lpHeader);
         
@@ -367,6 +371,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
 
 PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permission)
 {
+    DWORD Magic = SUU_MAGIC;
     E_STATUS Result = STATE_SUCCESS;
     LPTASK_CONTEXT lpCoreContext = lpTaskContext;
     LPARCH_CONTEXT lpArchContext = GetContextArchParameter(lpCoreContext);
@@ -397,7 +402,11 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
                 CORE_INFOR(TRUE, "Task '%s' no need free user stack.",
                     GetContextTaskName(lpCoreContext));
                 break;
-            }            
+            }
+            else
+            {
+                Magic = SUU_MAGIC;      /* 分配的用户栈，但以内核栈使用 */
+            }
 #elif (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
             /* 释放的堆栈为内核栈 */
             if (TASK_PERMISSION_CORE == Permission)
@@ -410,7 +419,19 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
                 break;
 
             }
-#else
+            else
+            {
+                Magic = SUU_MAGIC;      /* 分配的用户栈，但以内核栈使用 */
+            }
+#else       /* CPU 不支持全局内核栈 */
+            if (TASK_PERMISSION_CORE == Permission)
+            {
+                Magic = SCU_MAGIC;      /* 分配的用户栈，但以内核栈使用 */
+            }
+            else
+            {
+                Magic = SUU_MAGIC;      /* 分配的用户栈，但以内核栈使用 */
+            }
 #endif
         }
         else /* 内核任务 */
@@ -422,6 +443,8 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
                     GetContextTaskName(lpCoreContext));
                 break;
             }
+            
+            Magic = SCC_MAGIC;      /* 内核任务的内核栈 */
         }
 
         Result = STATE_INVALID_OBJECT;
@@ -430,9 +453,11 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
         /*2.普通任务释放内核栈，并且CPU不支持全局内核栈 */
         if (NULL != lpHeader)
         {
+            DWORD Capacity = GetStackCapacity(GetArchSD(lpArchContext, Permission));
+            KCONTAINER_ID_T Pid = GetStackContainerID(GetArchSD(lpArchContext, Permission));
+
             SetObjectHandle(GetStackObjectHeader(lpHeader),
-                    GetStackHandle(GetArchSD(lpArchContext, Permission)));
-            SetObjectState(GetStackObjectHeader(lpHeader), KOBJECT_STATE_ACTIVE);
+                CORE_RebuildHandle(Magic,  Capacity,  KOBJECT_STATE_ACTIVE, Pid));
             
             initSelfHashNode(GetStackObjectHeader(lpHeader));
 
@@ -442,7 +467,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
     } while(0);
 
     SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
-    SetStackHandle(GetArchSD(lpArchContext, Permission), INVALID_HANDLE_VALUE);
+    SetStackContainerID(GetArchSD(lpArchContext, Permission), INVALID_HANDLE_VALUE);
     SetStackPosition(GetArchSD(lpArchContext, Permission), NULL);
     SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
 

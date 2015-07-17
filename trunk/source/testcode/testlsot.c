@@ -6,6 +6,7 @@
 #include <fatypes.h>
 #include <fapi.h>
 
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
 #include "testcode.h"
 
 STATIC RO_CODE E_STATUS LSOT_TEST_CASE00(VOID)
@@ -46,7 +47,7 @@ STATIC RO_CODE E_STATUS LSOT_TEST_CASE01(VOID)
     for (; i < CONFIG_DEFAULT_SLOT_KEYS; i ++)
     {
         KeyArray[i] = GetLsotKey();
-        
+
         TEST_CASE_ASSERT(TASK_LSOTKEY_INVALID != KeyArray[i], return STATE_OVER_RANGE,
             "Get key failed, index is %u.", i);
     }
@@ -139,3 +140,10 @@ PUBLIC RO_CODE E_STATUS LSOT_TEST_CASE(VOID)
 
     return Result;
 }
+#else
+PUBLIC RO_CODE E_STATUS LSOT_TEST_CASE(VOID)
+{
+    return STATE_SUCCESS;
+}
+#endif
+

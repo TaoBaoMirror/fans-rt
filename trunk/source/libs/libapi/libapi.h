@@ -8,9 +8,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
     PUBLIC E_STATUS uCreateLsot(HANDLE hTask, DWORD Total);
-    EXPORT E_STATUS uCloseLsotObject(HANDLE hTask);
-    
+    PUBLIC E_STATUS uCloseLsotObject(HANDLE hTask);
+#endif
 #ifdef __cplusplus
 }
 #endif

@@ -596,6 +596,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\system\core\kstack.c</FilePath>
             </File>
+            <File>
+              <FileName>ksmlt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\system\core\ksmlt.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -880,6 +885,11 @@
               <FileName>utentry.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libcal\utentry.c</FilePath>
+            </File>
+            <File>
+              <FileName>casmlt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libcal\casmlt.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -135,6 +135,7 @@ FANSAPI RO_CODE HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpPa
         goto lable2;
     }
 
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
     if (0 != TaskParam.LsotKeys)
     {
         if (STATE_SUCCESS != uCreateLsot(hTask, TaskParam.LsotKeys))
@@ -143,6 +144,7 @@ FANSAPI RO_CODE HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpPa
             goto lable2;
         }
     }
+#endif
 
     if (STATE_SUCCESS == caActiveObject(hTask, &TaskParam))
     {
@@ -150,11 +152,12 @@ FANSAPI RO_CODE HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpPa
     }
 
     LOG_ERROR(TRUE, "Active object failed to create task '%s' !", TaskName);
-
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
     if (0 != TaskParam.LsotKeys)
     {
         uCloseLsotObject(hTask);
     }
+#endif
 lable2:
     caStackFree(hTask, TASK_PERMISSION_CORE);
 lable1:
@@ -189,8 +192,9 @@ FANSAPI RO_CODE HANDLE CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnM
     TaskParam.Priority      =   Priority;
     TaskParam.SliceLength   =   CONFIG_TIME_SLICE_NORMAL;
     TaskParam.StackSize     =   CONFIG_DEFAULT_STACK_SIZE;
-    TaskParam.LsotKeys      =   CONFIG_DEFAULT_SLOT_KEYS;
-
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
+    TaskParam.LsotKeys      =   0;
+#endif
     return CreateTaskEx(lpTaskName, &TaskParam);
 }
 EXPORT_SYMBOL(CreatePriorityTask);

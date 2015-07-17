@@ -25,7 +25,15 @@
 #include "request.h"
 #include "cadebug.h"
 
-
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
+/**
+ * Alloc a lsot object from object management service.
+ * @param The total keys of lsot object.
+ * @return The handle of this lsot object.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 EXPORT RO_CODE HANDLE caMallocLsotObject(DWORD Total)
 {
     KLSOT_REQUEST_PACKET Packet;
@@ -35,6 +43,15 @@ EXPORT RO_CODE HANDLE caMallocLsotObject(DWORD Total)
     return caMallocNoNameObject(LST_MAGIC, &Packet);
 }
 
+/**
+ * active specified lsot object.
+ * @param The handle of lsot object.
+ * @param The handle of the task.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 EXPORT RO_CODE E_STATUS caActiveLsotObject(HANDLE hLsot, HANDLE hTask)
 {
     KLSOT_REQUEST_PACKET Packet;
@@ -44,7 +61,14 @@ EXPORT RO_CODE E_STATUS caActiveLsotObject(HANDLE hLsot, HANDLE hTask)
     return caActiveObject(hLsot, &Packet);
 }
 
-
+/**
+ * Get the key ID from specified lsot object.
+ * @param The handle of lsot object.
+ * @return The free key ID of this lsot object.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 EXPORT RO_CODE LSOT_KEY_T caGetLsotKey(HANDLE hLsot)
 {
     KLSOT_REQUEST_PACKET Packet;
@@ -59,6 +83,15 @@ EXPORT RO_CODE LSOT_KEY_T caGetLsotKey(HANDLE hLsot)
     return GetKLPKeyID(&Packet);
 }
 
+/**
+ * Pet the key ID to specified lsot object.
+ * @param The handle of lsot object.
+ * @param The key id want to put.
+ * @return The free key ID of this lsot object.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 EXPORT RO_CODE E_STATUS caPutLsotKey(HANDLE hLsot, LSOT_KEY_T LsotKey)
 {
     KLSOT_REQUEST_PACKET Packet;
@@ -68,6 +101,16 @@ EXPORT RO_CODE E_STATUS caPutLsotKey(HANDLE hLsot, LSOT_KEY_T LsotKey)
     return caRequestMethod(hLsot, &Packet, KLSOT_METHOD_PUT_KEY);
 }
 
+/**
+ * Get the value of specified key from a lsot object.
+ * @param The handle of lsot object.
+ * @param The key ID want to get.
+ * @param The pointer to store result value.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 EXPORT RO_CODE E_STATUS caGetLsotValue(HANDLE hLsot, LSOT_KEY_T LsotKey, DWORD_PTR lpValue)
 {
     E_STATUS Result;
@@ -91,6 +134,16 @@ EXPORT RO_CODE E_STATUS caGetLsotValue(HANDLE hLsot, LSOT_KEY_T LsotKey, DWORD_P
     return Result;
 }
 
+/**
+ * Set value to specified lsot object key.
+ * @param The handle of lsot object.
+ * @param The key ID want to set.
+ * @param The value want to set.
+ * @return The state of current operating result.
+ *
+ * date           author          notes
+ * 2015-07-16     JiangYong       new function
+ */
 EXPORT RO_CODE E_STATUS caSetLsotValue(HANDLE hLsot, LSOT_KEY_T LsotKey, DWORD Value)
 {
     KLSOT_REQUEST_PACKET Packet;
@@ -100,3 +153,5 @@ EXPORT RO_CODE E_STATUS caSetLsotValue(HANDLE hLsot, LSOT_KEY_T LsotKey, DWORD V
 
     return caRequestMethod(hLsot, &Packet, KLSOT_METHOD_SET_VALUE);
 }
+#endif
+

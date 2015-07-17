@@ -252,7 +252,9 @@ typedef struct tagTASK_CREATE_PARAM{
     LPCTSTR                 lpTaskPath;                         /**< 任务运行路径 */
     LPVOID                  lpArgument;                         /**< 任务入口参数 */
     SIZE_T                  StackSize;                          /**< 堆栈大小 */
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
     DWORD                   LsotKeys;                           /**< 局部变量对象的 key 数量 */
+#endif
     BOOL                    AutoStartup;                        /**< 创建自动启动 */
     TASK_PRIORITY           Priority;                           /**< 任务优先级 */
     TIME_SLICE_T            SliceLength;                        /**< 任务时间片长度 */

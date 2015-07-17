@@ -123,8 +123,8 @@ typedef unsigned char KBLOCK_ID_T;
 #define     PutPool2ContainerFreeBitmap(lpM, ID)            (((lpM)->Attribute.ContainerBitmap) |= (1<<(ID)))
 #define     GetPool4mContainerFreeBitmap(lpM, ID)           (((lpM)->Attribute.ContainerBitmap) ^= (1<<(ID)))
 #else
-
 #define     GetFreeBitmapMask4Container(lpM)                 1
+#define     SetFreeBitmapMask2Container(lpM, Mask)
 #define     SetFreeBitmap4mPool2Container(lpM, ID, V)
 #define     PutPool2ContainerFreeBitmap(lpM, ID)
 #define     GetPool4mContainerFreeBitmap(lpM, ID)
