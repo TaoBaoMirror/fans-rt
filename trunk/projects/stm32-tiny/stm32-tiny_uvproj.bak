@@ -597,9 +597,14 @@
               <FilePath>..\..\source\system\core\kstack.c</FilePath>
             </File>
             <File>
-              <FileName>ksmlt.c</FileName>
+              <FileName>klsot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\system\core\ksmlt.c</FilePath>
+              <FilePath>..\..\source\system\core\klsot.c</FilePath>
+            </File>
+            <File>
+              <FileName>klsot.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\system\core\klsot.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -610,11 +615,6 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>tasktest.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\tasktest.c</FilePath>
             </File>
             <File>
               <FileName>testbase.c</FileName>
@@ -640,6 +640,11 @@
               <FileName>amodule.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\stm32\tiny\amodule.c</FilePath>
+            </File>
+            <File>
+              <FileName>testlsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testlsot.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -725,6 +730,16 @@
               <FileName>utick.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\libs\libapi\utick.c</FilePath>
+            </File>
+            <File>
+              <FileName>libapi.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\libs\libapi\libapi.h</FilePath>
+            </File>
+            <File>
+              <FileName>ulsot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\libs\libapi\ulsot.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -887,9 +902,9 @@
               <FilePath>..\..\source\libs\libcal\utentry.c</FilePath>
             </File>
             <File>
-              <FileName>casmlt.c</FileName>
+              <FileName>calsot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\source\libs\libcal\casmlt.c</FilePath>
+              <FilePath>..\..\source\libs\libcal\calsot.c</FilePath>
             </File>
           </Files>
         </Group>
