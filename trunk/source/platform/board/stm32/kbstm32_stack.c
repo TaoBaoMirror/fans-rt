@@ -39,7 +39,7 @@ PUBLIC LPVOID CORE_GetBootStackBuffer(VOID)
     return (&__initial_sp) - 0x400;
 }
 
-#elif ((defined(__CC_ARM) && (!defined(__MICROLIB))) || defined(_GNUC_))
+#elif ((defined(__CC_ARM) && (!defined(__MICROLIB))) || defined(__GNUC__))
 {
     extern LPVOID CORE_BootStackAddress(VOID);
     return CORE_BootStackAddress();
