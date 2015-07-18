@@ -69,6 +69,7 @@
 #define     CONFIG_CORE_STACK_SIZE              1024        /**< 内核的堆栈长度 */
 #define     CONFIG_KTASK_STACK_SIZE             2048        /**< 内核任务的堆栈长度 */
 #define     CONFIG_ARCH_SUPPORT_KSTACK          TRUE        /**< CPU 是否支持全局内核栈 */
+#define     CONFIG_ARCH_SUPPORT_HWSTACK         TRUE        /**< CPU 是否支持硬件堆栈切换 */
 #define     CONFIG_ARCH_SUPPORT_SCHEDULE        TRUE        /**< CPU 是否支持任务调度中断 */
 #define     CONFIG_ARCH_SUPPORT_MPU             FALSE       /**< CPU 是否支持内存保护单元 */
 #define     CONFIG_DYNAMIC_STACK_ENABLE         FALSE       /**< 动态堆栈长度支持 */

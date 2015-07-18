@@ -20,6 +20,14 @@
 
 #include "libcal.h"
 
+#if (CONFIG_ARCH_SUPPORT_HWSTACK == TRUE)
+#define     CORE_BREAK_POINT        (0xfffffff9l)
+#define     USER_BREAK_POINT        (0xfffffffdl)
+#else
+#define     CORE_BREAK_POINT        (0xfffffff9l)
+#define     USER_BREAK_POINT        (0xfffffff9l)
+#endif
+
 PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID fnMain, LPVOID lpArgument,
                 LPVOID lpTaskContext, HANDLE hTask, E_TASK_PERMISSION Permission)
 {
@@ -42,7 +50,7 @@ PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID fnMain, LPVOID lpArgument,
         
         fnEntry = CORE_TaskEntry;
         fnLeave = CORE_TaskLeave;
-        IRQLeaveR  = (DWORD) 0xfffffff9L;
+        IRQLeaveR  = (DWORD) CORE_BREAK_POINT;
         TaskObject = (DWORD) lpTaskContext;
 
     }
@@ -50,11 +58,8 @@ PUBLIC LPVOID CORE_FillStack(LPVOID Position, LPVOID fnMain, LPVOID lpArgument,
     {
         fnLeave = USER_TaskLeave;
         fnEntry = USER_TaskEntry;
-#if (0 == CONFIG_CORE_STACK_SIZE || TRUE != CONFIG_ARCH_SUPPORT_KSTACK)
-        IRQLeaveR  = (DWORD) 0xfffffff9L;
-#else
-        IRQLeaveR  = (DWORD) 0xfffffffdL;
-#endif
+
+        IRQLeaveR  = (DWORD) USER_BREAK_POINT;
         TaskObject = (DWORD) hTask;
     }
 

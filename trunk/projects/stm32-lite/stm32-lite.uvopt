@@ -1330,10 +1330,10 @@
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>20</ColumnNumber>
+      <ColumnNumber>24</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>106</TopLine>
-      <CurrentLine>116</CurrentLine>
+      <TopLine>125</TopLine>
+      <CurrentLine>127</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\platform\board\stm32\lite\armcc\kboard_interrupt.s</PathWithFileName>
       <FilenameWithoutPath>kboard_interrupt.s</FilenameWithoutPath>
