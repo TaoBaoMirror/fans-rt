@@ -1,214 +1,125 @@
 /*
-Default linker script for STM32F10x_1024K_1024K
-Copyright RAISONANCE S.A.S. 2008
-*/
+ *    Copyright(C) 2013-2015, Fans-rt development team.
+ *
+ *    All rights reserved.
+ *
+ *    This is open source software.
+ *    Learning and research can be unrestricted to  modification, use and dissemination.
+ *    If you need for commercial purposes, you should get the author's permission.
+ *      Configuration:
+ *      System global core stack                  NO
+ *      The local core stack of general task      YES
+ *      The loacl core stack of kernel task       YES
+ *      The local user stack of general task      NO
+ *      Hardware supported task switch IRQ        YES
+ *      Hardware supported double stack           NO
+ *    date           author          notes
+ *    2015-07-19     JiangYong       new file
+ */
 
-/* include the common STM32F10x sub-script */
+/* The boot stack size if 1536 bytes */
+__boot_stack_size = 1536 ;
 
-/* Common part of the linker scripts for STM32 devices*/
+PROVIDE ( _Stack_Size = __boot_stack_size ) ;
 
+__boot_stack_buffer = _estack  - __boot_stack_size ;
 
-/* default stack sizes. 
+PROVIDE ( _boot_stack_buffer = __boot_stack_buffer ) ;
 
-These are used by the startup in order to allocate stacks for the different modes.
-*/
+_estack = 0x20000600;
 
-__Stack_Size = 1024 ;
-
-PROVIDE ( _Stack_Size = __Stack_Size ) ;
-
-__Stack_Init = _estack  - __Stack_Size ;
-
-/*"PROVIDE" allows to easily override these values from an object file or the commmand line.*/
-PROVIDE ( _Stack_Init = __Stack_Init ) ;
-
-/*
-There will be a link error if there is not this amount of RAM free at the end.
-*/
-_Minimum_Stack_Size = 0x100 ;
-
-
-/* include the memory spaces definitions sub-script */
-/*
-Linker subscript for STM32F10x definitions with 1024K Flash and 1024K External SRAM */
-
-/* Memory Spaces Definitions */
+/* The memory region definitions */
 
 MEMORY
 {
-  RAM (xrw) : ORIGIN = 0x20000400, LENGTH = 19K
-  FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 64K
-  FLASHB1 (rx) : ORIGIN = 0x00000000, LENGTH = 0
-  EXTMEMB0 (rx) : ORIGIN = 0x00000000, LENGTH = 0
-  EXTMEMB1 (rx) : ORIGIN = 0x00000000, LENGTH = 0
-  EXTMEMB2 (rx) : ORIGIN = 0x00000000, LENGTH = 0
-  EXTMEMB3 (rx) : ORIGIN = 0x00000000, LENGTH = 0
+  CORE_ROM (rx): ORIGIN = 0x08000000, LENGTH = 0xd000
+  BOOT_STACK_RAM (xrw): ORIGIN = 0x20000000, LENGTH = 0x900
+  DATA_RAM (xrw):  ORIGIN = 0x20000900, LENGTH = 0x700
 }
 
-/* higher address of the user mode stack */
-_estack = 0x20000400;
-
-
-
-/* include the sections management sub-script for FLASH mode */
-
-/* Sections Definitions */
+/* Sections definitions */
 
 SECTIONS
 {
-    /* for Cortex devices, the beginning of the startup code is stored in the .isr_vector section, which goes to FLASH */
+    /* The boot startup vector */
     .isr_vector :
     {
 	. = ALIGN(4);
         KEEP(*(.isr_vector))            /* Startup code */
 	. = ALIGN(4);
-    } >FLASH
- 
-    /* for some STRx devices, the beginning of the startup code is stored in the .flashtext section, which goes to FLASH */
-    .flashtext :
-    {
-	. = ALIGN(4);
-        *(.flashtext)            /* Startup code */
-	. = ALIGN(4);
-    } >FLASH
- 
-    
+    } >CORE_ROM
+
     /* the program code is stored in the .text section, which goes to Flash */
     .text :
     {
 	    . = ALIGN(4);
-	    
-        *(.text)                   /* remaining code */
-        *(.text.*)                   /* remaining code */
-        *(.rodata)                 /* read-only data (constants) */
+
+        *(.text)
+        *(.text.*)
+        *(.CoreText)
+        *(.UserText)
+        *(.rodata)
         *(.rodata*)
-        *(.glue_7)
-        *(.glue_7t)
-
-	    . = ALIGN(4);
-   	 _etext = .;
-	    /* This is used by the startup in order to initialize the .data secion */
-   	 _sidata = _etext;
-    } >FLASH
-    
- 
-
-    /* This is the initialized data section
-    The program executes knowing that the data is in the RAM
-    but the loader puts the initial values in the FLASH (inidata).
-    It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data  : AT ( _sidata )
-    {
-	    . = ALIGN(4);
-        /* This is used by the startup in order to initialize the .data secion */
-        _sdata = . ;
-        
         *(.data)
         *(.data.*)
+        *(.data.rel.ro)
+        *(.data.rel.ro.*)
+        *(.CoreROdata)
+        *(.UserROdata)
+        *(.glue_7)
+        *(.glue_7t)
         *(.igot)
 		*(.igot.*)
 		*(.got)
 		*(.got.*)
 	    . = ALIGN(4);
-	    /* This is used by the startup in order to initialize the .data secion */
-   	    _edata = . ;
-    } >RAM
-    
-    
+   	 _etext = .;
+   	 _sidata = _etext;
+    } >CORE_ROM
 
+    
     /* This is the uninitialized data section */
+    .boot_stack :
+    {
+	    . = ALIGN(4);
+ 
+        _sbstack = .;
+        *(.BootStack)
+        *(.IdleStack)
+        *(.Region0)
+
+	    . = ALIGN(4);
+   	 _ebstack = . ;
+    } >BOOT_STACK_RAM
+    
+    .data  : AT ( _sidata )
+    {
+	    . = ALIGN(4);
+        _sdata = . ;
+
+        *(.CoreRWdata)
+        *(.UserRWdata)
+	    . = ALIGN(4);
+
+   	    _edata = . ;
+    } >DATA_RAM
+
+
     .bss :
     {
 	    . = ALIGN(4);
-        /* This is used by the startup in order to initialize the .bss secion */
         _sbss = .;
-        
+ 
         *(.bss)
         *(COMMON)
         
 	    . = ALIGN(4);
-	    /* This is used by the startup in order to initialize the .bss secion */
    	 _ebss = . ;
-    } >RAM
-    
+    } >DATA_RAM
+
     PROVIDE ( end = _ebss );
     PROVIDE ( _end = _ebss );
     
-    /* This is the user stack section 
-    This is just to check that there is enough RAM left for the User mode stack
-    It should generate an error if it's full.
-     */
-    ._usrstack :
-    {
-	    . = ALIGN(4);
-        _susrstack = . ;
-        
-        . = . + _Minimum_Stack_Size ;
-        
-	    . = ALIGN(4);
-        _eusrstack = . ;
-    } >RAM
-    
-
-   
-    /* this is the FLASH Bank1 */
-    /* the C or assembly source must explicitly place the code or data there
-    using the "section" attribute */
-    .b1text :
-    {
-        *(.b1text)                   /* remaining code */
-        *(.b1rodata)                 /* read-only data (constants) */
-        *(.b1rodata*)
-    } >FLASHB1
-    
-    /* this is the EXTMEM */
-    /* the C or assembly source must explicitly place the code or data there
-    using the "section" attribute */
-    
-    /* EXTMEM Bank0 */
-    .eb0text :
-    {
-        *(.eb0text)                   /* remaining code */
-        *(.eb0rodata)                 /* read-only data (constants) */
-        *(.eb0rodata*)
-    } >EXTMEMB0
-    
-    /* EXTMEM Bank1 */
-    .eb1text :
-    {
-        *(.eb1text)                   /* remaining code */
-        *(.eb1rodata)                 /* read-only data (constants) */
-        *(.eb1rodata*)
-    } >EXTMEMB1
-    
-    /* EXTMEM Bank2 */
-    .eb2text :
-    {
-        *(.eb2text)                   /* remaining code */
-        *(.eb2rodata)                 /* read-only data (constants) */
-        *(.eb2rodata*)
-    } >EXTMEMB2
-    
-    /* EXTMEM Bank0 */
-    .eb3text :
-    {
-        *(.eb3text)                   /* remaining code */
-        *(.eb3rodata)                 /* read-only data (constants) */
-        *(.eb3rodata*)
-    } >EXTMEMB3
-    
-    
-    
-    /* after that it's only debugging information. */
-    
-    /* remove the debugging information from the standard libraries */
-/*    DISCARD :
-    {
-     libapi.a ( * )
-     libc.a ( * )
-     libfw.a ( * )
-     }
-*/
     /* Stabs debugging sections.  */
     .stab          0 : { *(.stab) }
     .stabstr       0 : { *(.stabstr) }

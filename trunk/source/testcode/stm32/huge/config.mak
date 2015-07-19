@@ -1,5 +1,4 @@
 SUBDIRS				=
-#	$(CHILDREN)
 CONFIGS				=
 TARGETS				=
 OBJECTS_PATH		=	$(OBJECTS_ROOT)/testcode

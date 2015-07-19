@@ -27,7 +27,7 @@
 #include "libfw.h"
 #include "libcal.h"
 
-
+#if 0
 STATIC E_STATUS CloseTaskContext(LPTASK_CONTEXT lpTaskContext)
 {
     CORE_StackFree(lpTaskContext, TASK_PERMISSION_USER);
@@ -37,7 +37,7 @@ STATIC E_STATUS CloseTaskContext(LPTASK_CONTEXT lpTaskContext)
     
     return CORE_FreeObject(GetContextHeader(lpTaskContext));
 }
-
+#endif
 
 EXPORT RO_CODE E_STATUS CORE_IdleMain(LPVOID lpParam)
 {

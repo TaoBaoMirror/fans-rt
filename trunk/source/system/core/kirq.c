@@ -22,7 +22,7 @@
 #include "karch.h"
 #include "kdebug.h"
 
-STATIC RW_CORE_DATA LIST_HEAD g_IRQServiceTable[E_HARDWARE_IRQ_MAX] = {NULL};
+STATIC RW_CORE_DATA LIST_HEAD g_IRQServiceTable[E_HARDWARE_IRQ_MAX];
 
 
 EXPORT VOID CORE_HandlerIRQ(LPVOID lpPacket, E_IRQ_DEFINE IRQNumber)

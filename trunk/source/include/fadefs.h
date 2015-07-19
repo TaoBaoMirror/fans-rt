@@ -177,6 +177,7 @@
 #define RW_CORE_DATA            __attribute__ ((section(".CoreRWdata")))
 #define RW_CORE_STACK           __attribute__ ((section(".CoreStack")))
 #define RW_IDLE_STACK           __attribute__ ((section(".IdleStack")))
+#define RW_BOOT_STACK           __attribute__ ((section(".BootStack")))
 #define RW_CORE_REGION0         __attribute__ ((section(".Region0")))
 #define RW_CORE_REGION1         __attribute__ ((section(".Region1")))
 #define RO_CORE_DATA            __attribute__ ((section(".CoreROdata")))

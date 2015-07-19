@@ -775,7 +775,7 @@ EXPORT DWORD CORE_LeaveIRQ(VOID)
  */
 EXPORT E_TASK_PERMISSION CORE_SwitchTask(LPVOID CoreStack, LPVOID UserStack)
 {
-    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+//    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
     LPTASK_CONTEXT lpSwitch2Task = GetSwitch2TaskContext();
  
 //    CORE_INFOR(TRUE, "Current task '0x%p' switch 2 task '%p'.", lpCurrentTask, lpSwitch2Task);

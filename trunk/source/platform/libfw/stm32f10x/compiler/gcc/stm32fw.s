@@ -18,5 +18,11 @@ FW_StackPosition:
     mov     r0,    r13
     bx      lr
 
+    .global FW_SystemIdle
+    .type	FW_SystemIdle, %function
+FW_SystemIdle:
+    wfi
+    bx      lr
+
 .end
 

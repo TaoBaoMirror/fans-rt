@@ -34,14 +34,14 @@ ifeq ($(strip $(DEBUG)),true)
 CC_DEBUG				=	-D__DEBUG__
 endif
 
-CC_FLAGS				=	-fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -Werror -g -O2 $(CC_DEBUG)						\
+CC_FLAGS				=	-ggdb3 -fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -Werror -g -O2 $(CC_DEBUG)				\
 							-nostdinc -std=c99 -fshort-wchar -finput-charset=UTF-8 -fno-builtin								\
 							-DDEBUG_IRQ_MONITOR -D__LITTLE_ENDIAN__ -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER 					\
 							-D__THUMB__
 AS_FLAGS				=	-fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -g -x assembler-with-cpp						\
 							-mlittle-endian -mfpu=vfp -mthumb -g -gdwarf-2 -DDEBUG_IRQ_MONITOR
 
-LD_FLAGS				=	-Map=$(SOURCES_ROOT)/$(ARCH)-$(BOARD)/$(ARCH)-$(BOARD).map -cref -A cortex-m3 -s				\
+LD_FLAGS				=	-Map=$(SOURCES_ROOT)/$(ARCH)-$(BOARD)/$(ARCH)-$(BOARD).map -cref -A cortex-m3					\
 							--entry=Reset_Handler -static -T $(LD_SCRIPT) --nostdlib $(LD_LIBRARYS_ROOT)					\
 							$(PROJECT_LIBRARYS_ROOT) $(PROJECT_LIBRARYS_FLAGS) $(LD_LIBARAYS_FLAGS)
 #MK_FLAGS				=	--no-print-directory
@@ -51,7 +51,7 @@ MAKE					+=	$(MK_FLAGS)
 LD_LIBRARYS_ROOT		=	-L/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/thumb
 LD_LIBARAYS_FLAGS		=	-lgcc_shortwchar
 PROJECT_LIBRARYS_ROOT	=	-L$(OBJECTS_ROOT)
-PROJECT_LIBRARYS_FLAGS	=	-lcuser -lapi -lnt -lfw -lcmini
+PROJECT_LIBRARYS_FLAGS	=	-lcuser -lapi -lcal -lfw -lcmini
 
 OC_FLAGS				=	-Obinary
 
@@ -92,17 +92,17 @@ OBJECTS					=	$(addprefix $(OBJECTS_PATH)/, $(C_OBJECT_FILE)) 													\
 							$(addprefix $(OBJECTS_PATH)/, $(S_OBJECT_FILE))
 DEPENDS					=	$(addprefix $(OBJECTS_PATH)/, $(C_DEPEND_FILE))
 
-CORE_INCLUDES			:=	-I$(SOURCES_ROOT)/system/core
+CORE_INCLUDES			:=	-I$(SOURCES_ROOT)/system/core -I$(SOURCES_ROOT)/system/core/stack
 
-OS_INCLUDES				:=	-I$(SOURCES_ROOT)/include
+OS_INCLUDES				:=	-I$(SOURCES_ROOT)/include -I$(SOURCES_ROOT)/include/$(COMPILER)
 STD_INCLUDES			:=	-I$(SOURCES_ROOT)/include/stdc
 LIBCM_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcmini
 LIBCU_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcuser
 LIBCAL_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcal
-CL_INCLUDES				:=	-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/include									\
+ARM_CL_INCLUDES			?=	-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/include									\
 							-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/include-fixed							\
-							-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/install-tools/include					\
-							-I$(SOURCES_ROOT)/include/$(COMPILER)
+							-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/install-tools/include
+CL_INCLUDES				:=  $(subst :, ,$(ARM_CL_INCLUDES))
 ARCH_INCLUDES			:=	-I$(SOURCES_ROOT)/platform/arch/$(ARCH)
 BOARD_INCLUDES			:=	-I$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)													\
 							-I$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)/$(COMPILER)
