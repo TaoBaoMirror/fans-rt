@@ -146,7 +146,7 @@ STATIC E_STATUS TASK_TEST_CASE02(VOID)
     DWORD i = 0x10000000;
     TASK_PRIORITY Priority;
     TASK_STATUS TaskState;
-    TICK StartTick = GetSystemTick();
+//    TICK StartTick = GetSystemTick();
     CHAR TaskName[OBJECT_NAME_MAX] = {TASK_NAME_THREAD02};
 
     TEST_CASE_ASSERT((STATE_SUCCESS == (State = TestSetCount(0))),

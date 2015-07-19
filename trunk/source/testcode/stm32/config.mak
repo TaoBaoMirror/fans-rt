@@ -1,5 +1,4 @@
-SUBDIRS				=
-#	$(BOARD)
+SUBDIRS				=	$(BOARD)
 CONFIGS				=
 TARGETS				=
 OBJECTS_PATH		=	$(OBJECTS_ROOT)/testcode

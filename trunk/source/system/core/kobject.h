@@ -269,6 +269,7 @@ extern "C" {
     EXPORT LPKOBJECT_HEADER CORE_TakeObject(LPCSTR lpName, LPVOID lpParam);
     EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader);
     EXPORT E_STATUS CORE_RequestMethod(LPKOBJECT_HEADER lpHeader, LPVOID lpParam, DWORD Method);
+    EXPORT E_STATUS CORE_DetachIPCQueue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam);
 
 #ifdef __cplusplus
 }

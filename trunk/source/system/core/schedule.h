@@ -37,7 +37,7 @@ typedef union tagSCHEDULER_FLAGS{
 }SCHEDULER_FLAGS;
 
 STATIC  RW_CORE_DATA    LIST_HEAD       g_SystemTaskTable;                                                      /**< 系统任务表 */
-STATIC  RW_CORE_DATA    LIST_HEAD       g_SystemDeathQueue;                                                     /**< 任务死亡队列 */
+//STATIC  RW_CORE_DATA    LIST_HEAD       g_SystemDeathQueue;                                                     /**< 任务死亡队列 */
 STATIC  RW_CORE_DATA    LIST_HEAD       g_TaskSuspendQueue;                                                     /**< 任务休眠队列 */
 STATIC  RW_CORE_DATA    LIST_HEAD       g_TaskReadyQueue[CONFIG_TASK_PRIORITY_MAX];                             /**< 优先级就绪队列 */
 PUBLIC  RW_CORE_DATA    VOLATILE        LPTASK_CONTEXT      g_CurrentContext        =       NULL;               /**< 当前任务上下文指针 */
@@ -49,7 +49,7 @@ STATIC  RW_CORE_DATA    VOLATILE        DWORD               g_SystemScheduleCoun
 
 STATIC  RW_CORE_DATA    VOLATILE        WORD                g_SystemTaskCount       =       0;
 STATIC  RW_CORE_DATA    VOLATILE        E_STATUS            g_SystemGlobalError     =       STATE_SUCCESS;
-STATIC  RW_CORE_DATA    VOLATILE        SCHEDULER_FLAGS     g_SchedulerFlags        =       {FALSE, FALSE, FALSE};
+STATIC  RW_CORE_DATA    VOLATILE        SCHEDULER_FLAGS     g_SchedulerFlags        =       {.Value = 0};
 STATIC  RW_CORE_DATA    VOLATILE        E_TASK_PERMISSION   g_CurrentPermission     =       TASK_PERMISSION_USER;
 STATIC  RW_CORE_DATA    VOLATILE        TASK_PRIORITY       g_CurrentPriority       =       TASK_PRIORITY_IDLE; /**< 当前任务优先级 */
 STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_InterruptNestLayer    =       2;                  /**< 中断嵌套 */
@@ -118,10 +118,12 @@ STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitma
 #define     SetSystemScheduleCount(x)                   (g_SystemScheduleCount = (x))
 #endif
 
+#if 0
 STATIC E_STATUS StackOverflowCheck(LPTASK_CONTEXT lpTaskContext)
 {
     return STATE_SUCCESS;
 }
+#endif
 
 /**
  * Find the highest priority in the ready bitmap
