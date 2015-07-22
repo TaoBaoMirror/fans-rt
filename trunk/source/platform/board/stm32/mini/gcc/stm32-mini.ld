@@ -52,7 +52,7 @@ SECTIONS
     /* the program code is stored in the .text section, which goes to Flash */
     .text :
     {
-	    . = ALIGN(4);
+    . = ALIGN(4);
 
         *(.text)
         *(.text.*)
@@ -69,12 +69,13 @@ SECTIONS
         *(.glue_7)
         *(.glue_7t)
         *(.igot)
-		*(.igot.*)
-		*(.got)
-		*(.got.*)
-	    . = ALIGN(4);
-   	 _etext = .;
-   	 _sidata = _etext;
+        *(.igot.*)
+        *(.got)
+        *(.got.*)
+
+    . = ALIGN(4);
+    _etext = .;
+    _sidata = _etext;
     } >CORE_ROM
 
     

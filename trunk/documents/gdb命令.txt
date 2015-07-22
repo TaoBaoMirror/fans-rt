@@ -1,0 +1,47 @@
+load stm32-mini.axf
+target remote localhost:2331
+b TASK_TEST_CASE00
+b Sleep
+b SVC_Handler
+b UsageFault_Handler
+b BusFault_Handler
+b MemManage_Handler
+b HardFault_Handler
+b CORE_LeaveIRQ
+bt
+frame
+info locals 打印出当前函数中所有局部变量及其值。
+info args   打印出当前函数的参数名及其值。
+
+set step-mode <on/off>   打开step-mode模式，于是，在进行单步跟踪时，程序不会因为没有debug信息而不停住。这个参数有很利于查看机器码。
+
+disassemble   查看汇编代码
+disassemble /m 查看汇编代码和源码
+disassemble /r 查看16进制机器码
+
+display /5i $pc  查看从PC开始的5条指令
+x /5i $pc        查看从PC开始的5条指令
+
+si    单条指令执行
+ni    按指令执行到下一个断点
+
+用gdb查看内存
+格式: x /nfu
+说明
+x 是 examine 的缩写
+n表示要显示的内存单元的个数
+f表示显示方式, 可取如下值
+x 按十六进制格式显示变量。
+d 按十进制格式显示变量。
+u 按十进制格式显示无符号整型。
+o 按八进制格式显示变量。
+t 按二进制格式显示变量。
+a 按十六进制格式显示变量。
+i 指令地址格式
+c 按字符格式显示变量。
+f 按浮点数格式显示变量。
+u表示一个地址单元的长度
+b表示单字节，
+h表示双字节，
+w表示四字节，
+g表示八字节
