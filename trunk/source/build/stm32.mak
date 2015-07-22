@@ -35,16 +35,16 @@ CC_DEBUG				=	-D__DEBUG__
 endif
 
 CC_FLAGS				=	-ggdb3 -fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -Werror -g -O2 $(CC_DEBUG)				\
-							-nostdinc -std=c99 -fshort-wchar -finput-charset=UTF-8 -fno-builtin								\
-							-DDEBUG_IRQ_MONITOR -D__LITTLE_ENDIAN__ -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER 					\
-							-D__THUMB__
-AS_FLAGS				=	-fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -g -x assembler-with-cpp						\
-							-mlittle-endian -mfpu=vfp -mthumb -g -gdwarf-2 -DDEBUG_IRQ_MONITOR
+							-nostdinc -std=c99 -fshort-wchar -finput-charset=UTF-8 -fno-builtin	-D__THUMB__					\
+							-D__LITTLE_ENDIAN__ -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER
 
-LD_FLAGS				=	-Map=$(SOURCES_ROOT)/$(ARCH)-$(BOARD)/$(ARCH)-$(BOARD).map -cref -A cortex-m3					\
+AS_FLAGS				=	-fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -g -x assembler-with-cpp						\
+							-mlittle-endian -mfpu=vfp -mthumb -g -gdwarf-2
+
+LD_FLAGS				=	-Map=$(SOURCES_ROOT)/$(ARCH)-$(BOARD)/$(ARCH)-$(BOARD).map -cref -A cortex-m3 -s				\
 							--entry=Reset_Handler -static -T $(LD_SCRIPT) --nostdlib $(LD_LIBRARYS_ROOT)					\
 							$(PROJECT_LIBRARYS_ROOT) $(PROJECT_LIBRARYS_FLAGS) $(LD_LIBARAYS_FLAGS)
-#MK_FLAGS				=	--no-print-directory
+MK_FLAGS				=	--no-print-directory
 
 MAKE					+=	$(MK_FLAGS)
 
