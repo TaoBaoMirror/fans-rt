@@ -20,12 +20,15 @@ RD						=	rmdir
 CAT						=	cat
 ECHO					=	echo
 
-
 FWLIB					=	stm32f10x
+
 LD_SCRIPT				=	$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)/$(COMPILER)/$(ARCH)-$(BOARD).ld
+#LD_LIBRARYS_ROOT		?=	-L/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/thumb
+#LD_LIBARAYS_FLAGS		?=	-lgcc_shortwchar
+
 STATIC_LIBRARY			=	.a
 DYNAMIC_LIBRARY			=	.a
-EXECUTE_TARGET			=	.axf
+TARGET_SUFFIX			=	elf
 
 
 DEBUG					?=	true
@@ -44,12 +47,10 @@ AS_FLAGS				=	-fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -g -x assembler-w
 LD_FLAGS				=	-Map=$(SOURCES_ROOT)/$(ARCH)-$(BOARD)/$(ARCH)-$(BOARD).map -cref -A cortex-m3 -s				\
 							--entry=Reset_Handler -static -T $(LD_SCRIPT) --nostdlib $(LD_LIBRARYS_ROOT)					\
 							$(PROJECT_LIBRARYS_ROOT) $(PROJECT_LIBRARYS_FLAGS) $(LD_LIBARAYS_FLAGS)
-MK_FLAGS				=	--no-print-directory
+#MK_FLAGS				=	--no-print-directory
 
 MAKE					+=	$(MK_FLAGS)
 
-LD_LIBRARYS_ROOT		=	-L/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/thumb
-LD_LIBARAYS_FLAGS		=	-lgcc_shortwchar
 PROJECT_LIBRARYS_ROOT	=	-L$(OBJECTS_ROOT)
 PROJECT_LIBRARYS_FLAGS	=	-lcuser -lapi -lcal -lfw -lcmini
 
@@ -62,12 +63,12 @@ SUBDIRS					=	$(CHILDREN)
 CURRENT_PATH			=	$(shell pwd)
 SOURCES_PATH			=	$(CURRENT_PATH)
 RELATIVE_PATH			=	
-BUILD_ROOT				=	$(SOURCES_ROOT)/build
-SCRIPTS_ROOT			=	$(SOURCES_ROOT)/script
+
 PATH_FOLDERS			=	$(subst /, ,$(CURRENT_PATH))
 CURRENT_FOLDER			=	$(word $(words $(PATH_FOLDERS)), $(PATH_FOLDERS))
 
-
+BUILD_ROOT				=	$(SOURCES_ROOT)/build
+SCRIPTS_ROOT			=	$(SOURCES_ROOT)/script
 OBJECTS_ROOT			=	$(SOURCES_ROOT)/$(ARCH)-$(BOARD)
 OBJECTS_PATH			=	$(OBJECTS_ROOT)/$(CURRENT_FOLDER)
 COMMAND_LIST			=	$(OBJECTS_ROOT)/commands.txt
@@ -79,6 +80,14 @@ TARGETS_PATH			=	$(TARGETS_ROOT)
 
 C_SOURCE_FILE			=	$(wildcard *.c)
 S_SOURCE_FILE			=	$(wildcard *.s)
+
+ARM_SOURCE_FILE			=	$(wildcard ../armcc/*.s)
+GTM_SOURCE_FILE			=	$(notdir $(ARM_SOURCE_FILE))
+GNU_SOURCE_FILE			=	$(GTM_SOURCE_FILE:%.s=%.asm)
+GNU_OBJECT_FILE			=	$(GTM_SOURCE_FILE:%.s=%.o)
+GNU_DEPEND_FILE			=	$(GTM_SOURCE_FILE:%.s=%.d)
+GNU_DEPENDS				=	$(addprefix $(OBJECTS_PATH)/, $(GNU_DEPEND_FILE)) 
+GNU_OBJECTS				=	$(addprefix $(OBJECTS_PATH)/, $(GNU_OBJECT_FILE)) 
 
 
 C_OBJECT_FILE			=	$(C_SOURCE_FILE:%.c=%.o)
@@ -136,8 +145,9 @@ AS_INCLUDES				=	$(GLOBAL_INCLUDES) $(LOCAL_INCLUDES)
 all:$(CREATE_MAKE) $(LD_SCRIPT) $(SUFFIX_MAKE)
 	@echo "Make $(ARCH)-$(BOARD) now ..."
 	@$(ECHO) "@$(MAKE) -f $(CREATE_MAKE)" > $(COMMAND_LIST)
-	@$(RM) -f $(SOURCES_ROOT)/../objects/$(ARCH)-$(BOARD)/*.axf
-	@$(RM) -f $(TARGETS_ROOT)/*.a
+	@$(RM) -f $(TARGETS_ROOT)/*.$(TARGET_SUFFIX)
+	@$(RM) -f $(TARGETS_ROOT)/*.$(STATIC_LIBRARY)
+	@$(RM) -f $(TARGETS_ROOT)/*.$(DYNAMIC_LIBRARY)
 	@$(MAKE) -f $(CREATE_MAKE)
 
 $(CREATE_MAKE):
@@ -175,7 +185,7 @@ remove:
 	@$(RM) -rf $(OBJECTS_ROOT)
 
 config: $(CONFIGS_PATH) $(OBJECTS_PATH) $(TARGETS_PATH) \
-		$(SUBDIRS) $(DEPENDS) $(CONFIGS)
+		$(SUBDIRS) $(SOURCES) $(DEPENDS) $(CONFIGS)
 	@$(ECHO) "Create file [$(CURDIR)/$(CREATE_MAKE)] ..."
 	@$(ECHO) "" > $(CREATE_MAKE)
 	@$(ECHO) "CC              = $(CC)" >> $(CREATE_MAKE)
@@ -197,6 +207,7 @@ config: $(CONFIGS_PATH) $(OBJECTS_PATH) $(TARGETS_PATH) \
 	@$(ECHO) "AS_INCLUDES     = \\" >> $(CREATE_MAKE)
 	@for i in $(AS_INCLUDES); do $(ECHO) "                 $$i\\" >> $(CREATE_MAKE); done
 	@$(ECHO) "" >> $(CREATE_MAKE)
+	@$(ECHO) "SCRIPTS_ROOT    = $(SCRIPTS_ROOT)" >> $(CREATE_MAKE)
 	@$(ECHO) "SOURCES_ROOT    = $(SOURCES_ROOT)" >> $(CREATE_MAKE)
 	@$(ECHO) "OBJECTS_ROOT    = $(OBJECTS_ROOT)" >> $(CREATE_MAKE)
 	@$(ECHO) "OBJECTS_PATH    = $(OBJECTS_PATH)" >> $(CREATE_MAKE)
@@ -236,8 +247,12 @@ $(OBJECTS_PATH):
 $(CONFIGS_PATH)/$(COMPILER):
 	@$(ECHO) "Create directory [$@] ..."
 	@$(MD) -p $@
-	
-$(OBJECTS_PATH)/%.d: %.c  $(CONFIG_MAKE)
+
+%.asm: ../armcc/%.s
+	@$(ECHO) "Create file [$@] ..."
+	@$(SCRIPTS_ROOT)/arm2gnu.sh $< $@
+
+$(OBJECTS_PATH)/%.d: %.c $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(ECHO) '$(OBJECTS_PATH)/' | tr -d '\n' > $@
 	$(CC) $(CC_FLAGS) $(CC_INCLUDES) -MM $< >> $@
@@ -245,7 +260,12 @@ $(OBJECTS_PATH)/%.d: %.c  $(CONFIG_MAKE)
 $(OBJECTS_PATH)/%.d: %.s $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."
 	@$(ECHO) '$(OBJECTS_PATH)/' | tr -d '\n' > $@
-	$(CC) $(CC_FLAGS) $(CC_INCLUDES) -MM $< >> $@
+	$(CC) $(AS_FLAGS) $(AS_INCLUDES) -MM $< >> $@
+	
+$(OBJECTS_PATH)/%.d: %.asm $(CONFIG_MAKE)
+	@$(ECHO) "Create file [$@] ..."
+	@$(ECHO) '$(OBJECTS_PATH)/' | tr -d '\n' > $@
+	$(CC) $(AS_FLAGS) $(AS_INCLUDES) -MM $< >> $@
 	
 $(CONFIGS_PATH)/%.h: $(SOURCES_ROOT)/%.ini $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."

@@ -69,11 +69,11 @@ PendSV_Handler  PROC
     MRS     R0,     MSP                 ;  R0 = Core stack for old task
     MRS     R1,     PSP                 ;  R1 = User stack for old task
     CBNZ    R3,     PV_L1               ;  R3 = 0  Current task is core task
-    STMFD	R0!,    {LR, R4 - R12}      ;  Save core stack for the old task
+    STMFD	R0!,    {R4 - R12, LR}      ;  Save core stack for the old task
     MSR     MSP,    R0                  ;  Adjust core stack
     B       PV_L2
 PV_L1
-    STMFD	R1!,    {LR, R4 - R12}      ;  Save user stack for the old task
+    STMFD	R1!,    {R4 - R12, LR}      ;  Save user stack for the old task
 PV_L2    
     BL      CORE_SwitchTask             ;  CORE_SwitchTask(CoreStack, UserStack);
     MOV     R4,     R0                  ;  R4 = Permission
@@ -81,10 +81,10 @@ PV_L2
     MOV     R1,     R0                  ;  R1 = User stack for new task
     BL      CORE_GetCoreStackPosition   ;  R0 = Core stack for new task
     CBNZ    R4,     PV_L3               ;  R4 = 0  Current task is core task
-    LDMFD	R0!,    {LR, R4 - R12}      ;  Load core stack for the new task(core)
+    LDMFD	R0!,    {R4 - R12, LR}      ;  Load core stack for the new task(core)
     B       PV_L4
 PV_L3
-    LDMFD	R1!,    {LR, R4 - R12}      ;  Load user stack for the new task(user)
+    LDMFD	R1!,    {R4 - R12, LR}      ;  Load user stack for the new task(user)
 PV_L4
     MSR     PSP,    R1                  ;  Update user stack
     MSR     MSP,    R0                  ;  Update core stack
@@ -94,24 +94,24 @@ PV_L4
 
 SVC_Handler     PROC
     CPSID   I
-    PUSH    {LR, R4}                    ;  Why to push R4 ? Guess !
-    PUSH    {R0, R1, R2, R3}            ;
+    PUSH    {R4, LR}                    ;  Why to push R4 ? Guess !
+    PUSH    {R0 - R3}            ;
     BL      CORE_EnterIRQ               ;  Enter Interrupt Critiacl
-    POP     {R0, R1, R2, R3}
+    POP     {R0 - R3}
     CPSIE   I
 
     BL      CORE_HandlerLPC             ;  Call system service
 
     CPSID   I
     BL      CORE_LeaveIRQ               ;  Leave Interrupt Critiacl
-    POP     {LR, R4}                    ;  Pop registers
+    POP     {R4, LR}                    ;  Pop registers
     CPSIE   I
     BX      LR
     ENDP
     
 SysTick_Handler PROC
     CPSID   I
-    PUSH    {LR, R4}                    ;  The LR must be push, but the 
+    PUSH    {R4, LR}                    ;  The LR must be push, but the 
                                         ;  stack is not aligned to 64 bit
     BL      CORE_EnterIRQ               ;  Enter Interrupt Critiacl
     BL      CORE_TickHandler            ;  Inc the system tick
@@ -119,7 +119,7 @@ SysTick_Handler PROC
     BL      CORE_TaskScheduling         ;  Find the new task will be scheduling
     CPSID   I
     BL      CORE_LeaveIRQ               ;  Leave Interrupt Critiacl
-    POP     {LR, R4}                    ;  Pop registers
+    POP     {R4, LR}                    ;  Pop registers
     CPSIE   I
     BX      LR
     ENDP
