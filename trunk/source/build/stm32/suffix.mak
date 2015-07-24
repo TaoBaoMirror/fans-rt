@@ -13,6 +13,11 @@ $(OBJECTS_PATH)/%.o: %.c $(OBJECTS_PATH)/%.d
 	@$(ECHO) "@$(CC) $(CC_FLAGS) $(CC_INCLUDES) -o $@ $<" >> $(COMMAND_LIST)
 	@$(CC) $(CC_FLAGS) $(CC_INCLUDES) -o $@ $<
 
+$(OBJECTS_PATH)/%.o: %.asm
+	@$(ECHO) "Create file [$@] ..."
+	@$(ECHO) "@$(CC) $(AS_FLAGS) $(AS_INCLUDES) -o $@ $<" >> $(COMMAND_LIST)
+	@$(CC) $(AS_FLAGS) $(AS_INCLUDES) -o $@ $<
+
 $(OBJECTS_PATH)/%.o: %.s
 	@$(ECHO) "Create file [$@] ..."
 	@$(ECHO) "@$(CC) $(AS_FLAGS) $(AS_INCLUDES) -o $@ $<" >> $(COMMAND_LIST)
@@ -25,7 +30,7 @@ $(TARGETS_PATH)/%.a: $(OBJECTS_PATH)/*.o
 	@$(ECHO) "@$(RL) $@" >> $(COMMAND_LIST)
 	@$(RL) $@
 
-$(TARGETS_PATH)/%.axf: $(PROJECT_OBJECTS)
+$(TARGETS_PATH)/%.elf: $(PROJECT_OBJECTS)
 	@$(ECHO) "Create file [$@] ..."
 	@$(ECHO) "@$(LD) -o $@ $(PROJECT_OBJECTS) $(LD_FLAGS)" >> $(COMMAND_LIST)
 	@$(LD) -o $@ $(PROJECT_OBJECTS) $(LD_FLAGS)
