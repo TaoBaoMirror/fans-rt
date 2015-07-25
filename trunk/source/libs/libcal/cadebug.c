@@ -142,7 +142,7 @@ EXPORT_SYMBOL(caDebugLog);
 EXPORT RO_CODE VOID caDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
 {
     DWORD Scale = 0;
-    LPBYTE lpData = lpBuffer;
+    BYTE_PTR lpData = lpBuffer;
 
     if (!DEBUG_LOG_CONDITION(emLevel))
     {

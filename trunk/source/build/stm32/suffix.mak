@@ -34,6 +34,9 @@ $(TARGETS_PATH)/%.elf: $(PROJECT_OBJECTS)
 	@$(ECHO) "Create file [$@] ..."
 	@$(ECHO) "@$(LD) -o $@ $(PROJECT_OBJECTS) $(LD_FLAGS)" >> $(COMMAND_LIST)
 	@$(LD) -o $@ $(PROJECT_OBJECTS) $(LD_FLAGS)
+	$(START_JLINK_COMMAND)
+	$(START_JLINK_GDBSERVER)
+	@$(GDB) $(START_GDB_COMMANDS) $@
 
 remove_command_list:
 	@$(RM) -f $(COMMAND_LIST)

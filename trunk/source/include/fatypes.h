@@ -34,13 +34,12 @@ typedef unsigned long long U64;
 
 #define     BYTE_WIDTH              (8) 
 typedef unsigned char BYTE;
-typedef unsigned char * PBYTE;
-typedef unsigned char FAR * LPBYTE;
+typedef unsigned char * BYTE_PTR;
 
 #define     WORD_WIDTH              (sizeof(WORD) * BYTE_WIDTH)
 typedef unsigned short WORD;
 typedef unsigned short * PWORD;
-typedef unsigned short FAR * LPWORD;
+typedef unsigned short FAR * WORD_PTR;
 
 #define     INVALID_VALUE           ((DWORD)(~(0UL)))
 #define     DWORD_WIDTH             (sizeof(DWORD) * BYTE_WIDTH)
@@ -55,7 +54,7 @@ typedef unsigned long * DWORD_PTR;
 #define  SYSTEM_HAVE_QWORD
 typedef unsigned long long QWORD;
 typedef unsigned long long * PQWORD;
-typedef unsigned long long FAR * LPQWORD;
+typedef unsigned long long FAR * QWORD_PTR;
 #endif
 #endif
 

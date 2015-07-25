@@ -57,7 +57,7 @@ struct tagCORE_POOL{
     BYTE                RemainBlocks;
     POOL_MAP_T          PoolBitmap;                                 /**< Î»Í¼-¼ÇÂ¼¿ÕÏÐÏî */
     SIZE_T              BlockLength;
-    LPBYTE              lpBuffer;
+    BYTE_PTR            lpBuffer;
 };
 
 typedef struct tagCONTAINER_ATTRIBUTE{
@@ -144,7 +144,7 @@ extern "C" {
 #endif
     typedef E_STATUS (CALLBACK *POOLHASHCHECK)(LPVOID lpResult, DWORD_PTR Hash);
     EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
-                                        LPBYTE lpTable, BYTE Pools, BYTE BlockPrePool,
+                                        BYTE_PTR lpTable, BYTE Pools, BYTE BlockPrePool,
                                         DWORD BytePreBlock, BOOL AllocForInit);
     EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager);
     EXPORT LPVOID CORE_PoolTakeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T Kid);
