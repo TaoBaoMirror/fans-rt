@@ -88,7 +88,7 @@ EXPORT_SYMBOL(kDebugLog);
 EXPORT VOID kDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T Length)
 {
     DWORD Scale = 0;
-    LPBYTE lpData = lpBuffer;
+    BYTE_PTR lpData = lpBuffer;
 
     if (!DEBUG_LOG_CONDITION(emLevel))
     {

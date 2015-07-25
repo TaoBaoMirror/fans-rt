@@ -58,7 +58,7 @@ STATIC E_STATUS CreatePool(LPCORE_POOL lpCorePool)
 
 
 EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpName,
-                                LPBYTE lpTable, BYTE Pools, BYTE BlockPrePool, 
+                                BYTE_PTR lpTable, BYTE Pools, BYTE BlockPrePool, 
                                 SIZE_T BytePreBlock, BOOL AllocForInit)
 {
     KPOOL_ID_T Pid = 0;

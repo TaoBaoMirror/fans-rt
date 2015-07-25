@@ -1,17 +1,10 @@
-
-#CC						=	$(CC_PATH)/arm-none-eabi-gcc.exe
-#AS						=	$(CC_PATH)/arm-none-eabi-as.exe
-#AR						=	$(CC_PATH)/arm-none-eabi-ar.exe
-#LD						=	$(CC_PATH)/arm-none-eabi-ld.exe
-#OC						=	$(CC_PATH)/arm-none-eabi-objcopy.exe
-#RL						=	$(CC_PATH)/arm-none-eabi-ranlib.exe
-
-CC						?=	arm-none-eabi-gcc.exe
-AS						?=	arm-none-eabi-as.exe
-AR						?=	arm-none-eabi-ar.exe
-LD						?=	arm-none-eabi-ld.exe
-OC						?=	arm-none-eabi-objcopy.exe
-RL						?=	arm-none-eabi-ranlib.exe
+CC						?=	$(COMPILER_PREFIX)gcc.exe
+AS						?=	$(COMPILER_PREFIX)as.exe
+AR						?=	$(COMPILER_PREFIX)ar.exe
+LD						?=	$(COMPILER_PREFIX)ld.exe
+OC						?=	$(COMPILER_PREFIX)objcopy.exe
+RL						?=	$(COMPILER_PREFIX)ranlib.exe
+GDB						?=	$(COMPILER_PREFIX)gdb.exe
 CP						=	cp
 RM						=	rm
 MV						=	mv
@@ -23,7 +16,7 @@ ECHO					=	echo
 FWLIB					=	stm32f10x
 
 LD_SCRIPT				=	$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)/$(COMPILER)/$(ARCH)-$(BOARD).ld
-#LD_LIBRARYS_ROOT		?=	-L/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/thumb
+#LD_LIBRARYS_ROOT		?=	-L/usr/local/$(COMPILER_PREFIX)msys/lib/gcc/arm-none-eabi/4.8.3/thumb
 #LD_LIBARAYS_FLAGS		?=	-lgcc_shortwchar
 
 STATIC_LIBRARY			=	.a
@@ -68,6 +61,17 @@ RELATIVE_PATH			=
 PATH_FOLDERS			=	$(subst /, ,$(CURRENT_PATH))
 CURRENT_FOLDER			=	$(word $(words $(PATH_FOLDERS)), $(PATH_FOLDERS))
 
+ifeq ($(strip $(MSYSTEM)),MINGW32)
+START_JLINK_COMMAND		=	@start $(SCRIPTS_ROOT)/win32/start_jlink_command.bat
+START_JLINK_GDBSERVER	=	@start $(SCRIPTS_ROOT)/win32/start_jlink_gdbserver.bat
+START_GDB_COMMANDS		=	-command $(SCRIPTS_ROOT)/jlink.gdb
+else
+GDB						:=	@$(ECHO)
+START_JLINK_COMMAND		=	@$(ECHO) Can not startup JLINK Commander
+START_JLINK_GDBSERVER	=	@$(ECHO) Can not startup GDB Server
+START_GDB_COMMANDS		=	Can not load file to flash :
+endif
+
 BUILD_ROOT				=	$(SOURCES_ROOT)/build
 SCRIPTS_ROOT			=	$(SOURCES_ROOT)/script
 OBJECTS_ROOT			=	$(SOURCES_ROOT)/$(ARCH)-$(BOARD)
@@ -109,9 +113,9 @@ STD_INCLUDES			:=	-I$(SOURCES_ROOT)/include/stdc
 LIBCM_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcmini
 LIBCU_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcuser
 LIBCAL_INCLUDES			:=	-I$(SOURCES_ROOT)/libs/libcal
-ARM_CL_INCLUDES			?=	-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/include									\
-							-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/include-fixed							\
-							-I/usr/local/arm-none-eabi-msys/lib/gcc/arm-none-eabi/4.8.3/install-tools/include
+ARM_CL_INCLUDES			?=	-I/usr/local/$(COMPILER_PREFIX)msys/lib/gcc/arm-none-eabi/4.8.3/include									\
+							-I/usr/local/$(COMPILER_PREFIX)msys/lib/gcc/arm-none-eabi/4.8.3/include-fixed							\
+							-I/usr/local/$(COMPILER_PREFIX)msys/lib/gcc/arm-none-eabi/4.8.3/install-tools/include
 CL_INCLUDES				:=  $(subst :, ,$(ARM_CL_INCLUDES))
 ARCH_INCLUDES			:=	-I$(SOURCES_ROOT)/platform/arch/$(ARCH)
 BOARD_INCLUDES			:=	-I$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)													\
@@ -189,36 +193,42 @@ config: $(CONFIGS_PATH) $(OBJECTS_PATH) $(TARGETS_PATH) \
 		$(SUBDIRS) $(SOURCES) $(DEPENDS) $(CONFIGS)
 	@$(ECHO) "Create file [$(CURDIR)/$(CREATE_MAKE)] ..."
 	@$(ECHO) "" > $(CREATE_MAKE)
-	@$(ECHO) "CC              = $(CC)" >> $(CREATE_MAKE)
-	@$(ECHO) "AS              = $(AS)" >> $(CREATE_MAKE)
-	@$(ECHO) "AR              = $(AR)" >> $(CREATE_MAKE)
-	@$(ECHO) "LD              = $(LD)" >> $(CREATE_MAKE)
-	@$(ECHO) "OC              = $(OC)" >> $(CREATE_MAKE)
-	@$(ECHO) "RL              = $(RL)" >> $(CREATE_MAKE)
-	@$(ECHO) "CP              = $(CP)" >> $(CREATE_MAKE)
-	@$(ECHO) "RM              = $(RM)" >> $(CREATE_MAKE)
-	@$(ECHO) "MD              = $(MD)" >> $(CREATE_MAKE)
-	@$(ECHO) "ECHO            = $(ECHO)" >> $(CREATE_MAKE)
-	@$(ECHO) "CC_FLAGS        = $(CC_FLAGS)" >> $(CREATE_MAKE)
-	@$(ECHO) "AS_FLAGS        = $(AS_FLAGS)" >> $(CREATE_MAKE)
-	@$(ECHO) "LD_FLAGS        = $(LD_FLAGS)" >> $(CREATE_MAKE)
-	@$(ECHO) "CC_INCLUDES     = \\" >> $(CREATE_MAKE)
+	@$(ECHO) "CC                     = $(CC)" >> $(CREATE_MAKE)
+	@$(ECHO) "AS                     = $(AS)" >> $(CREATE_MAKE)
+	@$(ECHO) "AR                     = $(AR)" >> $(CREATE_MAKE)
+	@$(ECHO) "LD                     = $(LD)" >> $(CREATE_MAKE)
+	@$(ECHO) "OC                     = $(OC)" >> $(CREATE_MAKE)
+	@$(ECHO) "RL                     = $(RL)" >> $(CREATE_MAKE)
+	@$(ECHO) "CP                     = $(CP)" >> $(CREATE_MAKE)
+	@$(ECHO) "RM                     = $(RM)" >> $(CREATE_MAKE)
+	@$(ECHO) "MD                     = $(MD)" >> $(CREATE_MAKE)
+	@$(ECHO) "GDB                    = $(GDB)" >> $(CREATE_MAKE)
+	@$(ECHO) "ECHO                   = $(ECHO)" >> $(CREATE_MAKE)
+	@$(ECHO) "CC_FLAGS               = $(CC_FLAGS)" >> $(CREATE_MAKE)
+	@$(ECHO) "AS_FLAGS               = $(AS_FLAGS)" >> $(CREATE_MAKE)
+	@$(ECHO) "LD_FLAGS               = $(LD_FLAGS)" >> $(CREATE_MAKE)
+	@$(ECHO) "CC_INCLUDES            = \\" >> $(CREATE_MAKE)
 	@for i in $(CC_INCLUDES); do $(ECHO) "                 $$i\\" >> $(CREATE_MAKE); done
 	@$(ECHO) "" >> $(CREATE_MAKE)
-	@$(ECHO) "AS_INCLUDES     = \\" >> $(CREATE_MAKE)
+	@$(ECHO) "AS_INCLUDES            = \\" >> $(CREATE_MAKE)
 	@for i in $(AS_INCLUDES); do $(ECHO) "                 $$i\\" >> $(CREATE_MAKE); done
 	@$(ECHO) "" >> $(CREATE_MAKE)
-	@$(ECHO) "SCRIPTS_ROOT    = $(SCRIPTS_ROOT)" >> $(CREATE_MAKE)
-	@$(ECHO) "SOURCES_ROOT    = $(SOURCES_ROOT)" >> $(CREATE_MAKE)
-	@$(ECHO) "OBJECTS_ROOT    = $(OBJECTS_ROOT)" >> $(CREATE_MAKE)
-	@$(ECHO) "OBJECTS_PATH    = $(OBJECTS_PATH)" >> $(CREATE_MAKE)
-	@$(ECHO) "TARGETS_PATH    = $(TARGETS_PATH)" >> $(CREATE_MAKE)
-	@$(ECHO) "COMMAND_LIST    = $(COMMAND_LIST)" >> $(CREATE_MAKE)
-	@$(ECHO) "SUBDIRS         = $(SUBDIRS)" >> $(CREATE_MAKE)
-	@$(ECHO) "MAKEFILE        = $(CREATE_MAKE)" >>  $(CREATE_MAKE)
-	@$(ECHO) "PROJECT_OBJECTS = $(PROJECT_OBJECTS)" >>  $(CREATE_MAKE)
-	@$(ECHO) "TARGETS         = $(TARGETS)" >> $(CREATE_MAKE)
-	@$(ECHO) "OBJECTS         = \\" >> $(CREATE_MAKE)
+	@$(ECHO) "SCRIPTS_ROOT           = $(SCRIPTS_ROOT)" >> $(CREATE_MAKE)
+	@$(ECHO) "SOURCES_ROOT           = $(SOURCES_ROOT)" >> $(CREATE_MAKE)
+	@$(ECHO) "OBJECTS_ROOT           = $(OBJECTS_ROOT)" >> $(CREATE_MAKE)
+	@$(ECHO) "OBJECTS_PATH           = $(OBJECTS_PATH)" >> $(CREATE_MAKE)
+	@$(ECHO) "TARGETS_PATH           = $(TARGETS_PATH)" >> $(CREATE_MAKE)
+	@$(ECHO) "COMMAND_LIST           = $(COMMAND_LIST)" >> $(CREATE_MAKE)
+	
+	@$(ECHO) "START_JLINK_COMMAND    = $(START_JLINK_COMMAND)" >> $(CREATE_MAKE)
+	@$(ECHO) "START_JLINK_GDBSERVER  = $(START_JLINK_GDBSERVER)" >> $(CREATE_MAKE)
+	@$(ECHO) "START_GDB_COMMANDS     = $(START_GDB_COMMANDS)" >> $(CREATE_MAKE)
+	
+	@$(ECHO) "SUBDIRS                = $(SUBDIRS)" >> $(CREATE_MAKE)
+	@$(ECHO) "MAKEFILE               = $(CREATE_MAKE)" >>  $(CREATE_MAKE)
+	@$(ECHO) "PROJECT_OBJECTS        = $(PROJECT_OBJECTS)" >>  $(CREATE_MAKE)
+	@$(ECHO) "TARGETS                = $(TARGETS)" >> $(CREATE_MAKE)
+	@$(ECHO) "OBJECTS                = \\" >> $(CREATE_MAKE)
 	@for i in $(OBJECTS); do $(ECHO) "                 $$i\\" >> $(CREATE_MAKE); done
 	@$(ECHO) "" >> $(CREATE_MAKE)
 	@$(ECHO) ".PHONY: $(SUBDIRS) clean" >> $(CREATE_MAKE)

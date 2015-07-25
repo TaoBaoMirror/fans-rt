@@ -99,7 +99,7 @@
         ((SIZE_T)&(((Type *)0)->Member))
 
 #define CONTAINER_OF(Ptr, Type, Member)                                         \
-        ((LPVOID)(((LPBYTE)Ptr) - OFFSET_OF(Type, Member)))
+        ((LPVOID)(((BYTE_PTR)Ptr) - OFFSET_OF(Type, Member)))
 
 
 #define IS_INCLUDE(sub, parent, parlen)                                         \

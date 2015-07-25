@@ -298,8 +298,8 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
     if (NULL != lpHeader)
     {
         DWORD StackCapacity = GetStackCapacity(GetArchSD(lpArchContext, Permission));
-        LPBYTE lpStackBuffer = (LPVOID) lpHeader;
-        LPBYTE lpStackPosition = (lpStackBuffer + StackCapacity);
+        BYTE_PTR lpStackBuffer = (LPVOID) lpHeader;
+        BYTE_PTR lpStackPosition = (lpStackBuffer + StackCapacity);
 
         /* 对于 boot task(Boot task 的用户栈不能 Fill)*/
 #if (CONFIG_CORE_STACK_SIZE == 0)
