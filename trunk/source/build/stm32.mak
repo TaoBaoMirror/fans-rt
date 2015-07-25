@@ -17,7 +17,7 @@ FWLIB					=	stm32f10x
 
 LD_SCRIPT				=	$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)/$(COMPILER)/$(ARCH)-$(BOARD).ld
 #LD_LIBRARYS_ROOT		?=	-L/usr/local/$(COMPILER_PREFIX)msys/lib/gcc/arm-none-eabi/4.8.3/thumb
-#LD_LIBARAYS_FLAGS		?=	-lgcc_shortwchar
+LD_LIBARAYS_FLAGS		?=	-lgcc_shortwchar
 
 STATIC_LIBRARY			=	.a
 DYNAMIC_LIBRARY			=	.a
