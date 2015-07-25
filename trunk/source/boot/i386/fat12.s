@@ -1,0 +1,360 @@
+;=========================================================================================================================
+;文 件 名:  fat12.s
+;作    者:  姜勇
+;修    订:
+;           2005-11-05            姜勇              创建文件
+;           2006-12-26            姜勇              调整簇链缓冲区到堆栈中	
+;           2010-05-20            姜勇              调整代码的装载文件名
+;           2011-09-18            姜勇              重新调整代码，仅只装入一个文件
+;                                                   并加入对 ELF 文件的支持
+;           2011-10-12            姜勇              修正 ELF 文件不能超过64KB的BUG，同时增
+;                                                   加对 MZ 和 BIN 文件的支持
+;           2011-10-13            姜勇              增加LOADER文件的长度参数输出，将LOADER
+;                                                   的长度放入 edx 中，传给初始化代码。
+;版    本:  beta 0.11.08.28
+;功    能:  读入 LOADER 到内存并执行
+;编    译:  nasm -fbin -o fat12.bin fat12.s
+;说    明： 
+;           1、程序提供对 ELF/MZ/BIN 三种文件的加载支持，文件格式支持代码在 format.s 中。
+;               格式            开关                                说明
+;               MZ      LOAD_FORMAT = MZLOADER      MZ 文件的入口地址为 0x0000，程序加载 MZ 文件时
+;                                                   仅只跳过了文件头的长度，其他方面未作处理。
+;               BIN     LOAD_FORMAT = BINLOADER     BIN 文件的入口地址为 0x0000
+;               ELF     LOAD_FORMAT = ELFLOADER     ELF 文件仅只跳到内存地址为 0x40000 的段上，但未
+;                                                   对段进行加载操作。boot.inc 中的 PROTAL_SEGBASE
+;                                                   的值会影响 ELF 的入口段。
+;           2、文件加载的段地址为 LOADER_SEGBASE 被定义在 boot.inc 中，
+;           3、程序的出口：
+;               dl      =   自举驱动器号
+;               eax     =   被加载文件的长度
+;内存布局:
+;           |-----------------------|0000:0000
+;           |                       |
+;           |       中断向量表      |
+;           |                       |
+;           |-----------------------|0000:0400
+;           |       BIOS数据区      |
+;           |-----------------------|0000:0500
+;           |       .........       |       .........
+;           |       0000:7BEE       | [bp-0x12] FILE_BLOCK 3
+;           |       0000:7BF0       | [bp-0x10] FILE_BLOCK 2
+;           |       0000:7BF2       | [bp-0x0e] FILE_BLOCK 1
+;           |       0000:7BF4       | [bp-0x0c] START_LOADER  = &FILE_BLOCK1
+;           |       0000:7BF6       | [bp-0x0a] START_DATA
+;           |       0000:7BF8       | [bp-0x08] ROOT_SECTORS
+;           |       0000:7BFA       | [bp-0x06] START_ROOT
+;           |       0000:7BFC       | [bp-0x04] START_FAT
+;           |       0000:7BFE       | [bp-0x02] BOOT_DRIVER
+;           |-----------------------|0000:7C00
+;           |      FAT12引导扇区    |
+;           |-----------------------|0000:7E00
+;           |                       |
+;           |       空--未使用      |
+;           |                       |
+;           |-----------------------|5000:0000
+;           |                       |
+;           |        LOADER         |
+;           |                       |
+;           |-----------------------|
+;           |                       |
+;           |                       |
+;=========================================================================================================================
+
+%define BOOT_DRIVER         bp-0x02                     ; 自举驱动器号 fd = 0x00 hd=0x80
+%define START_FAT           bp-0x04                     ; FAT表开始位置 value = 1
+%define START_ROOT          bp-0x06                     ; 根目录占用扇区数 value = START_FAT + 9 * 2 = 19
+%define ROOT_SECTORS        bp-0x08                     ; 根目录区开始位置 value = 32 * 224 / 512 = 14
+%define START_DATA          bp-0x0a                     ; 数据区开始位置 value = 14+19 = 33
+%define LOADER_SIZE         bp-0x0e                     ; 文件大小
+%define START_LOADER        bp-0x10                     ; LOADER 文件族链指针 value = 0x9a0
+
+%include    "boot.inc"
+
+[org OFFSET_SECTOR]
+
+Entry:
+;=========================================================================================================================
+    jmp short @1_lable      ;跳转指令,转到0000:7C3E
+    nop
+;=========================================================================================================================
+;软盘BPB表的数据定义
+@OEM_STRING                 DB      'FANOS0.1'          ;                       8字节
+@BYTES_PRE_SECTOR           DW      0x0200              ; 字节/扇区             2字节
+@SECTOR_PRE_BLOCK           DB      0x01                ; 每个簇占用扇区数      1字节
+@RESAVED_SRCTORS            DW      0x0001              ; 保留扇区数            2字节
+@TOTAL_FATS                 DB      0x02                ; 有几个FAT表           1字节
+@FILES_OF_ROOT              DW      0x00e0              ; 根目录文件个数        2字节
+@SECTOR_OF_DISK             DW      0x0b40              ; 磁盘总扇区数          2字节
+@TYPE_OF_MEDIA              DB      0xf0                ; 磁盘介质描述:         1字节
+@SECTOR_PRE_FAT             DW      0x0009              ; 每个FAT占用扇区数     2字节
+@SECTOR_PRE_TRACK           DW      0x0012              ; 每道扇区数            2字节
+@HEADS_OF_DISK              DW      0x0002              ; 磁盘柱面数            2字节
+@HIDEN_SECTORS              DD      0x00000000          ; 隐含扇区数            4字节
+@TOTAL_SECTORS              DD      0x00000000          ; 大容量磁盘的总扇区数  4字节
+@DRIVER_ID_VALUE            DB      0x00                ; 驱动器号              1字节
+@EXTERN_BOOTFLAG            DW      0x0029              ; 扩展引导标志          2字节
+@SERIAL_NUMBER              DD      0xFABCDE98          ; 磁盘序列号            4字节
+@VOLUME_LABLE               DB      'FANS BOOT  '       ; 磁盘卷标              B字节
+@TYPE_LABLE                 DB      'FAT12   '          ; 文件分配表类型        8字节
+;=========================================================================================================================
+                                                        ;
+@1_lable:                                               ;
+    mov     bp,     OFFSET_SECTOR                       ; 本人关于 BOOTSECTOR 的所有代码，包括已完成的
+    mov     ax,     cs                                  ; FAT12/FAT16/FAT32 以及未完成的其他任何类型文
+    mov     ss,     ax                                  ; 件系统的引导代码，如未发生错误，那么，在代码
+    mov     sp,     bp                                  ; 执行过程中， BP/EBP 将始终为 7C00H(惯例1)
+                                                        ; 关于 BP/EBP 为 7C00H 的原因：
+                                                        ; 在BOOTSECTOR中，我们要计算和保存大量的扇区信
+                                                        ; 息，但是我们会发现 386 CPU 能用的寄存器只有6
+                                                        ; 个，这些寄存器不足以保存数据，并且这些寄存器
+                                                        ; 可能经常会发生变化，但是如果我们在代码中定义
+                                                        ; 变量，将会导致代码变长(有一个办法，把变量定义
+                                                        ; 在代码空间之外)，所以我引用堆栈作为暂存变量
+                                                        ; 的空间。
+    mov     ds,     ax                                  ; dx >>  [bp-0x04] = [ss:0x7bfe]  =  [BOOT_DRIVER]
+    mov     es,     ax                                  ; 关于自举驱动器参数传递的问题，也沿用第二个惯
+    movzx   dx,     byte    [@DRIVER_ID_VALUE]          ; 例，加载系统文件成功后， DL=自举驱动器号，这
+    push    dx                                          ; 可以让操作系统获得引导的自举驱动器信息。(惯例2)
+;=========================================================================================================================
+;获取磁盘文件系统信息                                   ;
+    mov     si,     [@HIDEN_SECTORS]                    ; si  =  [ss:0x7c1c]  =  隐藏扇区数
+    add     si,     [@RESAVED_SRCTORS]                  ; si +=  [ss:0x7c0e] +=  保留扇区数
+                                                        ; si  =  FAT表起始扇区号
+    push    si                                          ; si >>  [bp-0x04] = [ss:0x7bfc]  =  [START_FAT]
+                                                        ;
+    sub     ax,     ax                                  ;
+    mov     al,     [@TOTAL_FATS]                       ; al  =  [ds:0x7c10]  =  FAT表个数
+    mul     word    [@SECTOR_PRE_FAT]                   ; ax *=  [ds:0x7c16] *=  每个表有几个扇区
+                                                        ; ax  =  每个表有几个扇区
+    add     si,     ax                                  ; si  =  根目录起始扇区号
+    push    si                                          ; si >>  [bp-0x06] = [ss:0x7bfa]  =  [START_ROOT]
+                                                        ;
+    mov     ax,     [@FILES_OF_ROOT]                    ; ax  =  [ss:0x7c11]  =  根目录文件数
+    mov     bx,     [@BYTES_PRE_SECTOR]                 ; bx  =  [ss:0x7c0b]  =  每扇区字节数
+    shr     bx,     5                                   ; bx  =  bx >> 5 == bx/32
+    cwd                                                 ;
+    div     bx                                          ; ax /=  bx  = 根目录占用扇区数
+    push    ax                                          ; ax >>  [bp-0x08] = [ss:0x7bf8]  =  [ROOT_SECTORS]
+    add     si,     ax                                  ; si  =  si + ax = 根目录起始扇区号+根目录占用扇区数
+                                                        ;     =  数据区起始位置
+    push    si                                          ; si  =  [bp-0x0a] = [ss:0x7bf6]  =  [START_DATA]
+;=========================================================================================================================
+;读根目录到内存 [LOADER_SEGBASE : 0]                    ;
+    mov     ax,     LOADER_SEGBASE                      ; 将根目录读到 LOADER_SEGBASE 开始的段
+    mov     es,     ax                                  ; es  =  LOADER 的段地址
+    mov     ax,     [START_ROOT]                        ; ax  =  [ds:bp-0x06]=根目录起始扇区号
+    mov     di,     [ROOT_SECTORS]                      ; di  =  [ds:bp-0x08]=根目录占用扇区数
+    sub     bx,     bx                                  ; 将根目录读到 0x0000 的偏移地址上
+    call    @READ_DISK                                  ; 读磁盘
+    jc      @BOOT_FAIL                                  ; 错误处理
+;=========================================================================================================================
+;在根目录中查找文件                                     ;
+    mov     si,     @FILE_LOADER                        ; 文件名
+    call    @FIND_FILE                                  ; 查找文件
+    jc      @BOOT_FAIL                                  ; 错误处理
+    push    edx                                         ; edx >>  [bp-0x0c] = [LOADER_SIZE]
+    push    ax                                          ; ax  >>  [bp-0x10] = [START_LOADER]
+;=========================================================================================================================
+;读文件分配表到缓冲区                                   ;
+    mov     di,     [@SECTOR_PRE_FAT]                   ; di  =  FAT表大小
+    mov     ax,     [START_FAT]                         ; ax  =  [bp-0x04] = FAT表在磁盘上的位置
+    sub     bx,     bx                                  ; [es:bx] = LOADER_SEGBASE
+    call    @READ_DISK                                  ; 读磁盘
+    jc      @BOOT_FAIL                                  ; 错误处理
+;=========================================================================================================================
+;读文件分配表到缓冲区                                   ;
+    mov     bx,     sp                                  ; sp  =   bp-0x0c  =  START_LOADER
+    pop     ax                                          ; ax  =  [bp-0x10] = [START_LOADER]
+    dec     bx                                          ; bx  =   bx-0x02  =  START_LOADER-2
+    dec     bx                                          ; bx  =   文件簇链表首指针
+    push    bx                                          ; bx >>  [bp-0x10] = [START_LOADER]
+    push    es                                          ; es >>  [bp-0x0e] = LOADER_SEGBASE
+    pop     ds                                          ; ds  =  [bp-0x0e] = SEGMENT_LOADER
+    call    @SAVE_FAT                                   ; 保存文件簇链表
+    mov     si,     [START_LOADER]                      ; si  =  [bp-0x10] = 文件簇链表首指针
+    call    @LOAD_FILE                                  ; 装载文件
+    jc      @BOOT_FAIL                                  ; 错误处理
+    call    @FIND_ENTRY                                 ; 搜索入口
+    jc      @BOOT_FAIL                                  ; 错误处理
+    push    eax                                         ; 请看retf
+    mov     eax,    [LOADER_SIZE]                       ; 文件大小
+    mov     dx, [BOOT_DRIVER]                           ; 自举驱动器
+    retf                                                ;
+@BOOT_FAIL:                                             ;
+    mov     si,     @FAIL_MESSAGE                       ;
+    call    @PRINTF                                     ; 打印错误信息
+    sub     ax,     ax                                  ;
+    int     0x16                                        ; 等待用户按键
+    int     0x18                                        ; 从其他磁盘加载操作系统
+;=========================================================================================================================
+;@PRINTF    打印字符串
+;入口：     si      =       目标字符串指针
+;出口：     无
+;说明：
+;       该子过程会执行后会修改 ds/ax/bx 寄存器值，其他寄存器不受影响.
+;=========================================================================================================================
+@PRINTF:                                                ; ds  =  cs 以便正确的处理提示
+    push    cs                                          ; 信息的偏移地址，程序一旦调用
+    pop     ds                                          ; 该过程，说明程序已出错，所以
+.@1:                                                    ; 无需对任何寄存器进行保存
+    lodsb                                               ; 从 ds:si中读入一个字符到 al
+    or      al,     al                                  ; 检测字符是否为0
+    jz      .@2                                         ; 显示完毕, 退出过程
+    mov     ah,     0x0e                                ; tty 方式打印字符
+    mov     bl,     0x09                                ; 前景色和背景颜色
+    int     0x10                                        ; BIOS 显示服务子功能
+    jmp     short   .@1                                 ; 继续显示下一个字符
+.@2:                                                    ; 
+    ret                                                 ; 完成返回
+;=========================================================================================================================
+;@LOAD_FILE 装入引导文件到内存中
+;入口：     ax          =       文件首簇号
+;           es:0x0000   =       引导文件的装载地址
+;           ss:si       =       文件的FAT链地址
+;出口：
+;           cf          =       0   成功
+;           cf          =       1   失败
+;说明：
+;       该子过程会执行后会修改 ax/bx/cx/dx/di/ds 寄存器值，其他寄存器不受影响.
+;=========================================================================================================================
+@LOAD_FILE:
+    push    ss                                          ; ss:si 文件的FAT链地址
+                                                        ; 这里为什么用 SS 而不用 CS ?
+                                                        ; 因为保存 FAT 的时候是 PUSH ，使用 SS 以示区别。
+    pop     ds                                          ; ds:si 文件的FAT链地址
+    xor     bx,     bx                                  ; bx 用来记录当前的内存偏移地址
+.@1:                                                    ;
+    std                                                 ; 反向读取，因为装入FAT的时候是 PUSH 进去的
+    lodsw                                               ; 装入一个 FAT
+    and     ax,     ax                                  ; 检查是否结束
+    jz      .@2                                         ; 如果FAT结束则文件结束
+    dec     ax                                          ; ax 减 2次，排除两个保留的 FAT 编号
+    dec     ax                                          ;
+    mov     di,     [@SECTOR_PRE_BLOCK]                 ; 取每一个FAT有多少个扇区
+    and     di,     0xff                                ; 保留第8位
+    mul     di                                          ; 计算FAT的相对扇区号
+    add     ax,     [START_DATA]                        ; 计算FAT的绝对扇区号
+    call    @READ_DISK                                  ; 注意哦，我们这里开始读磁盘了...
+    jnc     .@1                                         ; 无错？继续读...
+.@2:                                                    ;
+    ret                                                 ; 文件读完，返回...
+;=========================================================================================================================
+;@SAVE_FAT  将文件的簇链表信息保存到堆栈中
+;入口：     ax          =       文件首簇号
+;           ds:0x0000   =       FAT表地址
+;出口：     无
+;说明：
+;       该子过程会执行后会修改 si/di/ax 寄存器值，其他寄存器不受影响.
+;=========================================================================================================================
+@SAVE_FAT:                                              ;
+    pop     di                                          ; 将过程的返回地址保存到 di
+.@1:                                                    ;
+    push    ax                                          ; save block id
+    mov     si,     ax                                  ; 计算下一个块的偏移地址
+    add     si,     si                                  ; offset=
+    add     si,     ax                                  ; si    =   current block id * 3 / 2
+    shr     si,     1                                   ; si    =   si>>2  =  si / 2
+    cld                                                 ; 
+    lodsw                                               ; ax = 下一个块的值
+    jnc     .@2                                         ; 奇偶检查
+    shr     ax,     4                                   ; 编号为偶数的 BLOCK
+.@2:                                                    ; 
+    and     ah,     0x0f                                ; 清除搞四位(FAT12必须)
+    cmp     ax,     0xfff                               ; 文件是否结束？
+    jb      .@1                                         ; 继续查找下一个 BLOCK
+    xor     ax,     ax                                  ; 置文件结束
+    push    ax                                          ; 保存文件结束标志
+    push    di                                          ; 压入过程的返回地址
+    ret                                                 ;
+;=========================================================================================================================
+;@FIND_FILE 在根目录中查找文件
+;入口       ds:si       =       文件名指针
+;           es:0x0000   =       根目录缓冲区地址
+;出口       cf          =       0   成功
+;           cf          =       1   失败
+;           ax          =       文件首簇号
+;说明
+;       该子过程将影响 di/si/cx/ax 寄存器
+;=========================================================================================================================
+@FIND_FILE:
+    xor     di,     di                                  ; 数据在 es:0x0000 所以 di = 0
+.@1:                                                    ;
+    push    di                                          ; di = 当前文件登记项的偏移地址
+    push    si                                          ; si = 文件名指针
+    mov     cx,     FNAME_LENGTH                        ; 文件名长度
+    cld                                                 ;
+    repe    cmpsb                                       ; 比较文件名
+    pop     si                                          ; 恢复 si 和 di 
+    pop     di                                          ; 以便进行第二次比较
+    clc                                                 ; 清除错误标志
+    jz      .@2                                         ; 如果文件名相同，则认为已找到
+    add     di,     FITEM_LENGTH                        ; 检查下一个文件登记项
+    sub     byte    [es:di],0                           ; 是否有效
+    jnz     .@1                                         ; 如果有效，则继续比较
+    stc                                                 ; 文件已经全部搜索完成
+.@2:                                                    ;
+    mov     ax,     [es:di+FAT_OFFSET_BLOCKID_L]        ; 取文件第一个块的块号
+    mov     edx,    [es:di+FAT_OFFSET_FILESIZE]         ; 取文件长度
+    ret                                                 ;
+;=========================================================================================================================
+;ReadDisk   读磁盘
+;入口       ax          =       绝对扇区号
+;           di          =       要读的扇区数
+;           es:bx       =       内存位置
+;出口       cf          =       0       成功
+;           cf          =       1       失败
+;           es:bx       =       内存位置
+;说明
+;       读磁盘时如果超过段限制将会自动调整段并设置bx=0
+;       该子过程将影响 bx/cx/dx/di 等寄存器值
+;=========================================================================================================================
+@READ_DISK:                                             ;
+    push    si                                          ; si  需要保存，因为很多地方需要
+.@1:                                                    ; 使用 si 来记录偏移地址
+    push    ax                                          ; ax  =  绝对扇区号
+    cwd                                                 ;
+    div     word    [@SECTOR_PRE_TRACK]                 ; ax /=  每道扇区数
+    mov     cx,     dx                                  ; cl  = 绝对扇区号 % 每道扇区数 = 未调整的扇区号
+    cwd                                                 ;
+    div     word    [@HEADS_OF_DISK]                    ; ax  =  绝对扇区号/每道扇区数/磁头数 = 磁道号
+    mov     ch,     al                                  ; ch  =  al = 磁道号
+    mov     dh,     dl                                  ; dh  =  绝对扇区号/每道扇区数%磁头数 = 磁头号
+    mov     dl,     [@DRIVER_ID_VALUE]                  ;
+    inc     cl                                          ; cl  =  扇区号
+    mov     si,     ERETRY_COUNT                        ; si  =  重试次数
+.@2:                                                    ;
+    mov     ax,     SECTOR_READER                       ; 从磁盘上读入一个扇区
+    int     0x13                                        ;
+    jnc     .@3                                         ; 读磁盘成功 >> 继续处理其他扇区
+    xor     ax,     ax                                  ; 读磁盘失败 >> 重试
+    int     0x13                                        ; 复位磁盘
+    dec     si                                          ; 计数器减 1
+    jnz     .@2                                         ; 是否超过最大重试次数？
+    pop     ax                                          ;
+    stc                                                 ; cf  = 1 出错返回
+    jc      .@5                                         ;
+.@3:                                                    ;
+    add     bx,     [@BYTES_PRE_SECTOR]                 ; bx +=  每扇区字节数
+    jnc     .@4                                         ; 是否需要调整 es
+    mov     ax,     es                                  ; 有进位，则说明下一个扇区地址超过段限
+    add     ah,     0x10                                ; ax +=  0x1000
+    mov     es,     ax                                  ; es +=  0x1000
+.@4:                                                    ;
+    pop     ax                                          ; ax  =  绝对扇区号
+    inc     ax                                          ; 读下一个扇区
+    dec     di                                          ; 已读完一个扇区，计数器减1
+    jnz     .@1                                         ; 是否还需要继续读下一个扇区？
+    clc                                                 ; 置正确标志
+.@5:                                                    ;
+    pop     si                                          ; 读完,弹出 si
+    ret                                                 ; 返回  
+;=========================================================================================================================
+; loader 文件格式处理
+%include    "format.s"
+;=========================================================================================================================
+@FILE_LOADER        db  LOADER_FNAME, 0
+@FAIL_MESSAGE       db  'boot failed !', 0
+
+times OFFSET_BSFLAG-($-$$)  db  0
+                            dw  DVALUE_FAFLAG
+                            dw  DVALUE_BSFLAG
