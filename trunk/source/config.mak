@@ -1,4 +1,4 @@
-SUBDIRS_stm32		=	build system platform libs testcode
+SUBDIRS_stm32		=	build boot system platform libs testcode
 
 TARGETS				=	$(TARGETS_PATH)/fans-rt.$(TARGET_SUFFIX)
 SUBDIRS				=	$(SUBDIRS_$(ARCH))

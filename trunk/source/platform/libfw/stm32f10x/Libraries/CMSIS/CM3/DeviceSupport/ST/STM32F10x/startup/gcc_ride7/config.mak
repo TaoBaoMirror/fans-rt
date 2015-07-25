@@ -1,4 +1,5 @@
 #SUBDIRS			=	$(CHILDREN)
+OBJECTS_tiny		=	$(OBJECTS_PATH)/startup_stm32f10x_ld.o
 OBJECTS_mini		=	$(OBJECTS_PATH)/startup_stm32f10x_md.o
 OBJECTS_lite		=	$(OBJECTS_PATH)/startup_stm32f10x_md.o
 OBJECTS_huge		=	$(OBJECTS_PATH)/startup_stm32f10x_hd.o

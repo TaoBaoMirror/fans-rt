@@ -19,8 +19,10 @@
 #include <faerror.h>
 #include <fatypes.h>
 
-#include "karch.h"
 #include "kcore.h"
+#include "karch.h"
+#include "kboard.h"
+
 
 PUBLIC VOID CORE_InitArchFirst(VOID);
 
