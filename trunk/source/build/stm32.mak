@@ -39,15 +39,16 @@ endif
 
 CC_FLAGS				=	-ggdb3 -fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -Werror -g -O2 $(CC_DEBUG)				\
 							-nostdinc -std=c99 -fshort-wchar -finput-charset=UTF-8 -fno-builtin	-D__THUMB__					\
-							-D__LITTLE_ENDIAN__ -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER
+							-D__LITTLE_ENDIAN__ -DSTM32F10X_HD -DUSE_STDPERIPH_DRIVER -DARCH_$(ARCH)						\
+							-DBOARD_$(BOARD) 
 
 AS_FLAGS				=	-fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -g -x assembler-with-cpp						\
-							-mlittle-endian -mfpu=vfp -mthumb -g -gdwarf-2
+							-mlittle-endian -mfpu=vfp -mthumb -ggdb3 -DARCH_$(ARCH) -DBOARD_$(BOARD) 
 
 LD_FLAGS				=	-Map=$(SOURCES_ROOT)/$(ARCH)-$(BOARD)/$(ARCH)-$(BOARD).map -cref -A cortex-m3					\
 							--entry=Reset_Handler -static -T $(LD_SCRIPT) --nostdlib $(LD_LIBRARYS_ROOT)					\
 							$(PROJECT_LIBRARYS_ROOT) $(PROJECT_LIBRARYS_FLAGS) $(LD_LIBARAYS_FLAGS)
-#MK_FLAGS				=	--no-print-directory
+MK_FLAGS				=	--no-print-directory
 
 MAKE					+=	$(MK_FLAGS)
 
@@ -251,6 +252,10 @@ $(CONFIGS_PATH)/$(COMPILER):
 %.asm: ../armcc/%.s
 	@$(ECHO) "Create file [$@] ..."
 	@$(SCRIPTS_ROOT)/arm2gnu.sh $< $@
+	
+%.asm: $(SOURCES_PATH)/%.s
+	@$(ECHO) "Create file [$@] ..."
+	@$(CP) $< $@
 
 $(OBJECTS_PATH)/%.d: %.c $(CONFIG_MAKE)
 	@$(ECHO) "Create file [$@] ..."

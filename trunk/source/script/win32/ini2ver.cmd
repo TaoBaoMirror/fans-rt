@@ -26,7 +26,7 @@ echo [%section_name%] > %1
 echo MAJOR_VERSION = %MAJOR_VERSION% >> %1
 echo MINOR_VERSION = %MINOR_VERSION% >> %1
 echo DEBUG_VERSION = %DEBUG_VERSION% >> %1
-echo  >> %1
+echo. >> %1
 goto finish_break
 :error_break
 echo *****ERROR: %ERROR_REASON% not found.

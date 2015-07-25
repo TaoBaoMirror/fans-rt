@@ -101,11 +101,11 @@ ST_L0
     MRS     R0,     MSP                 ;  R0 = Core stack for old task
     MRS     R1,     PSP                 ;  R1 = User stack for old task
     CBNZ    R2,     ST_L1               ;  if Permission != CORE then goto ST_L1
-    STMFD   R0!,    {LR, R4 - R12}      ;  Save core stack for the old task
+    STMFD   R0!,    {R4 - R12, LR}      ;  Save core stack for the old task
     MSR     MSP,    R0                  ;  Update core stack
     B       ST_L2
 ST_L1
-    STMFD   R1!,    {LR, R4 - R12}      ;  Save user stack for the old task
+    STMFD   R1!,    {R4 - R12, LR}      ;  Save user stack for the old task
     MSR     PSP,    R1                  ;  Update user stack
 ST_L2
     BL      CORE_SwitchTask             ;  CORE_SwitchTask(CoreStack, UserStack);
@@ -114,10 +114,10 @@ ST_L2
     MOV     R1,     R0                  ;  R1 = User stack for new task
     BL      CORE_GetCoreStackPosition   ;  R0 = Core stack for new task
     CBNZ    R4,     PV_L3               ;  R4 = 0  Current task is core task
-    LDMFD   R0!,    {LR, R4 - R12}      ;  Load core stack for the new task(core)
+    LDMFD   R0!,    {R4 - R12, LR}      ;  Load core stack for the new task(core)
     B       PV_L4
 PV_L3
-    LDMFD   R1!,    {LR, R4 - R12}      ;  Load user stack for the new task(user)
+    LDMFD   R1!,    {R4 - R12, LR}      ;  Load user stack for the new task(user)
 PV_L4
     MSR     PSP,    R1                  ;  Update user stack
     MSR     MSP,    R0                  ;  Update core stack

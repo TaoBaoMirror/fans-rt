@@ -63,7 +63,7 @@ EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpNa
 {
     KPOOL_ID_T Pid = 0;
 
-    memset(lpManager, 0, sizeof(CORE_CONTAINER));
+    memset(lpManager, 0, sizeof(CONTAINER_ATTRIBUTE) + sizeof(CORE_POOL) * Pools);
     
     SetContainerName(lpManager, lpName);
     SetTotalPools(lpManager, Pools);

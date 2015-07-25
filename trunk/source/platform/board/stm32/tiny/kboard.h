@@ -26,6 +26,7 @@ extern "C" {
     PUBLIC LPCSTR CORE_GetIRQNameString(DWORD IrqID);
 
     PUBLIC VOID CORE_ActiveSwitchIRQ(VOID);
+    PUBLIC VOID CORE_InitBoardFirst(VOID);
 #define     CORE_GetBootStackLength()     CONFIG_BOOT_STACK_SIZE
 #define     CORE_GetIdleStackLength()     CONFIG_IDLE_STACK_SIZE
     PUBLIC LPVOID CORE_GetCoreStackBuffer(VOID);

@@ -396,9 +396,14 @@ STATIC LPKOBJECT_HEADER FindObjectHash(LPCSTR lpName)
     DWORD Hid = GetObjectHash(lpName);
     DWORD dwFlags = CORE_DisableIRQ();
     
+    CORE_INFOR(TRUE, "Hid = 0x%08X,  Table = 0x%P.", Hid, &g_GlobalHashTable[Hid]);
+    
+    
     LIST_FOR_EACH(lpNode, &g_GlobalHashTable[Hid])
     {
         LPKOBJECT_HEADER lpHeader = GetObjecctByHashNode(lpNode);
+        
+        CORE_INFOR(TRUE, "lpNode = 0x%P,  lpHeader = 0x%P.", lpNode, lpHeader);
         
         if (TRUE == ObjectNameMatch(lpHeader, lpdName))
         {
