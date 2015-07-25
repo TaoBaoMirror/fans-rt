@@ -44,7 +44,7 @@ CC_FLAGS				=	-ggdb3 -fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -Werror -g
 AS_FLAGS				=	-fPIC -c -mcpu=cortex-m3 -mfpu=vfp -mthumb -Wall -g -x assembler-with-cpp						\
 							-mlittle-endian -mfpu=vfp -mthumb -g -gdwarf-2
 
-LD_FLAGS				=	-Map=$(SOURCES_ROOT)/$(ARCH)-$(BOARD)/$(ARCH)-$(BOARD).map -cref -A cortex-m3 -s				\
+LD_FLAGS				=	-Map=$(SOURCES_ROOT)/$(ARCH)-$(BOARD)/$(ARCH)-$(BOARD).map -cref -A cortex-m3					\
 							--entry=Reset_Handler -static -T $(LD_SCRIPT) --nostdlib $(LD_LIBRARYS_ROOT)					\
 							$(PROJECT_LIBRARYS_ROOT) $(PROJECT_LIBRARYS_FLAGS) $(LD_LIBARAYS_FLAGS)
 #MK_FLAGS				=	--no-print-directory
