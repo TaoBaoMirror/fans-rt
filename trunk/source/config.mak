@@ -1,8 +1,7 @@
-SUBDIRS_stm32_mini	=	build system platform libs testcode
-SUBDIRS_stm32_lite	=	build platform system libs testcode
+SUBDIRS_stm32		=	build system platform libs testcode
 
 TARGETS				=	$(TARGETS_PATH)/fans-rt.$(TARGET_SUFFIX)
-SUBDIRS				=	$(SUBDIRS_$(ARCH)_$(BOARD))
+SUBDIRS				=	$(SUBDIRS_$(ARCH))
 CONFIGS				=
 OBJECTS_PATH		=
 CONFIGS_PATH		=
