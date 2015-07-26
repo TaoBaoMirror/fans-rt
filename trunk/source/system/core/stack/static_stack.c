@@ -192,7 +192,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
                 /* Boot 任务创建普通堆栈(BOOT任务为普通任务)*/
                 lpHeader = CORE_GetBootStackBuffer();
                 SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetBootStackLength());
-                CORE_INFOR(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
             }
             else
@@ -204,7 +204,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
             /* CPU 支持全局内核堆栈 */
             lpHeader = CORE_GetCoreStackBuffer();
             SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetCoreStackLength());
-            CORE_INFOR(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+            CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
 #else
             /* CPU 不支持全局内核堆栈，每个任务一个独立的内核堆栈 */
@@ -228,7 +228,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
             /* 任务权限和堆栈权限一致，但是没有全局内核栈，则任务不指定用户栈 */
             SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
             SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
-            CORE_INFOR(TRUE, "Task '%s' no need malloc user stack.",
+            CORE_DEBUG(TRUE, "Task '%s' no need malloc user stack.",
                 GetContextTaskName(lpCoreContext), Permission, lpHeader);
 
             return STATE_SUCCESS;
@@ -260,7 +260,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         return CORE_GetError();
     }
 
-    CORE_INFOR(TRUE, "Task '%s' malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+    CORE_DEBUG(TRUE, "Task '%s' malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 GetContextTaskName(lpCoreContext), Permission, lpHeader, GetContextTaskName(lpCoreContext));
     return STATE_SUCCESS;
 }
@@ -324,7 +324,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         SetStackPosition(GetArchSD(lpArchContext, Permission), lpStackPosition);
         SetStackObjectMagic(lpHeader);
         
-        CORE_INFOR(TRUE, "Task '%s' fill stack(%d) buffer 0x%p buttom 0x%p position 0x%p.",
+        CORE_DEBUG(TRUE, "Task '%s' fill stack(%d) buffer 0x%p buttom 0x%p position 0x%p.",
             GetContextTaskName(lpCoreContext), Permission, lpHeader,
             lpStackBuffer + StackCapacity, lpStackPosition);
         
@@ -336,7 +336,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         /* 如果内核栈大小为0，所有任务均没有用户栈 */
         if (TASK_PERMISSION_USER == Permission)
         {
-            CORE_INFOR(TRUE, "Task '%s' no need fill user stack.",
+            CORE_DEBUG(TRUE, "Task '%s' no need fill user stack.",
                 GetContextTaskName(lpCoreContext));
             
             return STATE_SUCCESS;
@@ -346,7 +346,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         if (TASK_PERMISSION_CORE != GetContextPermission(lpCoreContext) &&
             TASK_PERMISSION_USER == Permission)
         {
-            CORE_INFOR(TRUE, "Task '%s' no need fill core stack.",
+            CORE_DEBUG(TRUE, "Task '%s' no need fill core stack.",
                 GetContextTaskName(lpCoreContext));
             
             return STATE_SUCCESS;
@@ -356,7 +356,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         if (TASK_PERMISSION_CORE != GetContextPermission(lpCoreContext) &&
             TASK_PERMISSION_USER == Permission)
         {
-            CORE_INFOR(TRUE, "Task '%s' no need fill user stack.",
+            CORE_DEBUG(TRUE, "Task '%s' no need fill user stack.",
                 GetContextTaskName(lpCoreContext));
             
             return STATE_SUCCESS;
@@ -399,7 +399,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
             /* 没有全局内核栈，则普通任务也没有用户栈 */
             if (TASK_PERMISSION_USER == Permission)
             {
-                CORE_INFOR(TRUE, "Task '%s' no need free user stack.",
+                CORE_DEBUG(TRUE, "Task '%s' no need free user stack.",
                     GetContextTaskName(lpCoreContext));
                 break;
             }
@@ -414,7 +414,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
                 /* 普通任务释放内核栈，并且CPU支持全局内核栈 */
                 /* 则不会分配内核栈，直接使用全局内核栈，所以 */
                 /* 不需要释放也不能释放 */
-                CORE_INFOR(TRUE, "Task '%s' no need free core stack.",
+                CORE_DEBUG(TRUE, "Task '%s' no need free core stack.",
                     GetContextTaskName(lpCoreContext));
                 break;
 
@@ -439,7 +439,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
             if (TASK_PERMISSION_USER == Permission)
             {
                 /* 内核任务不会分配用户栈，所以直接返回成功 */
-                CORE_INFOR(TRUE, "Task '%s' no need free user stack.",
+                CORE_DEBUG(TRUE, "Task '%s' no need free user stack.",
                     GetContextTaskName(lpCoreContext));
                 break;
             }

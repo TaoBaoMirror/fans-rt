@@ -1349,7 +1349,7 @@ STATIC LPVOID PageAllocAddress(LPMM_MANAGER lpManager, WORD Pages)
 
     BUDDY_SPLIT_SECTION(lpManager, lpRegion, RegionID, StartNext, RemainPages, 0 != RemainPages);
 
-    MM_INFOR(TRUE, "Alloc address %p, StartPage %d, pages %d.",
+    MM_DEBUG(TRUE, "Alloc address %p, StartPage %d, pages %d.",
         GetPageAddress(lpManager, RegionID, StartPage), StartPage, Pages);
 
     return GetPageAddress(lpManager, RegionID, StartPage);

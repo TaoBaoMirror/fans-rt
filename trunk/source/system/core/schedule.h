@@ -274,7 +274,7 @@ STATIC VOID ScheduleBegin(VOID)
     {
         if (lpNewTask != GetSwitch2TaskContext())
         {
-            CORE_INFOR(TRUE, "Will be scheduling to task '%p', Priority is %d, %p, %p, old task is %p.",
+            CORE_DEBUG(TRUE, "Will be scheduling to task '%p', Priority is %d, %p, %p, old task is %p.",
                lpNewTask, Priority, &g_TaskReadyQueue[Priority], LIST_FIRST_NODE(&g_TaskReadyQueue[Priority]), lpOldTask);
             SetSwitch2TaskContext(lpNewTask);
             SetMustSchedule();
