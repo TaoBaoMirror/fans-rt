@@ -155,7 +155,7 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
     
     Kid = GetContainerID(lpManager, Pid, Bid);
 
-    CORE_INFOR(TRUE, "Malloc pool 0x%P Pid %u, Bid %u, Kid %u, for container '%s' ...",
+    CORE_DEBUG(TRUE, "Malloc pool 0x%P Pid %u, Bid %u, Kid %u, for container '%s' ...",
             lpCorePool, Pid, Bid, Kid, GetContainerName(lpManager));
     
     return Kid;

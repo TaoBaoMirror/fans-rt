@@ -686,7 +686,7 @@ lable2:
 lable1:
     CORE_StackFree(lpTaskContext, TASK_PERMISSION_USER);
 lable0:
-    CORE_FreeObject(GetContextHeader(lpTaskContext));;
+    CORE_FreeObject(GetContextHeader(lpTaskContext));
     CORE_SetError(State);
     
     return NULL;

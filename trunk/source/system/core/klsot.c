@@ -77,7 +77,7 @@ STATIC E_STATUS KLSOT_MallocObject(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     SetTotalKeys2LsotObject(lpHeader, GetKLPTotal(lpParam));
     SetFreeBitmap2LsotObject(lpHeader, GetBitsMaskValue(GetKLPTotal(lpParam)-1))
  
-    CORE_INFOR(TRUE, "The mark value is 0x%08X, total is %d.",
+    CORE_DEBUG(TRUE, "The mark value is 0x%08X, total is %d.",
             GetFreeBitmap4mLsotObject(lpHeader), GetTotalKeys4mLsotObject(lpHeader));
 
     return STATE_SUCCESS;
@@ -150,7 +150,7 @@ STATIC E_STATUS KLSOT_GetKey(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     GetKey4mLsotObject(lpHeader, LsotKey);
     SetKLPKeyID(lpParam, LsotKey);
     
-    CORE_INFOR(TRUE, "The mark bits value is: 0x%X", GetFreeBitmap4mLsotObject(lpHeader));
+    CORE_DEBUG(TRUE, "The mark bits value is: 0x%X", GetFreeBitmap4mLsotObject(lpHeader));
     
     return STATE_SUCCESS;
 }

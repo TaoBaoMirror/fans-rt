@@ -396,14 +396,14 @@ STATIC LPKOBJECT_HEADER FindObjectHash(LPCSTR lpName)
     DWORD Hid = GetObjectHash(lpName);
     DWORD dwFlags = CORE_DisableIRQ();
     
-    CORE_INFOR(TRUE, "Hid = 0x%08X,  Table = 0x%P.", Hid, &g_GlobalHashTable[Hid]);
+    CORE_DEBUG(TRUE, "Hid = 0x%08X,  Table = 0x%P.", Hid, &g_GlobalHashTable[Hid]);
     
     
     LIST_FOR_EACH(lpNode, &g_GlobalHashTable[Hid])
     {
         LPKOBJECT_HEADER lpHeader = GetObjecctByHashNode(lpNode);
         
-        CORE_INFOR(TRUE, "lpNode = 0x%P,  lpHeader = 0x%P.", lpNode, lpHeader);
+        CORE_DEBUG(TRUE, "lpNode = 0x%P,  lpHeader = 0x%P.", lpNode, lpHeader);
         
         if (TRUE == ObjectNameMatch(lpHeader, lpdName))
         {
@@ -583,7 +583,7 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
     lpManager = TID2PoolContainer(Tid);
     
-    CORE_INFOR(TRUE, "Malloc pool from '%s', Tid(%d), ObjectSize(%u).", GetClassName(lpClass), Tid, ObjectSize);
+    CORE_DEBUG(TRUE, "Malloc pool from '%s', Tid(%d), ObjectSize(%u).", GetClassName(lpClass), Tid, ObjectSize);
     
     if (NULL == lpManager)
     {
@@ -991,7 +991,7 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
 
     if (STATE_SUCCESS == (Result = lpClass->Header.fnFreeObject(lpHeader)))
     {   
-        CORE_INFOR(TRUE, "Object '%s' call free in the class '%s' successfully.",
+        CORE_DEBUG(TRUE, "Object '%s' call free in the class '%s' successfully.",
             GetObjectName(lpHeader), GetClassName(lpClass));
         
         if (STATE_SUCCESS == (Result = FreeObjectToPool(lpHeader)))
