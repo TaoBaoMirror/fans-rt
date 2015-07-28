@@ -23,44 +23,44 @@
 
 
 #if (CONFIG_MEM_REGION_MAX != 0)
-FANSAPI RO_CODE LPVOID PageMalloc(SIZE_T Length)
+FANSAPI RO_USER_CODE LPVOID PageMalloc(SIZE_T Length)
 {
     return caPageMalloc(Length);
 }
 EXPORT_SYMBOL(PageMalloc);
 
 
-FANSAPI RO_CODE E_STATUS PageFree(LPVOID lpPageAddress)
+FANSAPI RO_USER_CODE E_STATUS PageFree(LPVOID lpPageAddress)
 {
     return caPageFree(lpPageAddress);
 }
 EXPORT_SYMBOL(PageFree);
 
-FANSAPI RO_CODE DWORD GetSystemFreePages(BYTE RegionID)
+FANSAPI RO_USER_CODE DWORD GetSystemFreePages(BYTE RegionID)
 {
     return caGetSystemFreePages(RegionID);
 }
 EXPORT_SYMBOL(GetSystemFreePages);
 
-FANSAPI RO_CODE E_STATUS GetMmsInformation(LPMMS_INFOR lpInfor)
+FANSAPI RO_USER_CODE E_STATUS GetMmsInformation(LPMMS_INFOR lpInfor)
 {
     return caGetMmsInformation(lpInfor);
 }
 EXPORT_SYMBOL(GetMmsInformation);
 
-FANSAPI RO_CODE E_STATUS ShowMmsInformation(VOID)
+FANSAPI RO_USER_CODE E_STATUS ShowMmsInformation(VOID)
 {
     return caShowMmsInformation();
 }
 EXPORT_SYMBOL(ShowMmsInformation);
 
-FANSAPI RO_CODE E_STATUS ShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
+FANSAPI RO_USER_CODE E_STATUS ShowMmsRegionSection(BYTE RegionID, BYTE Buddy)
 {
     return caShowMmsRegionSection(RegionID, Buddy);
 }
 EXPORT_SYMBOL(ShowMmsRegionSection);
 
-FANSAPI RO_CODE E_STATUS CreateMMRegion(LPVOID lpAddress, SIZE_T Length)
+FANSAPI RO_USER_CODE E_STATUS CreateMMRegion(LPVOID lpAddress, SIZE_T Length)
 {
     return caCreateMMRegion(lpAddress, Length);
 }

@@ -83,7 +83,7 @@ PUBLIC RO_USER_CODE E_STATUS uCloseLsotObject(HANDLE hTask)
  * date           author          notes
  * 2015-07-16     JiangYong       new function
  */
-FANSAPI RO_CODE LSOT_KEY_T GetLsotKey(VOID)
+FANSAPI RO_USER_CODE LSOT_KEY_T GetLsotKey(VOID)
 {
     HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
     
@@ -113,7 +113,7 @@ FANSAPI RO_CODE LSOT_KEY_T GetLsotKey(VOID)
  * date           author          notes
  * 2015-07-16     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS PutLsotKey(LSOT_KEY_T LsotKey)
+FANSAPI RO_USER_CODE E_STATUS PutLsotKey(LSOT_KEY_T LsotKey)
 {
     HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
     
@@ -134,7 +134,7 @@ FANSAPI RO_CODE E_STATUS PutLsotKey(LSOT_KEY_T LsotKey)
  * date           author          notes
  * 2015-07-16     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS GetLsotValue(LSOT_KEY_T LsotKey, DWORD_PTR lpValue)
+FANSAPI RO_USER_CODE E_STATUS GetLsotValue(LSOT_KEY_T LsotKey, DWORD_PTR lpValue)
 {
     HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
 
@@ -155,7 +155,7 @@ FANSAPI RO_CODE E_STATUS GetLsotValue(LSOT_KEY_T LsotKey, DWORD_PTR lpValue)
  * date           author          notes
  * 2015-07-16     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS SetLsotValue(LSOT_KEY_T LsotKey, DWORD Value)
+FANSAPI RO_USER_CODE E_STATUS SetLsotValue(LSOT_KEY_T LsotKey, DWORD Value)
 {
     HANDLE handle = caGetLsotHandle(TASK_SELF_HANDLE);
 

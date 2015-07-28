@@ -26,7 +26,7 @@
 #include "libcal.h"
 
 
-EXPORT RO_CODE LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
+EXPORT RO_USER_CODE LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
 {
     STATIC RW_USER_DATA WORD Count = 0;
     
@@ -35,7 +35,7 @@ EXPORT RO_CODE LPSTR caChooseName(__IN __OUT LPSTR lpName, LPSTR lpType)
     return lpName;
 }
 
-EXPORT RO_CODE HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
+EXPORT RO_USER_CODE HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -53,7 +53,7 @@ EXPORT RO_CODE HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam)
     return Packet.u1.hParam; 
 }
 
-EXPORT RO_CODE HANDLE caMallocNoNameObject(DWORD Magic, LPVOID lpParam)
+EXPORT RO_USER_CODE HANDLE caMallocNoNameObject(DWORD Magic, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -71,7 +71,7 @@ EXPORT RO_CODE HANDLE caMallocNoNameObject(DWORD Magic, LPVOID lpParam)
 }
 
 
-EXPORT RO_CODE E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
+EXPORT RO_USER_CODE E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -83,7 +83,7 @@ EXPORT RO_CODE E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam)
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_ACTIVE);
 }
 
-EXPORT RO_CODE HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
+EXPORT RO_USER_CODE HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -100,7 +100,7 @@ EXPORT RO_CODE HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam)
     return Packet.u1.hParam;    
 }
 
-EXPORT RO_CODE E_STATUS caFreeObject(HANDLE handle)
+EXPORT RO_USER_CODE E_STATUS caFreeObject(HANDLE handle)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -111,7 +111,7 @@ EXPORT RO_CODE E_STATUS caFreeObject(HANDLE handle)
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_FREE);
 }
 
-EXPORT RO_CODE E_STATUS caGetObjectName(HANDLE handle, CHAR Name[OBJECT_NAME_MAX], SIZE_T Length)
+EXPORT RO_USER_CODE E_STATUS caGetObjectName(HANDLE handle, CHAR Name[OBJECT_NAME_MAX], SIZE_T Length)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -124,7 +124,7 @@ EXPORT RO_CODE E_STATUS caGetObjectName(HANDLE handle, CHAR Name[OBJECT_NAME_MAX
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_GETNAME);
 }
 
-EXPORT RO_CODE E_STATUS caRequestMethod(HANDLE handle, LPVOID lpParam, DWORD Method)
+EXPORT RO_USER_CODE E_STATUS caRequestMethod(HANDLE handle, LPVOID lpParam, DWORD Method)
 {
     LPC_REQUEST_PACKET Packet;
 
@@ -137,8 +137,20 @@ EXPORT RO_CODE E_STATUS caRequestMethod(HANDLE handle, LPVOID lpParam, DWORD Met
     return caSystemCall(&Packet, SOM_MAGIC, LPC_SOM_OBJECT_METHOD);
 }
 
-EXPORT RO_CODE E_STATUS caWaitObject(HANDLE handle, LONG WaitTime)
+EXPORT RO_USER_CODE SHORT caWaitObject(HANDLE handle, LONG WaitTime)
 {
-    return caRequestMethod(handle, (LPVOID) WAIT_INFINITE, KIPC_METHOD_WAIT);
+    E_STATUS Result;
+    KIPC_WAIT_PARAM Param;
+    
+    SetObjectID2Param(&Param, WAIT_INVALID_OBJECT_ID);
+    SetWaitTime2Param(&Param, WaitTime);
+    
+    if (STATE_SUCCESS != (Result = caRequestMethod(handle, &Param, KIPC_METHOD_WAIT)))
+    {
+        caSetError(Result);
+        return WAIT_INVALID_OBJECT_ID;
+    }
+    
+    return Param.ObjectID;
 }
 

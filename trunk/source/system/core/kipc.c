@@ -165,7 +165,7 @@ STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS IPC_WaitEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    LONG WaitTime = (LONG) lpParam;
+    LONG WaitTime = GetWaitTime4mParam(lpParam);
     DWORD dwFlags = CORE_DisableIRQ();
 
     CORE_INFOR(TRUE, "wait event '%s', state '%d'...",
@@ -353,9 +353,9 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     DWORD dwFlags;
-    LONG WaitTime = (LONG) lpParam;
     LPTASK_CONTEXT lpOnwerContext;
     LPTASK_CONTEXT lpCurrentTask;
+    LONG WaitTime = GetWaitTime4mParam(lpParam);
 
     CORE_DEBUG(TRUE, "Lock mutex '%s' by '%s', value is %d.",
         GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
@@ -370,7 +370,7 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         CORE_ASSERT(lpOnwerContext, SYSTEM_CALL_OOPS(), "Current task context not found ?");
         SetMutexOnwer(lpHeader, GetContextHandle(lpOnwerContext));
         SetContextLockedMutex(lpOnwerContext, GetObjectHandle(lpHeader));
-
+        SetObjectID2Param(lpParam, WAIT_FIRST_OBJECT_ID);
         return STATE_SUCCESS;
     }
 

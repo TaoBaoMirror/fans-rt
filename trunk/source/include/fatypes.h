@@ -84,6 +84,9 @@ typedef const WCHAR FAR * LPCWSTR;
 #define _TEXT(text) text
 #endif
 
+#define     WAIT_INVALID_OBJECT_ID      (-1)
+#define     WAIT_FIRST_OBJECT_ID        (0)
+
 typedef short SHORT;
 typedef short * PSHORT;
 typedef short FAR * LPSHORT;

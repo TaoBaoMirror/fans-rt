@@ -15,8 +15,6 @@
 
 #define     CONFIG_BUILD_MINI_MAP               FALSE       /* ktable.c 中索引数组选择*/
 #define     CONFIG_BUILD_DYNAMIC_SYMBOL         FALSE       /* 动态符号加载，编译为 ELF 文件 */
-#define     CONFIG_BUILD_LOCAL_STORE            TRUE        /* 编译局部变量支持 */
-#define     CONFIG_BUILD_LOCAL_HEAP             TRUE        /* 编译局部堆支持 */
 #define     CONFIG_MEM_DEBUG_ENABLE             TRUE        /* 内存管理模块 DEBUG 支持 */
 #define     CONFIG_MEM_STATIC_FUNCTION          FALSE       /* 内存管理模块静态函数支持 */
 #define     CONFIG_MEM_STATIC_PAGETABLE         TRUE        /* 内存管理模块静态页表支持 */
@@ -84,6 +82,14 @@
 #define     CONFIG_ENABLE_FAST_SCHEDULE         TRUE
 #define     CONFIG_LPC_SERVICE_MAX              32
 #define     CONFIG_SYSTEM_MODULES               8           /**< 系统模块数量 */
+
+#define     CONFIG_IPC_BUILD_EVENT              TRUE        /**< 是否编译事件对象支持 */
+#define     CONFIG_IPC_BUILD_MUTEX              TRUE        /**< 是否编译互斥对象支持 */
+#define     CONFIG_IPC_BUILD_SEMAPHORE          TRUE        /**< 是否编译信号量对象支持 */
+#define     CONFIG_IPC_BUILD_SEMSET             TRUE        /**< 是否编译信号量集对象支持 */
+
+#define     CONFIG_BUILD_LOCAL_STORE            TRUE        /**< 编译局部变量支持 */
+#define     CONFIG_BUILD_LOCAL_HEAP             TRUE        /**< 编译局部堆支持 */
 
 #endif
 
