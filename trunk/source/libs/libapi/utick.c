@@ -21,7 +21,7 @@
 #include "libcal.h"
 #include "cadebug.h"
 
-FANSAPI RO_CODE TICK GetSystemTick(VOID)
+FANSAPI RO_USER_CODE TICK GetSystemTick(VOID)
 {
     return caGetSystemTick();
 }

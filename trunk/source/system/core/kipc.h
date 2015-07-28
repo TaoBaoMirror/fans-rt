@@ -15,6 +15,21 @@ enum{
     KIPC_CLASS_METHODS,
 };
 
+typedef struct tagKIPC_WAIT_PARAM KIPC_WAIT_PARAM;
+typedef struct tagKIPC_WAIT_PARAM * PKIPC_WAIT_PARAM;
+typedef struct tagKIPC_WAIT_PARAM FAR * LPKIPC_WAIT_PARAM;
+
+struct tagKIPC_WAIT_PARAM{
+    LONG                        ObjectID;
+    LONG                        WaitTime;
+};
+
+#define     GetWaitTime4mParam(P)       (((LPKIPC_WAIT_PARAM)(P))->WaitTime)
+#define     SetWaitTime2Param(P, Tm)    do { (((LPKIPC_WAIT_PARAM)(P))->WaitTime) = (Tm); } while(0)
+#define     GetObjectID4mParam(P)       (((LPKIPC_WAIT_PARAM)(P))->ObjectID)
+#define     SetObjectID2Param(P, Id)    do { (((LPKIPC_WAIT_PARAM)(P))->ObjectID) = (Id); } while(0)
+
+
 typedef struct tagKIPC_CLASS_DESCRIPTOR KIPC_CLASS_DESCRIPTOR;
 typedef struct tagKIPC_CLASS_DESCRIPTOR * PKIPC_CLASS_DESCRIPTOR;
 typedef struct tagKIPC_CLASS_DESCRIPTOR FAR * LPKIPC_CLASS_DESCRIPTOR;
@@ -38,11 +53,11 @@ struct tagIPC_BASE_OBJECT{
 #define     GetFirstWaitNode(lpObject)              LIST_NEXT_NODE(GetIPCWaitQueue(lpObject))
 #define     GetFirstWaitTask(lpObject)              GetContextByIPCNode(GetFirstWaitNode(lpObject))
 
-#define         MARK_EVENT_SIGNAL_SHIFT         0x0
-#define         MARK_EVENT_SIGNAL_MASK          (1 << MARK_EVENT_SIGNAL_SHIFT)
-#define         MARK_EVENT_AUTO_SHIFT           0x1
-#define         MARK_EVENT_AUTO_MASK            (1 << MARK_EVENT_AUTO_SHIFT)
-#define         MARK_EVENT_BITS_MASK            (MARK_EVENT_SIGNAL_MASK | MARK_EVENT_AUTO_MASK)
+#define     MARK_EVENT_SIGNAL_SHIFT                 (0x0)
+#define     MARK_EVENT_SIGNAL_MASK                  (1 << MARK_EVENT_SIGNAL_SHIFT)
+#define     MARK_EVENT_AUTO_SHIFT                   (0x1)
+#define     MARK_EVENT_AUTO_MASK                    (1 << MARK_EVENT_AUTO_SHIFT)
+#define     MARK_EVENT_BITS_MASK                    (MARK_EVENT_SIGNAL_MASK | MARK_EVENT_AUTO_MASK)
 
 typedef union tagEVENT_ATTRIBUTE EVENT_ATTRIBUTE;
 typedef union tagEVENT_ATTRIBUTE * PEVENT_ATTRIBUTE;

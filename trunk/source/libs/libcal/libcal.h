@@ -69,7 +69,7 @@ extern "C" {
     EXPORT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam);
     EXPORT E_STATUS caFreeObject(HANDLE handle);
     EXPORT E_STATUS caRequestMethod(HANDLE handle, LPVOID lpParam, DWORD Method);
-    EXPORT E_STATUS caWaitObject(HANDLE handle, LONG WaitTime);
+    EXPORT SHORT caWaitObject(HANDLE handle, LONG WaitTime);
 
     EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);
     EXPORT E_STATUS caStackFill(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);

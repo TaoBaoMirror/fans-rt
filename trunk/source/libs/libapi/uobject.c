@@ -33,7 +33,7 @@
  * date           author          notes
  * 2014-11-16     JiangYong       new function
  */
-FANSAPI RO_CODE E_STATUS GetObjectName(HANDLE hObject, LPTSTR lpName, SIZE_T SizeofBuffer)
+FANSAPI RO_USER_CODE E_STATUS GetObjectName(HANDLE hObject, LPTSTR lpName, SIZE_T SizeofBuffer)
 {
     E_STATUS State;
     TCHAR Name[OBJECT_NAME_MAX];
@@ -74,10 +74,11 @@ EXPORT_SYMBOL(GetObjectName);
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI RO_CODE E_STATUS WaitObject(HANDLE handle, LONG WaitTime)
+FANSAPI RO_USER_CODE SHORT WaitObject(HANDLE handle, LONG WaitTime)
 {
     return caWaitObject(handle, WaitTime);
 }
+
 
 /**
  * Close the specified object.
@@ -95,7 +96,7 @@ FANSAPI RO_CODE E_STATUS WaitObject(HANDLE handle, LONG WaitTime)
  * date           author          notes
  * 2015-06-16     JiangYong       first version
  */
-FANSAPI RO_CODE E_STATUS CloseHandle(HANDLE handle)
+FANSAPI RO_USER_CODE E_STATUS CloseHandle(HANDLE handle)
 {
     return caFreeObject(handle);
 }

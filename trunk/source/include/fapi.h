@@ -67,28 +67,34 @@ extern "C" {
     FANSAPI E_STATUS GetTaskInformation(HANDLE hTask, LPTASK_INFOR lpTaskInfor);
     FANSAPI HANDLE EnumerationNextTask(HANDLE hTask);
 
-    FANSAPI HANDLE CreateTaskEx(LPCTSTR lpTaskName, LPTASK_CREATE_PARAM lpParam);
+    FANSAPI HANDLE CreateTaskEx(LPCTSTR lpCTName, LPTASK_CREATE_PARAM lpParam);
 #define     CreateTask(lpTaskName, fnMain, lpArgument)                                          \
             CreatePriorityTask(lpTaskName, fnMain, lpArgument, TASK_PRIORITY_NORMAL)
 
-    FANSAPI HANDLE CreatePriorityTask(LPCTSTR __IN lpName, FNTASKMAIN fnMain, 
+    FANSAPI HANDLE CreatePriorityTask(LPCTSTR __IN lpCTName, FNTASKMAIN fnMain, 
                                       LPVOID lpArgument, TASK_PRIORITY Priority);
 
-    FANSAPI HANDLE TakeObject(LPCTSTR lpName);
+    FANSAPI HANDLE TakeObject(LPCTSTR lpCTName);
 
-    FANSAPI HANDLE CreateEvent(LPCTSTR lpName, BOOL Automatic, BOOL Signal);
+    FANSAPI HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal);
     FANSAPI E_STATUS PostEvent(HANDLE hEvent);
     FANSAPI E_STATUS ResetEvent(HANDLE hEvent);
 
-    FANSAPI HANDLE CreateMutex(LPCTSTR lpName, BOOL Owner);
+    FANSAPI HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner);
     FANSAPI E_STATUS MutexLock(HANDLE hMutex);
     FANSAPI E_STATUS MutexUnlock(HANDLE hMutex);
     
-    FANSAPI HANDLE CreateSemaphore(LPCTSTR lpName, SHORT InitCount, SHORT MaxCount);
-    FANSAPI E_STATUS PostSemaphore(HANDLE hEvent, SHORT Count);
+    FANSAPI HANDLE CreateSemaphore(LPCTSTR lpCTName, SHORT Lights, SHORT MaxLights);
+    FANSAPI E_STATUS PostSemaphore(HANDLE hSemaphore, SHORT Lights);
+    
+
+    
+    FANSAPI HANDLE CreateSemset(LPCTSTR lpCTName, DWORD Mask);
+    FANSAPI E_STATUS PostSemset(HANDLE hSemset, BYTE SemID);
+
 
     FANSAPI E_STATUS GetObjectName(HANDLE hObject, LPTSTR lpName, SIZE_T SizeofBuffer);
-    FANSAPI E_STATUS WaitObject(HANDLE handle, LONG WaitTime);
+    FANSAPI SHORT WaitObject(HANDLE handle, LONG WaitTime);
     FANSAPI E_STATUS CloseHandle(HANDLE handle);
 #if 0
     FANSAPI E_STATUS CreateFile(__IN CONST LPTSTR FileName, DWORD Attribute);
