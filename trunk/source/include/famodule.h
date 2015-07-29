@@ -34,7 +34,7 @@ typedef CONST struct tagMODULE_HEADER FAR * LPCMODULE_HEADER;
             &g_##Name##_module_descriptor
 
 #define     DEFINE_MODULE(Name, PrvData)                                        \
-            RO_DATA MODULE_HEADER CONST g_##Name##_module_descriptor = {        \
+            RO_USER_DATA MODULE_HEADER CONST g_##Name##_module_descriptor = {   \
                 #Name,                                                          \
                 PrvData,                                                        \
                 FansMain,                                                       \
@@ -48,7 +48,7 @@ struct tagMODULE_HEADER{
     FNMODULEENTRY       fnEntry;
 };
 
-#else
+#else /* CONFIG_BUILD_DYNAMIC_SYMBOL */
 
 #define     DEFINE_MODULE(name, id, prvdata, fnEntry, fnLeave)                  \
             STATIC MODULE_HEADER g_module_descriptor = {                        \
@@ -71,7 +71,7 @@ struct tagMODULE_HEADER{
     E_STATUS            (*fnEntry)(LPCMODULE_HEADER lpFansModule);
     VOID                (*fnLeave)(LPCMODULE_HEADER lpFansModule);
 };
-#endif
+#endif /* CONFIG_BUILD_DYNAMIC_SYMBOL */
 
 #ifdef __cplusplus
 extern "C" {

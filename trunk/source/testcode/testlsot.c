@@ -1,3 +1,15 @@
+/*
+ *    Copyright(C) 2013-2015, Fans-rt development team.
+ *
+ *    All rights reserved.
+ *
+ *    This is open source software.
+ *    Learning and research can be unrestricted to  modification, use and dissemination.
+ *    If you need for commercial purposes, you should get the author's permission.
+ *
+ *    date           author          notes
+ *    2015-07-16     JiangYong       new file
+ */
 #include "stdio.h"
 #include "string.h"
 #include <fauser.h>
@@ -9,7 +21,7 @@
 #if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
 #include "testcode.h"
 
-STATIC RO_CODE E_STATUS LSOT_TEST_CASE00(VOID)
+STATIC RO_USER_CODE E_STATUS LSOT_TEST_CASE00(VOID)
 {
     DWORD Value;
     E_STATUS Result;
@@ -37,7 +49,7 @@ STATIC RO_CODE E_STATUS LSOT_TEST_CASE00(VOID)
     return STATE_SUCCESS;
 }
 
-STATIC RO_CODE E_STATUS LSOT_TEST_CASE01(VOID)
+STATIC RO_USER_CODE E_STATUS LSOT_TEST_CASE01(VOID)
 {
     INT i = 0;
     E_STATUS Result;
@@ -68,7 +80,7 @@ STATIC RO_CODE E_STATUS LSOT_TEST_CASE01(VOID)
     return STATE_SUCCESS;
 }
 
-STATIC RO_CODE E_STATUS LSOT_TEST_CASE02(VOID)
+STATIC RO_USER_CODE E_STATUS LSOT_TEST_CASE02(VOID)
 {
     INT i = 0;
     DWORD Value;
@@ -110,14 +122,14 @@ STATIC RO_CODE E_STATUS LSOT_TEST_CASE02(VOID)
 }
 
 
-STATIC CONST TEST_CASE_DESCRIPTOR g_TestCase[] =
+STATIC RO_USER_DATA CONST TEST_CASE_DESCRIPTOR g_TestCase[] =
 {
     DEFINE_TEST_CASE(LSOT_TEST_CASE00),
     DEFINE_TEST_CASE(LSOT_TEST_CASE01),
     DEFINE_TEST_CASE(LSOT_TEST_CASE02),
 };
 
-PUBLIC RO_CODE E_STATUS LSOT_TEST_CASE(VOID)
+PUBLIC RO_USER_CODE E_STATUS LSOT_TEST_CASE(VOID)
 {
     LONG i = 0;
     E_STATUS Temp;
@@ -141,7 +153,7 @@ PUBLIC RO_CODE E_STATUS LSOT_TEST_CASE(VOID)
     return Result;
 }
 #else
-PUBLIC RO_CODE E_STATUS LSOT_TEST_CASE(VOID)
+PUBLIC RO_USER_CODE E_STATUS LSOT_TEST_CASE(VOID)
 {
     return STATE_SUCCESS;
 }
