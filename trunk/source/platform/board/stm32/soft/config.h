@@ -83,10 +83,10 @@
 #define     CONFIG_LPC_SERVICE_MAX              32
 #define     CONFIG_SYSTEM_MODULES               8           /**< 系统模块数量 */
 
-#define     CONFIG_IPC_BUILD_EVENT              TRUE        /**< 是否编译事件对象支持 */
-#define     CONFIG_IPC_BUILD_MUTEX              TRUE        /**< 是否编译互斥对象支持 */
-#define     CONFIG_IPC_BUILD_SEMAPHORE          TRUE        /**< 是否编译信号量对象支持 */
-#define     CONFIG_IPC_BUILD_SEMSET             TRUE        /**< 是否编译信号量集对象支持 */
+#define     CONFIG_BUILD_IPC_EVENT              TRUE        /**< 是否编译事件对象支持 */
+#define     CONFIG_BUILD_IPC_MUTEX              TRUE        /**< 是否编译互斥对象支持 */
+#define     CONFIG_BUILD_IPC_SEMAPHORE          TRUE        /**< 是否编译信号量对象支持 */
+#define     CONFIG_BUILD_IPC_SEMSET             TRUE        /**< 是否编译信号量集对象支持 */
 
 #define     CONFIG_BUILD_LOCAL_STORE            TRUE        /**< 编译局部变量支持 */
 #define     CONFIG_BUILD_LOCAL_HEAP             TRUE        /**< 编译局部堆支持 */

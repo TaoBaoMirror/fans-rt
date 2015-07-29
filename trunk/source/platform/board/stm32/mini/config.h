@@ -15,8 +15,6 @@
 
 #define     CONFIG_BUILD_MINI_MAP               FALSE       /* ktable.c 中索引数组选择*/
 #define     CONFIG_BUILD_DYNAMIC_SYMBOL         FALSE       /* 动态符号加载，编译为 ELF 文件 */
-#define     CONFIG_BUILD_LOCAL_STORE            FALSE       /* 编译局部变量支持 */
-#define     CONFIG_BUILD_LOCAL_HEAP             FALSE       /* 编译局部堆支持 */
 #define     CONFIG_MEM_DEBUG_ENABLE             FALSE       /* 内存管理模块 DEBUG 支持 */
 #define     CONFIG_MEM_STATIC_FUNCTION          FALSE       /* 内存管理模块静态函数支持 */
 #define     CONFIG_MEM_STATIC_PAGETABLE         FALSE       /* 内存管理模块静态页表支持 */
@@ -68,9 +66,9 @@
 #define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
 #define     CONFIG_IDLE_STACK_SIZE              768         /**< 空闲任务的堆栈长度 */
-#define     CONFIG_CORE_STACK_SIZE            	0           /**< 内核堆栈长度 */
+#define     CONFIG_CORE_STACK_SIZE            	0           /**< 内核的堆栈长度 */
 #define     CONFIG_KTASK_STACK_SIZE             1024        /**< 内核任务的堆栈长度 */
-#define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU不支持全局内核栈 */
+#define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU 是否支持全局内核栈 */
 #define     CONFIG_ARCH_SUPPORT_HWSTACK         FALSE       /**< CPU 是否支持硬件堆栈切换 */
 #define     CONFIG_ARCH_SUPPORT_SCHEDULE        TRUE        /**< CPU 是否支持任务调度中断 */
 #define     CONFIG_ARCH_SUPPORT_MPU             FALSE       /**< CPU 是否支持内存保护单元 */
@@ -84,6 +82,14 @@
 #define     CONFIG_ENABLE_FAST_SCHEDULE         TRUE
 #define     CONFIG_LPC_SERVICE_MAX              9
 #define     CONFIG_SYSTEM_MODULES               2           /**< 系统模块数量 */
+
+#define     CONFIG_BUILD_IPC_EVENT              TRUE        /**< 是否编译事件对象支持 */
+#define     CONFIG_BUILD_IPC_MUTEX              TRUE        /**< 是否编译互斥对象支持 */
+#define     CONFIG_BUILD_IPC_SEMAPHORE          TRUE        /**< 是否编译信号量对象支持 */
+#define     CONFIG_BUILD_IPC_SEMSET             TRUE        /**< 是否编译信号量集对象支持 */
+
+#define     CONFIG_BUILD_LOCAL_STORE            FALSE       /**< 编译局部变量支持 */
+#define     CONFIG_BUILD_LOCAL_HEAP             FALSE       /**< 编译局部堆支持 */
 
 #endif
 
