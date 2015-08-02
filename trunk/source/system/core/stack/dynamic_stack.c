@@ -90,12 +90,14 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
                 lpHeader = CORE_GetBootStackBuffer();
                 SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetBootStackLength());
                 CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
-                Permission, lpHeader, GetContextTaskName(lpCoreContext));
+                    Permission, lpHeader, GetContextTaskName(lpCoreContext));
             }
             else /* 创建非 BOOT 任务内核栈 */
             {
                 lpHeader = (LPVOID)CORE_PageAlloc(CONFIG_CORE_STACK_SIZE);
                 SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_CORE_STACK_SIZE);
+                CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                Permission, lpHeader, GetContextTaskName(lpCoreContext));
             }
 #elif (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
             /* CPU 支持全局内核堆栈 */
@@ -107,6 +109,8 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
             /* CPU 不支持全局内核堆栈，每个任务一个独立的内核堆栈 */
             lpHeader = (LPVOID)CORE_PageAlloc(lpTaskParam->StackSize);
             SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_CORE_STACK_SIZE);
+            CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                Permission, lpHeader, GetContextTaskName(lpCoreContext));
 #endif
         }
     }
@@ -115,6 +119,8 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         /* Idle 任务创建内核堆栈(Idle任务为内核任务)*/
         lpHeader = CORE_GetIdleStackBuffer(TASK_BOOTSTARTUP_CPUID);
         SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetIdleStackLength());
+        CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                Permission, lpHeader, GetContextTaskName(lpCoreContext));
     }
     else
     {
@@ -133,6 +139,8 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
 #endif
         lpHeader = (LPVOID)CORE_PageAlloc(lpTaskParam->StackSize);
         SetStackCapacity(GetArchSD(lpArchContext, Permission), lpTaskParam->StackSize);
+        CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                Permission, lpHeader, GetContextTaskName(lpCoreContext));
 
     }
     

@@ -487,6 +487,7 @@ STATIC LPKCLASS_DESCRIPTOR KObject2KClass(LPKOBJECT_HEADER lpHeader)
 
     CORE_ERROR(TRUE, "Invalid object header pointer.");
     CORE_SetError(STATE_INVALID_PARAMETER);
+
     return NULL;
 }
 
@@ -1036,6 +1037,8 @@ EXPORT E_STATUS CORE_RequestMethod(LPKOBJECT_HEADER lpHeader, LPVOID lpParam, DW
     
     if (NULL == lpClass)
     {
+        CORE_ERROR(TRUE, "Request object(0x%P) method(%u) failed.",
+                lpHeader, Method);
         return CORE_GetError();
     }
     

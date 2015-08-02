@@ -28,6 +28,7 @@
     EXPORT  SysTick_Handler
     EXPORT  PendSV_Handler
     EXPORT  SVC_Handler
+    EXPORT  DebugMon_Handler
     EXPORT  CORE_Switch2UserMode
 
     IMPORT  CORE_EnterIRQ
@@ -36,6 +37,7 @@
     IMPORT  CORE_TaskScheduling
     IMPORT  CORE_HandlerLPC
     IMPORT  CORE_SwitchTask
+    IMPORT  CORE_DebugMonitor
     IMPORT  CORE_SetTaskStackPosition
     IMPORT  CORE_GetTaskStackPosition
     IMPORT  CORE_GetCoreStackPosition
@@ -60,7 +62,7 @@ PendSV_Handler  PROC
     ENDP
 
 SVC_Handler     PROC
-    CPSID   I                           ;  Why to disable IRQ ? Guess !
+;    CPSID   I                           ;  Why to disable IRQ ? Guess !
     MOV     R0,     SP                  ;  R0 = Offset of {R0 - R3}
     PUSH    {LR, R12}                   ;  Why to push r12 ?
     MOV     R12,    R0                  ;  R12 = Offset of {R0 - R3}
@@ -75,13 +77,13 @@ SVC_Handler     PROC
 SV_L0
     LDMFD   R12,    {R0-R3}             ;  Load user stack for the new task(user)
     SUB     R12,    #8                  ;  R12 is the stack point if the IRQ nest layer not 0
-    CPSIE   I                           ;  Enable IRQ
+;    CPSIE   I                           ;  Enable IRQ
     BL      CORE_HandlerLPC             ;  Call system service
     B       ST_L1                       ;  The next step same as system tick handler
     ENDP
 
 SysTick_Handler PROC
-    CPSID   I                           ;  Why to disable IRQ ? Guess !
+;    CPSID   I                           ;  Why to disable IRQ ? Guess !
     PUSH    {LR, R12}                   ;  Save the parameter of service
     BL      CORE_EnterIRQ               ;  Set current interrupt nest layer
     MOV     R12,    SP                  ;  SP - 8 = Offset of {R0 - R3}
@@ -94,10 +96,10 @@ SysTick_Handler PROC
     MOV     SP,     R0                  ;  Switch to global core stack
 ST_L0
     BL      CORE_TickHandler            ;  Inc the system tick
-    CPSIE   I                           ;  Enable IRQ
+;    CPSIE   I                           ;  Enable IRQ
     BL      CORE_TaskScheduling         ;  Find the new task will be scheduling
 ST_L1
-    CPSID   I                           ;  Disable IRQ
+;    CPSID   I                           ;  Disable IRQ
     BL      CORE_LeaveIRQ               ;  Set and get current interrupt nest layer
     CBNZ    R0,     ST_LE               ;  IRQ nest layer is not 0 then return
     BL      CORE_CheckMustbeSchedule    ;  Check need schedule
@@ -114,27 +116,68 @@ ST_L1
 ST_L2
     MOV     SP,     R11                 ;  Switch stack to new task
     POP     {LR, R4 - R12}              ;  Resume break point
-    CPSIE   I                           ;  Enable IRQ
+;    CPSIE   I                           ;  Enable IRQ
     BX      LR                          ;  Scheduling new task
 ST_LE
     MOV     SP,     R12                 ;  Switch to user stack(IRQ nest)
     POP     {LR, R12}                   ;  Resume the registers
-    CPSIE   I                           ;  Enable IRQ
+;    CPSIE   I                           ;  Enable IRQ
     BX      LR                          ;  Return to the original IRQ
     ENDP
 
 HardFault_Handler   PROC
+    CPSID   I
+    PUSH    {R4 - R12, LR}
+    MOV     R0,     SP
+    BL      CORE_DebugMonitor  
+    POP     {R4 - R12, LR}
+    CPSIE   I
     B       .
     ENDP
 
 MemManage_Handler   PROC
+    CPSID   I
+    PUSH    {R4 - R12, LR}
+    MOV     R0,     SP
+    BL      CORE_DebugMonitor  
+    POP     {R4 - R12, LR}
+    CPSIE   I
     B       .
     ENDP
 BusFault_Handler    PROC
+    CPSID   I
+    PUSH    {R4 - R12, LR}
+    MOV     R0,     SP
+    BL      CORE_DebugMonitor  
+    POP     {R4 - R12, LR}
+    CPSIE   I
     B       .
     ENDP
 UsageFault_Handler  PROC
+    CPSID   I
+    PUSH    {R4 - R12, LR}
+    MOV     R0,     SP
+    BL      CORE_DebugMonitor  
+    POP     {R4 - R12, LR}
+    CPSIE   I
     B       .
+    ENDP
+
+DEMCR_OFFSET     EQU     0xe000edfc
+DEBUG_ENABLE     EQU     0x010d0000
+
+DebugMon_Handler    PROC
+    CPSID   I
+    PUSH    {R4 - R12, LR}
+    MOV     R0,     SP
+    BL      CORE_DebugMonitor
+    LDR     R0,     =DEBUG_ENABLE
+    LDR     R1,     =DEMCR_OFFSET
+    STR     R0,     [R1]     
+    POP     {R4 - R12, LR}
+    CPSIE   I
+    BX      LR
+    NOP
     ENDP
 	
 ALIGN

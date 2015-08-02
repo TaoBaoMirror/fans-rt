@@ -44,10 +44,11 @@ PUBLIC VOID NVIC_Configuration(VOID)
 {
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     SetIRQPriority (SysTick_IRQn, 0x1, 0x1);
-    SetIRQPriority (SVCall_IRQn, 3, 0);     /* 抢占优先级3，响应优先级0 */
+    SetIRQPriority (SVCall_IRQn, 0x1, 0x1);     /* 抢占优先级3，响应优先级0 */
     SetIRQPriority (BusFault_IRQn, 0, 0);
     SetIRQPriority (UsageFault_IRQn, 0, 0);
     SetIRQPriority (MemoryManagement_IRQn, 0, 0);
+    SetIRQPriority (DebugMonitor_IRQn, 0, 0);
     NVIC_EnableFault();
     
 }

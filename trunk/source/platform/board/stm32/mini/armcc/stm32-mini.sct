@@ -15,23 +15,27 @@
 ;    2015-06-25     JiangYong       new file
 
 LR_IROM1 0x08000000 0x0000D000  {    ; load region size_region
-  ER_IROM1 0x08000000 0x0000D000  {  ; load address = execution address
+  CORE_ROM 0x08000000 0x0000D000  {  ; load address = execution address
    *.o (RESET, +First)
    *(InRoot$$Sections)
-   *.o (.data)
+   *.o (.data, +RW +ZI)
    .ANY (+RO)
   }
-  RW_IRAM1 0x20000000 0x00000900  {  ; RW data
+  STACK_RAM 0x20000000 0x00000900  {  ; RW data
    startup_stm32f10x_md.o (STACK, +First)
    startup_stm32f10x_md.o (HEAP, +RW +ZI)
    kbcom_stack.o (.IdleStack, +RW +ZI)
 ;   kbstm32_stack.o (.CoreStack, +RW +ZI)
   }
-  RW_IRAM2 0x20000900 0x00000700  {  ; RW data
-   ktick.o (.CoreRWdata, +FIRST)
-   *.o (.CoreRWdata, +RW +ZI)
-   *.o (.UserRWdata, +RW +ZI)
-   caobject.o (.UserRWdata, +LAST)
+  CORE_RAM 0x20000900 0x00000700  {  ; RW data
+   ktick.o (.CoreRWdata, +ZI, +RW)
+   kobject.o (.CoreRWdata, +ZI, +RW)
+   ktask.o (.CoreRWdata, +ZI, +RW)
+   klpc.o (.CoreRWdata, +ZI, +RW)
+   kirq.o (.CoreRWdata, +ZI, +RW)
+   kdebug.o (.CoreRWdata, +ZI, +RW)
+   testtask.o (.UserRWdata, +RW +ZI)
+   caobject.o (.UserRWdata, +RW +ZI)
    .ANY (+RW +ZI)
   }
 }

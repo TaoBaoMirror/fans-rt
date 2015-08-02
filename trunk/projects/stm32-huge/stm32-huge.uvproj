@@ -672,11 +672,6 @@
               <FilePath>..\..\source\testcode\testcode.h</FilePath>
             </File>
             <File>
-              <FileName>testipc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\testipc.c</FilePath>
-            </File>
-            <File>
               <FileName>amodule.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\stm32\huge\amodule.c</FilePath>
@@ -685,6 +680,26 @@
               <FileName>testlsot.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\testlsot.c</FilePath>
+            </File>
+            <File>
+              <FileName>testevent.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testevent.c</FilePath>
+            </File>
+            <File>
+              <FileName>testmutex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testmutex.c</FilePath>
+            </File>
+            <File>
+              <FileName>testsemaphore.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testsemaphore.c</FilePath>
+            </File>
+            <File>
+              <FileName>testsemset.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testsemset.c</FilePath>
             </File>
           </Files>
         </Group>

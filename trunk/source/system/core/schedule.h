@@ -249,15 +249,13 @@ STATIC INLINE VOID ClrReadyBitmap(TASK_PRIORITY Priority, BOOL Clear)
 
 #endif
 
-#if 1
 /**
  * Begin to schedule(The CPU support scheduling interrupt).
  * @return VOID
  * \par
- * If the CPU support scheduling interrupt, if the new task is not the current task, 
- * then the scheduling interrupt will be activation, return from current interrupt 
- * will be enter to the scheduling interrupt.
- *
+ * If the new task is not the current task, then the scheduling interrupt will be
+ * activation, return from current interrupt will be enter to the scheduling interrupt.
+ * 
  * CPU支持调度中断时，如果新任务与当前任务不是同一任务，则激活任务调度中断，从中断返
  * 回后进入任务调度中断进行任务调度。
  *
@@ -274,8 +272,15 @@ STATIC VOID ScheduleBegin(VOID)
     {
         if (lpNewTask != GetSwitch2TaskContext())
         {
-            CORE_DEBUG(TRUE, "Will be scheduling to task '%p', Priority is %d, %p, %p, old task is %p.",
-               lpNewTask, Priority, &g_TaskReadyQueue[Priority], LIST_FIRST_NODE(&g_TaskReadyQueue[Priority]), lpOldTask);
+            CORE_DEBUG(TRUE, "Schedule to '%p-%s', Priority is %d, %p, %p.",
+               lpNewTask, GetContextTaskName(lpNewTask), Priority, &g_TaskReadyQueue[Priority],
+               LIST_FIRST_NODE(&g_TaskReadyQueue[Priority]), lpOldTask, GetContextTaskName(lpOldTask));
+            CORE_DEBUG(TRUE, "Last task is '%p-%s', Priority is %d->%d, state is %d.",
+               lpOldTask, GetContextTaskName(lpOldTask),
+                GetContextInitPriority(lpOldTask),
+                GetContextThisPriority(lpOldTask),
+                GetContextState(lpOldTask));
+            
             SetSwitch2TaskContext(lpNewTask);
             SetMustSchedule();
             CORE_ActiveSwitchIRQ();
@@ -286,43 +291,7 @@ STATIC VOID ScheduleBegin(VOID)
         SetContextState(lpNewTask, TASK_STATE_WORKING);
     }
 }
-#else
-/**
- * Begin to schedule(The CPU not support scheduling interrupt).
- * @return VOID
- * \par
- * If the CPU does not support scheduling interrupt, we can switch task when the
- * current interrupt return to application. The all register was saved when interrupt
- * entry, and the stack point was save to the task context, so switch to new stack 
- * and load all register can be finish task switch.
- *
- *     CPU不支持调度中断时，需要直接在当前中断(无嵌套)返回用应用时进行任务切换。由于
- * 在中断入口时已经保存任务的所有寄存器，并且堆栈指针也已经保存到任务上下文，所以任务
- * 切换时，直接获取新任务的堆栈指针并弹出任务寄存器即可完成任务切换。
- *
- * date           author          notes
- * 2015-06-11     JiangYong       first version
- */
-STATIC VOID ScheduleBegin(VOID)
-{
-    TASK_PRIORITY Priority = SearchHighestPriority();
-    LPTASK_CONTEXT lpOldTask = GetCurrentTaskContext();
-    LPTASK_CONTEXT lpNewTask = GetPriorityFirstContext(Priority);
 
-    SetContextState(lpNewTask, TASK_STATE_WORKING);
-
-    if (lpOldTask != lpNewTask)
-    {
-        SetCurrentPriority(Priority);
-        SetCurrentTaskContext(lpNewTask);
-        
-        if (TRUE == GetContextWorkFirst(lpNewTask))
-        {
-            SetContextStartTick(lpNewTask, CORE_GetSystemTick());
-        }
-    }
-}
-#endif
 
 /**
  * The slice of current task was finished.
@@ -626,7 +595,6 @@ STATIC E_STATUS SuspendTask(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
 /**
  * Suspend specified task
  * @param The context of the task.
- * @param The return value after the task back to the application layer
  * @return STATE_NOT_READY Task not ready.
  * @return STATE_SUCCESS successfully.
  * \par
@@ -637,8 +605,9 @@ STATIC E_STATUS SuspendTask(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
  *
  * date           author          notes
  * 2015-06-11     JiangYong       first version
+ * 2015-07-30     JiangYong       Add wake routine
  */
-STATIC E_STATUS WakeupTask(LPTASK_CONTEXT lpTaskContext, E_STATUS Result)
+STATIC E_STATUS WakeupTask(LPTASK_CONTEXT lpTaskContext)
 {
     if (TASK_STATE_SLEEP == GetContextState(lpTaskContext))
     {
@@ -648,7 +617,8 @@ STATIC E_STATUS WakeupTask(LPTASK_CONTEXT lpTaskContext, E_STATUS Result)
         DetachIPCNode(lpTaskContext);
         Attach2ReadyQueue(lpTaskContext);
         SetNeedSchedule();
-        lpPacket->StateCode = Result;
+        CallWakeRoutine(lpTaskContext);
+
         return STATE_SUCCESS;
     }
 
