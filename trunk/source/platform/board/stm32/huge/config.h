@@ -13,21 +13,16 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define     CONFIG_BUILD_MINI_MAP               FALSE       /* ktable.c 中索引数组选择*/
-#define     CONFIG_BUILD_DYNAMIC_SYMBOL         FALSE       /* 动态符号加载，编译为 ELF 文件 */
-#define     CONFIG_MEM_DEBUG_ENABLE             TRUE        /* 内存管理模块 DEBUG 支持 */
-#define     CONFIG_MEM_STATIC_FUNCTION          FALSE       /* 内存管理模块静态函数支持 */
-#define     CONFIG_MEM_STATIC_PAGETABLE         TRUE        /* 内存管理模块静态页表支持 */
 #define     CONFIG_MEM_REGION_MAX               1           /* 内存域数量 */
 #define     CONFIG_MEM_BUDDY_MAX                8           /* 内存管理模块支持的 BUDDY 级数 */
 #define     CONFIG_MEM_PAGE_SIZE                512         /* 系统页面大小 */
-#define     CONFIG_MEM_ONCHIP_LENGTH            0x3000      /* 片上内存长度 */
+#define     CONFIG_MEM_ONCHIP_LENGTH            0xca00      /* 片上内存长度 */
 #define     CONFIG_MEM_ONCHIP_PAGES                         \
             (CONFIG_MEM_ONCHIP_LENGTH/CONFIG_MEM_PAGE_SIZE) /* 片上内存页数量 */
 #define     CONFIG_CORE_POOL_MAX                4           /**< 支持的最大 POOL 数量 */
 #define     CONFIG_POOL_BLOCK_MAX               8           /**< 每个POOL的块数量 */
 
-#define     CONFIG_SYSTEM_CLASS_MAX             23          /**< 内核对象类数量，最大为32 */
+#define     CONFIG_SYSTEM_CLASS_MAX             18          /**< 内核对象类数量，最大为32 */
 #define     CONFIG_SYSTEM_CLASS_MASK            0x1f        /**< 根据 CLASS_MAX 选择一个适合的 MASK */
 
 #define     CONFIG_OBJECT_HASH_TABLE_MAX        8			/**< The number of hash table */
@@ -43,7 +38,7 @@
 #define     CONFIG_OBJECT1_POOL_MAX             0           /**< The max pools for 64 bytes class */
 #define     CONFIG_OBJECT1_BLOCK_MAX            0           /**< The max blocks for 64 bytes class */
 
-#define     CONFIG_OBJECT2_POOL_MAX             4           /**< The max pools for 128 bytes class */
+#define     CONFIG_OBJECT2_POOL_MAX             1           /**< The max pools for 128 bytes class */
 #define     CONFIG_OBJECT2_BLOCK_MAX            8           /**< The max blocks for 128 bytes class */
 
 #define     CONFIG_OBJECT3_POOL_MAX             0           /**< The max pools for 256 bytes class */
@@ -63,10 +58,10 @@
 
 #define     CONFIG_TASK_PRIORITY_MAX            8           /**< 任务管理器支持的任务优先级数量 */
 #define     CONFIG_DEFAULT_SLOT_KEYS            3           /**< 默认的局部变量KEY数量 */
-#define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
+#define     CONFIG_DEFAULT_STACK_SIZE           2048        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
-#define     CONFIG_IDLE_STACK_SIZE              1024        /**< 空闲任务的堆栈长度 */
-#define     CONFIG_CORE_STACK_SIZE              1024        /**< 内核的堆栈长度 */
+#define     CONFIG_IDLE_STACK_SIZE              2048        /**< 空闲任务的堆栈长度 */
+#define     CONFIG_CORE_STACK_SIZE              2048        /**< 内核的堆栈长度 */
 #define     CONFIG_KTASK_STACK_SIZE             2048        /**< 内核任务的堆栈长度 */
 #define     CONFIG_ARCH_SUPPORT_KSTACK          FALSE       /**< CPU 是否支持全局内核栈 */
 #define     CONFIG_ARCH_SUPPORT_HWSTACK         TRUE        /**< CPU 是否支持硬件堆栈切换 */
@@ -82,6 +77,9 @@
 #define     CONFIG_ENABLE_FAST_SCHEDULE         TRUE
 #define     CONFIG_LPC_SERVICE_MAX              32
 #define     CONFIG_SYSTEM_MODULES               8           /**< 系统模块数量 */
+
+#define     CONFIG_BUILD_MINI_MAP               FALSE       /* ktable.c 中索引数组选择*/
+#define     CONFIG_BUILD_DYNAMIC_SYMBOL         FALSE       /* 动态符号加载，编译为 ELF 文件 */
 
 #define     CONFIG_BUILD_IPC_EVENT              TRUE        /**< 是否编译事件对象支持 */
 #define     CONFIG_BUILD_IPC_MUTEX              TRUE        /**< 是否编译互斥对象支持 */

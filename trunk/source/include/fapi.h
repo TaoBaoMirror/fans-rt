@@ -48,19 +48,12 @@ extern "C" {
     FANSAPI TASK_PRIORITY GetPriority(HANDLE hTask);
     FANSAPI E_STATUS SetPriority(HANDLE hTask, TASK_PRIORITY Priority);
 
-#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
-    FANSAPI LSOT_KEY_T GetLsotKey(VOID);
-    FANSAPI E_STATUS PutLsotKey(LSOT_KEY_T LsotKey);
-    FANSAPI E_STATUS GetLsotValue(LSOT_KEY_T LsotKey, DWORD_PTR lpValue);
-    FANSAPI E_STATUS SetLsotValue(LSOT_KEY_T LsotKey, DWORD Value);
-#endif
-
     FANSAPI TASK_STATUS GetTaskState(HANDLE hTask);
 
 #define     GetTaskSelfState()                  GetTaskState(TASK_SELF_HANDLE)
 #define     GetTaskSelfPriority()               GetPriority(TASK_SELF_HANDLE)
 #define     SetTaskSelfPriority(p)              SetPriority(TASK_SELF_HANDLE, p)
-#define     GetTaskSelfName(n, sz)              GetTaskName(TASK_SELF_HANDLE, n, sz)
+#define     GetTaskSelfName(n, sz)              GetObjectName(TASK_SELF_HANDLE, n, sz)
 #define     GetTaskSelfInformation(lpInfor)     GetTaskInformation(TASK_SELF_HANDLE, lpInfor)
 
 
@@ -75,6 +68,13 @@ extern "C" {
                                       LPVOID lpArgument, TASK_PRIORITY Priority);
 
     FANSAPI HANDLE TakeObject(LPCTSTR lpCTName);
+
+#if (defined(CONFIG_BUILD_LOCAL_STORE) && (TRUE == CONFIG_BUILD_LOCAL_STORE))
+    FANSAPI LSOT_KEY_T GetLsotKey(VOID);
+    FANSAPI E_STATUS PutLsotKey(LSOT_KEY_T LsotKey);
+    FANSAPI E_STATUS GetLsotValue(LSOT_KEY_T LsotKey, DWORD_PTR lpValue);
+    FANSAPI E_STATUS SetLsotValue(LSOT_KEY_T LsotKey, DWORD Value);
+#endif
 
     FANSAPI HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal);
     FANSAPI E_STATUS PostEvent(HANDLE hEvent);

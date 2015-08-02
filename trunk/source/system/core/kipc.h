@@ -72,6 +72,7 @@ union tagEVENT_ATTRIBUTE{
 };
 
 #define     MUTEX_VALUE_BITS        OBJECT_SID_BITS
+#define     MUTEX_ONWER_MASK        (~HANDLE_OBJECT_SID_MASK)
 
 typedef struct tagMUTEX_ATTRIBUTE MUTEX_ATTRIBUTE;
 typedef struct tagMUTEX_ATTRIBUTE * PMUTEX_ATTRIBUTE;

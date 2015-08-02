@@ -456,7 +456,7 @@ STATIC E_STATUS SVC_TaskWakeup(LPVOID lpPrivate, LPVOID lpParam)
     
     SetContextCancel(lpTaskContext, TRUE);
     
-    return WakeupTask(lpTaskContext, STATE_SUCCESS);
+    return WakeupTask(lpTaskContext);
 }
 
 STATIC E_STATUS SVC_TestCancel(LPVOID lpPrivate, LPVOID lpParam)
@@ -775,10 +775,8 @@ EXPORT DWORD CORE_LeaveIRQ(VOID)
  */
 EXPORT E_TASK_PERMISSION CORE_SwitchTask(LPVOID CoreStack, LPVOID UserStack)
 {
-//    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
     LPTASK_CONTEXT lpSwitch2Task = GetSwitch2TaskContext();
  
-//    CORE_INFOR(TRUE, "Current task '0x%p' switch 2 task '%p'.", lpCurrentTask, lpSwitch2Task);
     CORE_SetCoreStackPosition(CoreStack);
     CORE_SetTaskStackPosition(UserStack);
     SetCurrentPriority(GetContextThisPriority(lpSwitch2Task));
@@ -841,6 +839,18 @@ EXPORT LPTASK_CONTEXT CORE_GetCurrentTask(VOID)
 }
 EXPORT_SYMBOL(CORE_GetCurrentTask);
 
+EXPORT LPCSTR CORE_GetCurrentTaskName(VOID)
+{
+    LPTASK_CONTEXT lpCurrentTask = GetCurrentTaskContext();
+    
+    if (NULL == lpCurrentTask)
+    {
+        return "UnknowTask";
+    }
+    
+    return GetContextTaskName(lpCurrentTask);
+}
+
 EXPORT LPTASK_CONTEXT CORE_GetCurrentTaskSafe(VOID)
 {
     DWORD dwFlags = CORE_DisableIRQ();
@@ -870,10 +880,10 @@ EXPORT VOID CORE_SetCurrentTaskRequestPacket(LPVOID lpPacket)
     CORE_RestoreIRQ(dwFlags);
 }
 
-EXPORT E_STATUS CORE_TaskWakeup(LPTASK_CONTEXT lpTaskContext, E_STATUS Result)
+EXPORT E_STATUS CORE_TaskWakeup(LPTASK_CONTEXT lpTaskContext)
 {
     DWORD dwFlags = CORE_DisableIRQ();
-    E_STATUS State = WakeupTask(lpTaskContext, Result);
+    E_STATUS State = WakeupTask(lpTaskContext);
     CORE_RestoreIRQ(dwFlags);
 
     return State;

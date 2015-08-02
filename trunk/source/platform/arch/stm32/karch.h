@@ -18,6 +18,47 @@
 
 #include "kstack.h"
 
+typedef union tagINSTRUCTION_BIT_FIELD INSTRUCTION_BIT_FIELD;
+typedef union tagINSTRUCTION_BIT_FIELD * PINSTRUCTION_BIT_FIELD;
+typedef union tagINSTRUCTION_BIT_FIELD FAR * LPINSTRUCTION_BIT_FIELD;
+
+union tagINSTRUCTION_BIT_FIELD{
+    struct{
+        WORD        Imm:11;
+        WORD        OpCode:5;
+    }iucb;
+    struct{
+        WORD        Other:13;
+        WORD        Mark:3;
+    }i32b;
+};
+
+typedef struct tagSTACK_DUMP STACK_DUMP;
+typedef struct tagSTACK_DUMP * PSTACK_DUMP;
+typedef struct tagSTACK_DUMP FAR * LPSTACK_DUMP;
+
+struct tagSTACK_DUMP
+{
+    DWORD           R4;
+    DWORD           R5;
+    DWORD           R6;
+    DWORD           R7;
+    DWORD           R8;
+    DWORD           R9;
+    DWORD           R10;
+    DWORD           R11;
+    DWORD           ALIGN;
+    DWORD           BP;             /* IRQ Break */
+    DWORD           R0;
+    DWORD           R1;
+    DWORD           R2;
+    DWORD           R3;
+    DWORD           R12;
+    DWORD           LR;
+    DWORD           PC;
+    DWORD           xPSR;
+};
+
 typedef struct tagARCH_CONTEXT ARCH_CONTEXT;
 typedef struct tagARCH_CONTEXT * PARCH_CONTEXT;
 typedef struct tagARCH_CONTEXT FAR * LPARCH_CONTEXT;

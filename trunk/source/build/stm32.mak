@@ -145,7 +145,7 @@ endif
 CC_INCLUDES				=	$(GLOBAL_INCLUDES) $(LOCAL_INCLUDES)
 AS_INCLUDES				=	$(GLOBAL_INCLUDES) $(LOCAL_INCLUDES)
 							
-.PHONY: $(CONFIGS_PATH) $(SUBDIRS) remove clean remove_config config
+.PHONY: $(CONFIGS_PATH) $(SUBDIRS) remove clean remove_config config run
 
 all:$(CREATE_MAKE) $(LD_SCRIPT) $(SUFFIX_MAKE)
 	@echo "Make $(ARCH)-$(BOARD) now ..."
@@ -307,5 +307,9 @@ $(CONFIGS_PATH)/%.h:$(CONFIG_MAKE)
 	@$(ECHO) "#define    BOARD_NAME_STRING    \"$(ARCH)-$(BOARD)\"" > $@
 clean:
 	@$(MAKE) -f $(CREATE_MAKE) clean
-
 	
+run:
+	@$(LD) -o $(OBJECTS_ROOT)/fans-rt.elf $(PROJECT_OBJECTS) $(LD_FLAGS)
+	$(START_JLINK_COMMAND)
+	$(START_JLINK_GDBSERVER)
+	@$(GDB) $(START_GDB_COMMANDS) $(OBJECTS_ROOT)/fans-rt.elf

@@ -13,12 +13,7 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define     CONFIG_BUILD_MINI_MAP               FALSE       /* ktable.c 中索引数组选择*/
-#define     CONFIG_BUILD_DYNAMIC_SYMBOL         FALSE       /* 动态符号加载，编译为 ELF 文件 */
-#define     CONFIG_MEM_DEBUG_ENABLE             FALSE       /* 内存管理模块 DEBUG 支持 */
-#define     CONFIG_MEM_STATIC_FUNCTION          FALSE       /* 内存管理模块静态函数支持 */
-#define     CONFIG_MEM_STATIC_PAGETABLE         FALSE       /* 内存管理模块静态页表支持 */
-#define     CONFIG_MEM_REGION_MAX               0           /* 内存域数量 */
+#define     CONFIG_MEM_REGION_MAX               1           /* 内存域数量 */
 #define     CONFIG_MEM_BUDDY_MAX                8           /* 内存管理模块支持的 BUDDY 级数 */
 #define     CONFIG_MEM_PAGE_SIZE                512         /* 系统页面大小 */
 #define     CONFIG_MEM_ONCHIP_LENGTH            0           /* 片上内存长度 */
@@ -82,6 +77,9 @@
 #define     CONFIG_ENABLE_FAST_SCHEDULE         TRUE
 #define     CONFIG_LPC_SERVICE_MAX              9
 #define     CONFIG_SYSTEM_MODULES               2           /**< 系统模块数量 */
+
+#define     CONFIG_BUILD_MINI_MAP               FALSE       /* ktable.c 中索引数组选择*/
+#define     CONFIG_BUILD_DYNAMIC_SYMBOL         FALSE       /* 动态符号加载，编译为 ELF 文件 */
 
 #define     CONFIG_BUILD_IPC_EVENT              TRUE        /**< 是否编译事件对象支持 */
 #define     CONFIG_BUILD_IPC_MUTEX              TRUE        /**< 是否编译互斥对象支持 */

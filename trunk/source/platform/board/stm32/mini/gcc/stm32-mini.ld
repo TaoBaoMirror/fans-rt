@@ -33,7 +33,7 @@ _estack = 0x20000600;
 MEMORY
 {
   CORE_ROM (rx): ORIGIN = 0x08000000, LENGTH = 0xd000
-  BOOT_STACK_RAM (xrw): ORIGIN = 0x20000000, LENGTH = 0x900
+  STACK_RAM (xrw): ORIGIN = 0x20000000, LENGTH = 0x900
   DATA_RAM (xrw):  ORIGIN = 0x20000900, LENGTH = 0x700
 }
 
@@ -87,11 +87,10 @@ SECTIONS
         _sbstack = .;
         *(.BootStack)
         *(.IdleStack)
-        *(.Region0)
 
 	    . = ALIGN(4);
    	 _ebstack = . ;
-    } >BOOT_STACK_RAM
+    } >STACK_RAM
     
     .data  : AT ( _sidata )
     {

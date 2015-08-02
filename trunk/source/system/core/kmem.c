@@ -27,8 +27,11 @@
 //#define MMS_STATIC_BUDDY_SPLIT_SECTION
 //#define MMS_STATIC_BUDDY_MERGE_SECTION
 
+#define     SMM_DEBUG_ENABLE             FALSE       /* 内存管理模块 DEBUG 支持 */
+#define     SMM_STATIC_FUNCTION          FALSE       /* 内存管理模块静态函数支持 */
+#define     SMM_STATIC_PAGETABLE         TRUE        /* 内存管理模块静态页表支持 */
 
-#if (CONFIG_MEM_DEBUG_ENABLE == TRUE)
+#if (SMM_DEBUG_ENABLE == TRUE)
 #define     MM_DEBUG(Enter, ...)//                          CORE_DEBUG(Enter, __VA_ARGS__)
 #define     MM_INFOR(Enter, ...)                            CORE_INFOR(Enter, __VA_ARGS__)
 #define     MM_ERROR(Enter, ...)                            CORE_ERROR(Enter, __VA_ARGS__)
@@ -175,7 +178,7 @@ STATIC  CONST RO_CORE_DATA WORD     g_SectionBuddyMaskTable[]   =
     0x0000,                                                         /* Invalid buddy */
 };
 
-#if (CONFIG_MEM_STATIC_PAGETABLE == TRUE)
+#if (SMM_STATIC_PAGETABLE == TRUE)
 STATIC  RW_CORE_DATA    MM_PAGE_ENTRIES g_OnchipPageTable[CONFIG_MEM_ONCHIP_PAGES];
 #endif
 
@@ -248,7 +251,7 @@ STATIC INLINE PAGE_ID_T GetMergePageID(PAGE_ID_T FirstPage, WORD Pages)
     return (FirstPage & (~Pages)) == FirstPage ? FirstPage + Pages : FirstPage - 1;
 }
 
-#if ((CONFIG_MEM_STATIC_FUNCTION == TRUE) && (CONFIG_MEM_DEBUG_ENABLE == TRUE))
+#if ((SMM_STATIC_FUNCTION == TRUE) && (SMM_DEBUG_ENABLE == TRUE))
 STATIC INLINE VOID SetPrevPage(LPMM_HEAD_PAGE lpHead, PAGE_ID_T Page)
 {
     lpHead->PrveSection = Page;
@@ -1349,8 +1352,8 @@ STATIC LPVOID PageAllocAddress(LPMM_MANAGER lpManager, WORD Pages)
 
     BUDDY_SPLIT_SECTION(lpManager, lpRegion, RegionID, StartNext, RemainPages, 0 != RemainPages);
 
-    MM_DEBUG(TRUE, "Alloc address %p, StartPage %d, pages %d.",
-        GetPageAddress(lpManager, RegionID, StartPage), StartPage, Pages);
+    MM_DEBUG(TRUE, "Alloc address %p, StartPage %d, pages %d, free pages %d.",
+        GetPageAddress(lpManager, RegionID, StartPage), StartPage, Pages, GetRegionFrees(lpRegion));
 
     return GetPageAddress(lpManager, RegionID, StartPage);
 }
@@ -1382,7 +1385,7 @@ STATIC VOID CreatePageTable(LPMM_MANAGER lpManager, BYTE RegionID)
                     + (!!(RemainPages * sizeof(MM_PAGE_ENTRIES) % CONFIG_MEM_PAGE_SIZE)));
     LPMM_PAGE_ENTRIES lpTable =  NULL;
     
-#if (CONFIG_MEM_STATIC_PAGETABLE == TRUE)
+#if (SMM_STATIC_PAGETABLE == TRUE)
     if (0 == GetRegisterRegions(lpManager))
     {
         if (CONFIG_MEM_ONCHIP_PAGES == TablePages)
@@ -1488,7 +1491,7 @@ EXPORT E_STATUS CORE_CreateRegion(MMADDR Address, SIZE_T Length)
 }
 
 
-#if (CONFIG_MEM_DEBUG_ENABLE == TRUE)
+#if (SMM_DEBUG_ENABLE == TRUE)
 
 STATIC DWORD GetBuddySectionCount(LPMM_MANAGER lpManager, BYTE Buddy)
 {
@@ -1722,7 +1725,7 @@ STATIC E_STATUS SVC_NewRegion(LPVOID lpPrivate, LPVOID lpParam)
     return CORE_CreateRegion((MMADDR)lpPacket->u0.pParam, lpPacket->u1.dParam);
 }
 
-#if (CONFIG_MEM_DEBUG_ENABLE == TRUE)
+#if (SMM_DEBUG_ENABLE == TRUE)
 
 STATIC E_STATUS SVC_TakeInfor(LPVOID lpPrivate, LPVOID lpParam)
 {
@@ -1748,7 +1751,7 @@ STATIC CONST REQUEST_HANDLER fnHandlers[] = {
     SVC_PageFree,                   /* LPC_MMS_PAGE_FREE */
     SVC_NewRegion,                  /* LPC_MMS_NEW_REGION */
     SVC_FreePages,                  /* LPC_MMS_FREE_PAGES */
-#if (CONFIG_MEM_DEBUG_ENABLE == TRUE)
+#if (SMM_DEBUG_ENABLE == TRUE)
     SVC_TakeInfor,                  /* LPC_MMS_TAKE_INFOR */
     SVC_ShowInfor,                  /* LPC_MMS_SHOW_INFOR */
     SVC_ShowSection,                /* LPC_MMS_SHOW_SECTION */

@@ -24,34 +24,6 @@
 #include "cadebug.h"
 
 /**
- * Take a specified object.
- * @param The name of object.
- * @return The handle of object.
- * \par
- * Call system to find specified object, if the name has been found, return
- * the handle of object, else return invalid object.
- *
- * 调用系统功能查找指定的对象, 如果存在名字一致的对象，返回对象句柄，否则返
- * 回无效句柄
- *
- * date           author          notes
- * 2015-06-16     JiangYong       first version
- */
-FANSAPI RO_USER_CODE HANDLE TakeObject(LPCTSTR lpCTName)
-{
-    CHAR caName[OBJECT_NAME_MAX];
-
-    memset(caName, 0, sizeof(caName));
-#ifdef _UNICODE
-#error "Not implemented unicode."
-#else
-    strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
-#endif
-    
-    return caTakeObject(caName, NULL);
-}
-
-/**
  * Create an event object.
  * @param The name of object.
  * @param Event automatic mode.
