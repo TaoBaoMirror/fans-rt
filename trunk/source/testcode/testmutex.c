@@ -95,7 +95,7 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE00(VOID)
     Result = CloseHandle(handle);
 
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
-            "Close mutex(0x%08X - '%s') failed.", handle, Name);
+            "Close mutex(0x%08X - '%s') failed, result %d.", handle, Name, Result);
     
     return STATE_SUCCESS;
 }
@@ -166,7 +166,7 @@ STATIC RO_USER_CODE VOID MUTEX_CASE01_CLEANUP(HANDLE * hTask, DWORD Count)
 }
 
 /*
- * 加锁、解锁、释放、倒挂测试
+ * 加锁、解锁、倒挂、阻塞后释放测试
  */
 
 STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE01(VOID)
@@ -303,6 +303,9 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE01(VOID)
     return STATE_SUCCESS;
 }
 
+/*
+ * 加锁后释放、释放后加锁、释放后解锁
+ */
 STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE02(VOID)
 {
     return STATE_SUCCESS;

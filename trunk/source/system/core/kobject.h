@@ -109,7 +109,7 @@ typedef unsigned long KOBJTABLE_ID_T;
 #define     OBJECT_TID_BITS         3
 #define     OBJECT_CID_BITS         5
 #define     OBJECT_STS_BITS         2
-#define     OBJECT_USR_BITS         1
+#define     OBJECT_MAG_BITS         1
 
 typedef struct tagHANDLE_BITS{
     HANDLE              ObjectSid: OBJECT_SID_BITS;                /**< Object sn */
@@ -117,7 +117,7 @@ typedef struct tagHANDLE_BITS{
     HANDLE              ObjectTid: OBJECT_TID_BITS;                /**< Table id */
     HANDLE              ObjectCid: OBJECT_CID_BITS;                /**< Class id */
     HANDLE              ObjectState: OBJECT_STS_BITS;              /**< Object state*/
-    HANDLE              ObjectUser: OBJECT_USR_BITS;
+    HANDLE              ObjectMagic: OBJECT_MAG_BITS;
 }HANDLE_BITS;
 
 
@@ -143,8 +143,8 @@ typedef struct tagHANDLE_BITS{
 #define     HANDLE_OBJECT_STATE_SHIFT               29
 #define     HANDLE_OBJECT_STATE_MASK                (OBJECT_STS_MASK << HANDLE_OBJECT_STATE_SHIFT)
 
-#define     HANDLE_OBJECT_USER_SHIFT                31
-#define     HANDLE_OBJECT_USER_MASK                 (OBJECT_UFG_MASK << HANDLE_OBJECT_USER_SHIFT)
+#define     HANDLE_OBJECT_MAGIC_SHIFT               31
+#define     HANDLE_OBJECT_MAGIC_MASK                (OBJECT_MAG_BITS << HANDLE_OBJECT_MAGIC_SHIFT)
 
 struct tagKOBJECT_HEADER{
     union{
@@ -198,8 +198,7 @@ struct tagKOBJECT_HEADER{
             (((pid) << HANDLE_OBJECT_PID_SHIFT) & HANDLE_OBJECT_PID_MASK) |                         \
             (((sid) << HANDLE_OBJECT_SID_SHIFT) & HANDLE_OBJECT_SID_MASK) |                         \
             (((tid) << HANDLE_OBJECT_TID_SHIFT) & HANDLE_OBJECT_TID_MASK) |                         \
-            (((state) << HANDLE_OBJECT_STATE_SHIFT) & HANDLE_OBJECT_STATE_MASK) |                   \
-            HANDLE_OBJECT_USER_MASK))
+            (((state) << HANDLE_OBJECT_STATE_SHIFT) & HANDLE_OBJECT_STATE_MASK)))
 
 #define     GetObjectHandle(lpHeader)                                                               \
             ((lpHeader)->uh.Handle & (~(HANDLE_OBJECT_STATE_MASK)))

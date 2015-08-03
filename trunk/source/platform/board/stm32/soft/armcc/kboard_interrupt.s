@@ -126,32 +126,13 @@ ST_LE
     ENDP
 
 HardFault_Handler   PROC
-    CPSID   I
-    PUSH    {R4 - R12, LR}
-    MOV     R0,     SP
-    BL      CORE_DebugMonitor  
-    POP     {R4 - R12, LR}
-    CPSIE   I
-    B       .
+    B       UsageFault_Handler
     ENDP
-
 MemManage_Handler   PROC
-    CPSID   I
-    PUSH    {R4 - R12, LR}
-    MOV     R0,     SP
-    BL      CORE_DebugMonitor  
-    POP     {R4 - R12, LR}
-    CPSIE   I
-    B       .
+    B       UsageFault_Handler
     ENDP
 BusFault_Handler    PROC
-    CPSID   I
-    PUSH    {R4 - R12, LR}
-    MOV     R0,     SP
-    BL      CORE_DebugMonitor  
-    POP     {R4 - R12, LR}
-    CPSIE   I
-    B       .
+    B       UsageFault_Handler
     ENDP
 UsageFault_Handler  PROC
     CPSID   I
@@ -177,7 +158,6 @@ DebugMon_Handler    PROC
     POP     {R4 - R12, LR}
     CPSIE   I
     BX      LR
-    NOP
     ENDP
 	
 ALIGN
