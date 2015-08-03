@@ -58,7 +58,6 @@ typedef E_STATUS (* FNWAKEROUTINE)(LPTASK_CONTEXT lpTaskContext);
 struct tagTASK_CONTEXT{
     KOBJECT_HEADER          Header;
     FNWAKEROUTINE           fnWakeRoutine;
-//    HANDLE                  hLockedMutex;                       /* Mutex handle */
     LIST_HEAD               SystemNode;                         /* 系统任务节点*/
     LIST_HEAD               IPCNode;                            /* IPC对象的任务节点 */
     union{
@@ -87,7 +86,8 @@ struct tagTASK_CONTEXT{
             DWORD           FaultBit:1;                         /* 任务异常标记(堆栈溢出) */
             DWORD           CancelBit:1;                        /* 任务取消标志 */
             DWORD           Permission:1;                       /**< The permission of task */
-            DWORD           ReservedBits:18;                    /* 保留 18 Bits */
+            INT             ErrorCode:8;                        /* 错误码 */
+            DWORD           ReservedBits:10;                    /* 保留 18 Bits */
         }Bits;
         DWORD               MiscBits;
     }ub;
@@ -95,8 +95,7 @@ struct tagTASK_CONTEXT{
     TASK_PRIORITY           InitPriority;                       /* 初始优先级 */
     TIME_SLICE_T            SliceRemain;                        /* W时间片剩余TICK数 */
     TIME_SLICE_T            SliceLength;                        /* W时间片最大TICK数 */
-    E_STATUS                ErrorCode;                          /* 错误码 */
-    BYTE                    bReserved[3];
+    LPVOID                  lpLocalHeap;                        /* 任务本地堆指针 */
     LPLPC_REQUEST_PACKET    lpLPCPacket;                        /* LPC 请求包指针 for wait object */
     LPKOBJECT_HEADER        lpLsotObject;                       /* 局部变量对象 */
     DWORD                   Reserved[2];                        /* 保留 */
@@ -239,16 +238,13 @@ struct tagTASK_CONTEXT{
 #define     GetContextInitPriority(lpTC)                    ((lpTC)->InitPriority)
 #define     SetContextInitPriority(lpTC, Prio)              do {(lpTC)->InitPriority = (Prio); } while(0)
 
-#define     GetContextTaskError(lpTC)                       ((lpTC)->ErrorCode)
-#define     SetContextTaskError(lpTC, Code)                 do {(lpTC)->ErrorCode = (Code);} while(0)
+#define     GetContextTaskError(lpTC)                       ((E_STATUS)(lpTC)->ub.Bits.ErrorCode)
+#define     SetContextTaskError(lpTC, Code)                 do {(lpTC)->ub.Bits.ErrorCode = (Code);} while(0)
 
 #define     GetContextArchParameter(lpTC)                   (&(lpTC)->ArchContext)
 
 #define     GetContextLPCPacket(lpTC)                       ((lpTC)->lpLPCPacket)
 #define     SetContextLPCPacket(lpTC, Addr)                 do {((lpTC)->lpLPCPacket) = (Addr); } while(0)
-
-//#define     GetContextLockedMutex(lpTC)                     ((lpTC)->hLockedMutex)
-//#define     SetContextLockedMutex(lpTC, hMutex)             do {((lpTC)->hLockedMutex) = (hMutex); } while(0)
 
 #define     TaskContextReadyNodeInit(lpTC)                  LIST_HEAD_INIT(&(lpTC)->Node.ReadyNode);
 #define     GetContextByReadyNode(lpNode)                   (lpNode ? TASK_ENTRY(lpNode, Node.ReadyNode) : NULL)

@@ -584,11 +584,13 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
     lpManager = TID2PoolContainer(Tid);
     
-    CORE_DEBUG(TRUE, "Malloc pool from '%s', Tid(%d), ObjectSize(%u).", GetClassName(lpClass), Tid, ObjectSize);
+    CORE_DEBUG(TRUE, "Malloc pool from '%s', Tid(%d), ObjectSize(%u).",
+        GetClassName(lpClass), Tid, ObjectSize);
     
     if (NULL == lpManager)
     {
-        CORE_ERROR(TRUE, "Container not found, magic(0x%08x), Tid(%d).", GetClassMagic(lpClass), Tid);
+        CORE_ERROR(TRUE, "Container not found, magic(0x%08x), Tid(%d), table(0x%P).",
+            GetClassMagic(lpClass), Tid, g_GlobalObjectPoolTable);
         CORE_SetError(STATE_INVALID_POOL);
         return NULL;
     }
@@ -597,7 +599,8 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
     if (INVALID_CONTAINER_ID == Pid)
     {
-        CORE_ERROR(TRUE, "Invalid container id for magic(0x%08x).", GetClassMagic(lpClass));
+        CORE_ERROR(TRUE, "Invalid container id for magic(0x%08x).",
+            GetClassMagic(lpClass));
         //CORE_SetError(STATE_INVALID_POOL); Set by pool
         return NULL;
     }
@@ -606,7 +609,8 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
     
     if (NULL == lpHeader)
     {
-        CORE_ERROR(TRUE, "Can't found header for magic(0x%08x) pid(%d).", GetClassMagic(lpClass), Pid);
+        CORE_ERROR(TRUE, "Can't found header for magic(0x%08x) pid(%d).", 
+            GetClassMagic(lpClass), Pid);
         return NULL;
     }
     
@@ -616,7 +620,8 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
 
         Attach2HashList(GetObjectHash(lpName), lpHeader);
 
-        initNamedObject(lpHeader, GetClassMagic(lpClass), ((DWORD_PTR)lpName), Pid, GetSystemObjectSid(), Tid);
+        initNamedObject(lpHeader, GetClassMagic(lpClass),
+                        ((DWORD_PTR)lpName), Pid, GetSystemObjectSid(), Tid);
         
         CORE_RestoreIRQ(dwFlags);
     }

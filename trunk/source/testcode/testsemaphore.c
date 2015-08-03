@@ -23,13 +23,18 @@
 #if (defined(CONFIG_BUILD_IPC_SEMAPHORE) && (TRUE == CONFIG_BUILD_IPC_SEMAPHORE))
 #include "testcode.h"
 
-#define NAME_CASE00     _TEXT("CASE00")
 #ifdef _UNICODE
+#define     TSNPRINTF           wsnprintf
 #define     TSTRCMP(s1, s2)     wcscmp(s1, s2)
 #else
+#define     TSNPRINTF           snprintf
 #define     TSTRCMP(s1, s2)     strcmp(s1, s2)
 #endif
 
+#define     NAME_CASE00         _TEXT("CASE00")
+/*
+ * 创建、捕获、释放、名称获取、释放后再捕获、自动命名测试
+ */
 STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE00(VOID)
 {
     E_STATUS Result;
@@ -38,11 +43,13 @@ STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE00(VOID)
     HANDLE handle = INVALID_HANDLE_VALUE;
     HANDLE hFind = INVALID_HANDLE_VALUE;
 
+    /* 创建对象测试 */
     handle = CreateSemaphore(lpName, 1, 100);
     
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != handle, return GetError(),
             "Create semaphore %s failed.", lpName);
     
+    /* 名称获取测试 */
     Result = GetObjectName(handle, Name, OBJECT_NAME_MAX);
     
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
@@ -51,15 +58,43 @@ STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE00(VOID)
     TEST_CASE_ASSERT(0 == TSTRCMP(Name, lpName), return STATE_NOT_MATCH,
             "Object name not match !");
 
+    /* 对象捕获测试 */
     hFind = TakeObject(Name);
     
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hFind, return GetError(),
             "take semaphore %s failed.", Name);
-    
+            
+    TEST_CASE_ASSERT(handle == hFind, return GetError(),
+            "Take semaphore %s failed.", Name);
+
+    /* 对象释放测试 */
     Result = CloseHandle(handle);
 
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
             "Close semaphore(0x%08X - '%s') failed.", handle, Name);
+    /* 释放后再捕获测试 */
+    hFind = TakeObject(Name);
+    
+    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE == hFind, return GetError(),
+            "Semaphore %s close failed.", Name);
+
+    /* 对象自动命名测试 */
+    handle = CreateSemaphore(NULL, 1, 100);
+    
+    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != handle, return GetError(),
+            "Create noname semaphore failed.");
+
+    /* 名称获取测试 */
+    Result = GetObjectName(handle, Name, OBJECT_NAME_MAX);
+    
+    TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
+            "Get semaphore(0x%08X) name failed.", handle);
+
+    /* 对象释放测试 */
+    Result = CloseHandle(handle);
+
+    TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
+            "Close semaphore(0x%08X - '%s') failed, result %d.", handle, Name, Result);
             
     return STATE_SUCCESS;
 }

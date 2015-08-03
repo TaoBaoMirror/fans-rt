@@ -480,34 +480,49 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS IPC_UnlockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    LPLPC_REQUEST_PACKET lpNextRequest;
     LPTASK_CONTEXT lpThisContext, lpNextContext;
 
     IPC_INFOR(TRUE, "Unlock mutex '%s' by '%s', value is %d.",
         GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
         GetMutexValue(lpHeader));
-    /* 未锁或没有任务等待解锁 */
-    if (GetMutexValue(lpHeader) > 0 || IncMutexValue(lpHeader) > 0)
+
+    /* Mutex 的 Onwer 任务*/
+    lpThisContext = CORE_Handle2TaskContextCheck(GetMutexOnwer(lpHeader), FALSE);
+
+    /* 如果 Onwer 任务为空，则任务未锁或是BUG，返回未准备好 */
+    if (NULL == lpThisContext)
     {
-        return STATE_SUCCESS;
+        CORE_ERROR(TRUE, "Mutex '%s' haven't onwer task, task '%s' can not unlock it !",
+            GetObjectName(lpHeader), CORE_GetCurrentTaskName());
+        return STATE_NOT_READY;
     }
 
+    /* 如果当前任务不是 Onwer 则没有解锁权限 */
+    if (lpThisContext != CORE_GetCurrentTask())
+    {
+        CORE_ERROR(TRUE, "Mutex '%s' unlock failed, task '%s' can not unlock it !",
+            GetObjectName(lpHeader), CORE_GetCurrentTaskName());
+        return STATE_INVALID_PERMISSION;
+    }
+    
+    /* 如果 MUTEX VALUE 大于 0 表示 MUTEX 未锁， 信号数量不需要增加，直接返回成功 */
+    /* 如果 MUTEX VALUE + 1 后大于 0 表示，VALUE 自增前值为 0，即没有任务被阻塞 */
+    if (GetMutexValue(lpHeader) > 0 || IncMutexValue(lpHeader) > 0)
+    {
+        SetMutexOnwer(lpHeader, INVALID_HANDLE_VALUE);
+        return STATE_SUCCESS;
+    }
+    /* else 否则 MUTEX 中有任务被阻塞 */
+
+    /* 如果 VALUE 值表明 MUTEX 被阻塞，但是阻塞队列为空，则属于 BUG */
     IPC_ASSERT(NULL != GetFirstWaitNode(lpHeader), SYSTEM_CALL_OOPS(),
         "BUG: Bad mutex wait task queue.");
-    
+
+    /* 阻塞在 MUTEX 中的最高优先级任务 */
     lpNextContext = GetFirstWaitTask(lpHeader);
-    lpNextRequest = GetContextLPCPacket(lpNextContext);
-    lpThisContext = CORE_Handle2TaskContextCheck(GetMutexOnwer(lpHeader), FALSE);
-    
-    IPC_ASSERT(lpThisContext, SYSTEM_CALL_OOPS(),
-        "BUG: Mutex(%s) invalid onwer task context.", GetObjectName(lpHeader));
-    
-    IPC_ASSERT(lpNextRequest, SYSTEM_CALL_OOPS(),
-        "BUG: Invalid request packet for task '%s'.", GetContextTaskName(lpNextContext));
     
     CORE_ResetTaskPriority(lpThisContext);           /* 尝试恢复 ONWER 的初始先级 */
     SetMutexOnwer(lpHeader, GetContextHandle(lpNextContext));
-    SetREQResult(lpNextRequest, STATE_SUCCESS);
     CORE_TaskWakeup(lpNextContext);
 
     IPC_INFOR(TRUE, "Unlock '%s' and wakeup task '%s' ...",
@@ -518,7 +533,7 @@ STATIC E_STATUS IPC_UnlockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS IPC_FreeMutex(LPKOBJECT_HEADER lpHeader)
 {
-    S16 Value = GetMutexValue(lpHeader);
+    SHORT Value = GetMutexValue(lpHeader);
 
     if (Value <= 0)
     {
@@ -645,7 +660,28 @@ STATIC E_STATUS IPC_PostSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS IPC_FreeSemaphore(LPKOBJECT_HEADER lpHeader)
 {
-    return STATE_NOT_SUPPORT;
+    SHORT Signals = GetSemaphoreSignals(lpHeader);
+    
+    if (Signals < 0)
+    {
+        LPLIST_HEAD lpList = NULL;
+        LPLIST_HEAD lpNode = NULL;
+
+        LIST_FOR_EACH_SAFE(lpList, lpNode, GetIPCWaitQueue(lpHeader))
+        {
+            LPTASK_CONTEXT lpWaitContext = GetContextByIPCNode(lpList);
+
+            CORE_TaskWakeup(lpWaitContext);
+            
+            IPC_INFOR(TRUE, "Remove semaphore '%s' and wakeup task '%s' ...",
+                GetObjectName(lpHeader), GetContextTaskName(lpWaitContext));
+        }
+
+        IPC_DEBUG(TRUE, "Semaphore %s signals is '%d', max signals is '%d' ...",
+                GetObjectName(lpHeader), GetSemaphoreSignals(lpHeader), GetSemaphoreMaxCount(lpHeader));
+    }
+    
+    return STATE_SUCCESS;
 }
 
 DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
