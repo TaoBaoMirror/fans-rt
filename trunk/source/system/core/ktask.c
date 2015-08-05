@@ -782,8 +782,7 @@ EXPORT E_TASK_PERMISSION CORE_SwitchTask(LPVOID CoreStack, LPVOID UserStack)
     SetCurrentPriority(GetContextThisPriority(lpSwitch2Task));
     SetContextState(lpSwitch2Task, TASK_STATE_WORKING);
     SetCurrentTaskContext(lpSwitch2Task);
-    
-    
+
     if (INVALID_TICK == GetContextStartTick(lpSwitch2Task))
     {
         SetContextStartTick(lpSwitch2Task, CORE_GetSystemTick());
@@ -882,6 +881,11 @@ EXPORT VOID CORE_SetCurrentTaskRequestPacket(LPVOID lpPacket)
 
 EXPORT E_STATUS CORE_TaskWakeup(LPTASK_CONTEXT lpTaskContext)
 {
+    return WakeupTask(lpTaskContext);
+}
+
+EXPORT E_STATUS CORE_TaskWakeupSafe(LPTASK_CONTEXT lpTaskContext)
+{
     DWORD dwFlags = CORE_DisableIRQ();
     E_STATUS State = WakeupTask(lpTaskContext);
     CORE_RestoreIRQ(dwFlags);
@@ -891,15 +895,17 @@ EXPORT E_STATUS CORE_TaskWakeup(LPTASK_CONTEXT lpTaskContext)
 
 EXPORT E_STATUS CORE_TaskSuspend(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
 {
-    DWORD dwFlags = CORE_DisableIRQ();
-    
-    SuspendTask(lpTaskContext, Timeout);
-
-    CORE_RestoreIRQ(dwFlags);
-
-    return STATE_SUCCESS;
+    return SuspendTask(lpTaskContext, Timeout);
 }
 
+EXPORT E_STATUS CORE_TaskSuspendSafe(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
+{
+    DWORD dwFlags = CORE_DisableIRQ();
+    E_STATUS Result = SuspendTask(lpTaskContext, Timeout);
+    CORE_RestoreIRQ(dwFlags);
+
+    return Result;
+}
 
 EXPORT E_STATUS CORE_SetThisPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority)
 {

@@ -312,7 +312,20 @@ FANSAPI RO_USER_CODE HANDLE CreateSemaphore(LPCTSTR lpCTName, SHORT Lights, SHOR
  */
 FANSAPI RO_USER_CODE E_STATUS PostSemaphore(HANDLE hSemaphore, SHORT Lights)
 {
-    return caRequestMethod(hSemaphore, &Lights, KIPC_METHOD_POST);
+    SHORT Count;
+    E_STATUS Result = STATE_INVALID_VALUE;
+    
+    for (Count = 0; Count < Lights; Count ++)
+    {
+        Result = caRequestMethod(hSemaphore, NULL, KIPC_METHOD_POST);
+        
+        if (STATE_SUCCESS != Result)
+        {
+            break;
+        }
+    }
+
+    return Result;
 }
 
 /**

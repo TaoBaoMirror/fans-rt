@@ -118,9 +118,6 @@ STATIC E_STATUS IPC_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_SUCCESS;
 }
 
-
-
-
 STATIC E_STATUS IPC_DetachDefault(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     if (NULL != lpParam)
@@ -434,15 +431,24 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     DWORD dwFlags;
+    LONG WaitTime;
     LPTASK_CONTEXT lpCurrentTask;
     LPTASK_CONTEXT lpOnwerContext;
-    LONG WaitTime = GetWaitTime4mParam(lpParam);
 
     IPC_INFOR(TRUE, "Lock mutex '%s' by '%s', value is %d.",
         GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
         GetMutexValue(lpHeader));
+    
+    if (NULL == lpParam)
+    {
+        CORE_ERROR(TRUE, "Invalid parameter for lock mutex '%s'.", GetObjectName(lpHeader));
+        return STATE_INVALID_PARAMETER;
+    }
+    
+    WaitTime = GetWaitTime4mParam(lpParam);
 
-    /* 如果加锁时，VALUE > 0 则说明 MUTEX 没有锁 */
+    /* 如果 MUTEX VALUE - 1 后等于 0 则说明 MUTEX 没有锁 */
+    /* 注: MUTEX VALUE 的最大值为 1，不会超过 1*/
     if (0 == DecMutexValue(lpHeader))
     {
         lpOnwerContext = CORE_GetCurrentTask();
@@ -459,11 +465,15 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
     IPC_ASSERT(lpOnwerContext, CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
         "BUG: Mutex(%s) invalid onwer task context.", GetObjectName(lpHeader));
-    
-    IPC_ASSERT(CORE_GetCurrentTask() != lpOnwerContext, CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
-        "BUG: Daed lock %s as task %s.", GetObjectName(lpHeader), GetContextTaskName(lpOnwerContext));
 
     lpCurrentTask = CORE_GetCurrentTask();
+
+    IPC_ASSERT(lpCurrentTask, CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
+        "BUG: Lock mutex '%s' failed, invalid current task.", GetObjectName(lpHeader));
+    
+    IPC_ASSERT(lpCurrentTask != lpOnwerContext, CORE_RestoreIRQ(dwFlags); SYSTEM_CALL_OOPS(),
+        "BUG: Daed lock %s as task %s.", GetObjectName(lpHeader), GetContextTaskName(lpOnwerContext));
+    
     /* 倒挂检测 */
     PriorityUpsideCheck(lpOnwerContext, lpCurrentTask);
     /* 将当前任务插入到阻塞队列 */
@@ -610,13 +620,18 @@ struct tagIPC_SEMAPHORE_OBJECT{
 };
 
 #define     GetSemaphoreSignals(lpHeader)                                                                  \
-            (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal)
+                (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal)
 #define     SetSemaphoreSignals(lpHeader, data)                                                            \
-            do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal) = (data); } while(0)
+                do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal) = (data); } while(0)
+#define     IncSemaphoreSignals(lpHeader)                                                                  \
+                (++ ((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal)
+#define     DecSemaphoreSignals(lpHeader)                                                                  \
+                (-- ((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal)
 #define     GetSemaphoreMaxCount(lpHeader)                                                                 \
-            (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.MaxCount)
+                (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.MaxCount)
 #define     SetSemaphoreMaxCount(lpHeader, data)                                                           \
-            do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.MaxCount) = (data); } while(0)
+                do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.MaxCount) = (data); } while(0)
+
 
 STATIC SIZE_T IPC_SizeofSemaphone(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
 {
@@ -650,35 +665,131 @@ STATIC E_STATUS IPC_ActiveSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS IPC_WaitSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    return STATE_NOT_SUPPORT;
+    DWORD dwFlags;
+    LONG WaitTime;
+    LPLPC_REQUEST_PACKET lpPacket;
+    E_STATUS State = STATE_SUCCESS;
+    LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
+    
+    IPC_INFOR(TRUE, "Wait semaphore '%s' by '%s', signals is %d.",
+        GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
+        GetSemaphoreSignals(lpHeader));
+
+    if (NULL == lpParam)
+    {
+        CORE_ERROR(TRUE, "Invalid parameter for lock mutex '%s'.", GetObjectName(lpHeader));
+        return STATE_INVALID_PARAMETER;
+    }
+    
+    IPC_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS(),
+        "BUG: Wait semaphore '%s' failed, invalid current task.", GetObjectName(lpHeader));
+    
+    lpPacket = GetContextLPCPacket(lpCurrentTask);
+    
+    IPC_ASSERT(lpPacket, SYSTEM_CALL_OOPS(),
+        "BUG: Wait semaphore '%s' failed, invalid request packet.", GetObjectName(lpHeader));
+
+    WaitTime = GetWaitTime4mParam(lpParam);
+
+    dwFlags = CORE_DisableIRQ();
+
+    /* 如果 SIGNALS - 1 < 0 则说明 SEMAPHORE 没有信号 */
+    if (DecSemaphoreSignals(lpHeader) < 0)
+    {
+        if (STATE_SUCCESS == (State = CORE_TaskSuspend(lpCurrentTask, WaitTime)))
+        {
+            /* 将当前任务插入到阻塞队列 */
+            Insert2WaitQueue(GetIPCWaitQueue(lpHeader), lpCurrentTask);
+            //SetContextWakeRoutine(lpCurrentTask, IPC_WakeRoutineSemaphore);
+            //SetREQPrivate(lpPacket, lpHeader);
+            SetREQResult(lpPacket, STATE_TIME_OUT);
+        }
+    }
+
+    CORE_RestoreIRQ(dwFlags);
+    
+    return State;
 }
 
 STATIC E_STATUS IPC_PostSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    return STATE_NOT_SUPPORT;
+    DWORD Flags;
+    E_STATUS State = STATE_SUCCESS;
+    
+    Flags = CORE_DisableIRQ();
+    
+    IPC_INFOR(TRUE, "Post semaphore '%s' by '%s', signals is %d.",
+        GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
+        GetSemaphoreSignals(lpHeader));
+
+    /* 如果 SIGNALS + 1 < 0 则说明有任务被 SEMAPHORE 阻塞 */
+    if (IncSemaphoreSignals(lpHeader) <= 0)
+    {
+        LPKIPC_WAIT_PARAM lpParam;
+        LPLPC_REQUEST_PACKET lpPacket;
+        LPTASK_CONTEXT lpTaskContext = GetFirstWaitTask(lpHeader);
+        /* 阻塞队列为空，表明有 BUG */
+        IPC_ASSERT(NULL != GetFirstWaitNode(lpHeader), SYSTEM_CALL_OOPS(),
+            "BUG: Bad wait task queue, semaphore'%s'.",  GetObjectName(lpHeader));
+
+        lpPacket = GetContextLPCPacket(lpTaskContext);
+
+        IPC_ASSERT(lpPacket, SYSTEM_CALL_OOPS(),
+            "BUG: Post semaphore '%s' failed, invalid request packet.", GetObjectName(lpHeader));
+
+        SetREQResult(lpPacket, STATE_SUCCESS);
+
+        lpParam = REQpParam(lpPacket, u1);
+
+        IPC_ASSERT(NULL != lpParam, SYSTEM_CALL_OOPS(), "Invalid IPC param for task(%s)!",
+                    GetContextTaskName(lpTaskContext));
+
+        SetObjectID2Param(lpParam, WAIT_FIRST_OBJECT_ID);
+
+        State = CORE_TaskWakeup(lpTaskContext);
+
+        IPC_INFOR(TRUE, "Post '%s' and wakeup task '%s', routine 0x%P, task state %d, result %d...",
+            GetObjectName(lpHeader), GetContextTaskName(lpTaskContext),
+            GetContextWakeRoutine(lpTaskContext), GetContextState(lpTaskContext), State);
+    }
+
+    CORE_RestoreIRQ(Flags);
+    
+    return State;
 }
 
 STATIC E_STATUS IPC_FreeSemaphore(LPKOBJECT_HEADER lpHeader)
 {
     SHORT Signals = GetSemaphoreSignals(lpHeader);
+
+    IPC_INFOR(TRUE, "Semaphore %s signals is '%d', max signals is '%d' ...",
+                GetObjectName(lpHeader), GetSemaphoreSignals(lpHeader), GetSemaphoreMaxCount(lpHeader));
     
     if (Signals < 0)
     {
         LPLIST_HEAD lpList = NULL;
         LPLIST_HEAD lpNode = NULL;
 
+        /* The current state of the object is death, so no need lock it. */
+        /* But the scheduler function Attach2ReadyQueue may be check the */
+        /* state of this object */
         LIST_FOR_EACH_SAFE(lpList, lpNode, GetIPCWaitQueue(lpHeader))
         {
+            LPLPC_REQUEST_PACKET lpPacket;
             LPTASK_CONTEXT lpWaitContext = GetContextByIPCNode(lpList);
 
+            lpPacket = GetContextLPCPacket(lpWaitContext);
+
+            IPC_ASSERT(lpPacket, SYSTEM_CALL_OOPS(),
+                "BUG: Post semaphore '%s' failed, invalid request packet.", GetObjectName(lpHeader));
+
+            SetREQResult(lpPacket, STATE_REMOVED);
+            
             CORE_TaskWakeup(lpWaitContext);
             
             IPC_INFOR(TRUE, "Remove semaphore '%s' and wakeup task '%s' ...",
                 GetObjectName(lpHeader), GetContextTaskName(lpWaitContext));
         }
-
-        IPC_DEBUG(TRUE, "Semaphore %s signals is '%d', max signals is '%d' ...",
-                GetObjectName(lpHeader), GetSemaphoreSignals(lpHeader), GetSemaphoreMaxCount(lpHeader));
     }
     
     return STATE_SUCCESS;

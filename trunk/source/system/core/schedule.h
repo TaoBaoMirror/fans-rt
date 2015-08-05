@@ -344,7 +344,7 @@ STATIC VOID ScheduleFinish(LPTASK_CONTEXT lpTaskContext)
 STATIC VOID Attach2ReadyQueue(LPTASK_CONTEXT lpTaskContext)
 {
     DetachSleep(lpTaskContext);
-    DetachIPCNode(lpTaskContext);
+    DetachIPCNode(lpTaskContext); /* Fix it, when object was freed by object manager */
     AttachReady(GetContextPriorityReadyQueue(lpTaskContext), lpTaskContext);
     SetContextState(lpTaskContext, TASK_STATE_READY);
     RelContextSliceRemain(lpTaskContext);
@@ -576,8 +576,13 @@ STATIC E_STATUS SuspendTask(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
 
     CORE_ASSERT(lpTaskContext, SYSTEM_CALL_OOPS(), "BUG: Invalid task context to suspend !");
     
-    if (WAIT_INFINITE == Timeout)
+    if (Timeout < 0)
     {
+        if (WAIT_INFINITE != Timeout)
+        {
+            return STATE_INVALID_VALUE;
+        }
+        
         Ticks = TICK_INFINITE;
     }
     else
@@ -593,7 +598,7 @@ STATIC E_STATUS SuspendTask(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
 }
 
 /**
- * Suspend specified task
+ * Wakeup specified task
  * @param The context of the task.
  * @return STATE_NOT_READY Task not ready.
  * @return STATE_SUCCESS successfully.
@@ -609,11 +614,11 @@ STATIC E_STATUS SuspendTask(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
  */
 STATIC E_STATUS WakeupTask(LPTASK_CONTEXT lpTaskContext)
 {
-    if (TASK_STATE_SLEEP == GetContextState(lpTaskContext))
-    {
-        LPLPC_REQUEST_PACKET lpPacket = GetContextLPCPacket(lpTaskContext);
+    TASK_STATUS State = GetContextState(lpTaskContext);
 
-        CORE_ASSERT(lpPacket, SYSTEM_CALL_OOPS(), "BUG: LPC Packet is NULL.");
+    if (TASK_STATE_SLEEP == State ||
+        TASK_STATE_WAITING == State)
+    {
         DetachIPCNode(lpTaskContext);
         Attach2ReadyQueue(lpTaskContext);
         SetNeedSchedule();
