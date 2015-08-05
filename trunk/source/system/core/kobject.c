@@ -456,13 +456,13 @@ STATIC INLINE KOBJTABLE_ID_T Size2Tid(SIZE_T Length)
 }
 
 
-STATIC INLINE KOBJECT_STATE SetObjectStateSafe(LPKOBJECT_HEADER lpHeader, KOBJECT_STATE NewState)
+STATIC INLINE KOBJECT_STATE KObjectSetStateSafe(LPKOBJECT_HEADER lpHeader, KOBJECT_STATE NewState)
 {
     DWORD dwFlags = CORE_DisableIRQ();
     KOBJECT_STATE State = GetObjectState(lpHeader);
 
     SetObjectState(lpHeader, NewState);
-    
+
     CORE_RestoreIRQ(dwFlags);
     
     return State;
@@ -653,12 +653,12 @@ STATIC E_STATUS FreeObjectToPool(LPKOBJECT_HEADER lpHeader)
         return STATE_INVALID_OBJECT;
     }
 
-    State = SetObjectStateSafe(lpHeader, KOBJECT_STATE_FREE);
+    State = KObjectSetStateSafe(lpHeader, KOBJECT_STATE_FREE);
 
     if (KOBJECT_STATE_DEATH != State)
     {
         CORE_ERROR(TRUE, "Free object(0x%08x) state not detach(%d).", lpHeader, State);
-        SetObjectStateSafe(lpHeader, State);
+        KObjectSetStateSafe(lpHeader, State);
         return STATE_INVALID_STATE;
     }
     
@@ -982,12 +982,21 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
         return CORE_GetError();
     }
 
-    State = SetObjectStateSafe(lpHeader, KOBJECT_STATE_DEATH);
+    /* After setting state to death, the all operations */
+    /* for this object will be return a failure */
+    /* Please see active object, take object and request method. */
+    State = KObjectSetStateSafe(lpHeader, KOBJECT_STATE_DEATH);
 
+    /* If the state of this object is already dead, */
+    /* which means another task already to destroy it. */
+    /* So the current task should be return a failure */
+    /* to finish this operation. */
     if (KOBJECT_STATE_FREE == State || KOBJECT_STATE_DEATH == State)
     {
         CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
                 lpHeader, GetObjectState(lpHeader));
+        KObjectSetStateSafe(lpHeader, State);
+
         return STATE_INVALID_STATE;
     }
 
@@ -1006,7 +1015,7 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
         }
     }
 
-    SetObjectStateSafe(lpHeader, State);
+    KObjectSetStateSafe(lpHeader, State);
 
     CORE_ERROR(TRUE, "Object '%s' call free in the class '%s' failed result %d.",
             GetObjectName(lpHeader), GetClassName(lpClass), Result);

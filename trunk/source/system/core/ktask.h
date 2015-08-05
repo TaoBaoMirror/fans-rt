@@ -221,7 +221,7 @@ struct tagTASK_CONTEXT{
 #define     GetContextCPUPercent(lpTC)                      ((lpTC)->ub.Bits.CPUPercent)
 #define     SetContextCPUPercent(lpTC, Percent)             do {(lpTC)->ub.Bits.CPUPercent = (Percent);} while(0)
 
-#define     GetContextState(lpTC)                           ((lpTC)->ub.Bits.TaskState)
+#define     GetContextState(lpTC)                           ((TASK_STATUS) (lpTC)->ub.Bits.TaskState)
 #define     SetContextState(lpTC, State)                    do { (lpTC)->ub.Bits.TaskState = (State); } while(0)
 
 #define     GetContextCancel(lpTC)                          ((lpTC)->ub.Bits.CancelBit)
@@ -312,7 +312,9 @@ extern "C" {
     EXPORT E_TASK_PERMISSION CORE_GetCurrentPermission(VOID);
     EXPORT VOID CORE_SetCurrentTaskRequestPacket(LPVOID lpPacket);
     EXPORT E_STATUS CORE_TaskSuspend(LPTASK_CONTEXT lpTaskContext, LONG Timeout);
+    EXPORT E_STATUS CORE_TaskSuspendSafe(LPTASK_CONTEXT lpTaskContext, LONG Timeout);
     EXPORT E_STATUS CORE_TaskWakeup(LPTASK_CONTEXT lpTaskContext);
+    EXPORT E_STATUS CORE_TaskWakeupSafe(LPTASK_CONTEXT lpTaskContext);
     
     EXPORT E_STATUS CORE_TaskAttach(LPTASK_CONTEXT lpTaskContext);
     EXPORT E_STATUS CORE_TaskDetach(LPTASK_CONTEXT lpTaskContext);
