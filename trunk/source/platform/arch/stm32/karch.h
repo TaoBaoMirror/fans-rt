@@ -18,6 +18,10 @@
 
 #include "kstack.h"
 
+typedef volatile unsigned char SPIN_LOCK_T;
+typedef volatile unsigned char * PSPIN_LOCK_T;
+typedef volatile unsigned char FAR * LPSPIN_LOCK_T;
+
 typedef union tagINSTRUCTION_BIT_FIELD INSTRUCTION_BIT_FIELD;
 typedef union tagINSTRUCTION_BIT_FIELD * PINSTRUCTION_BIT_FIELD;
 typedef union tagINSTRUCTION_BIT_FIELD FAR * LPINSTRUCTION_BIT_FIELD;
@@ -85,6 +89,17 @@ extern "C" {
                                  LPVOID lpTaskContext, HANDLE hTask,
                                  E_TASK_PERMISSION Permission);
     PUBLIC VOID CORE_SetArchContextParam(LPARCH_CONTEXT lpArchContext, LPVOID lpParam);
+
+#define     CORE_SPIN_LOCK(lock)                    CORE_SpinLock(&lock)
+#define     CORE_SPIN_UNLOCK(lock)                  CORE_SpinUnlock(&lock)
+#define     CORE_SPIN_LOCK_IRQ(lock, flags)         do { flags = CORE_DisableIRQ(); } while(0)
+#define     CORE_SPIN_UNLOCK_IRQ(lock, flags)       do { CORE_RestoreIRQ(flags); } while(0)
+    
+    PUBLIC VOID CORE_SpinLock(LPSPIN_LOCK_T Lock);
+    PUBLIC VOID CORE_SpinUnlock(LPSPIN_LOCK_T Lock);
+    PUBLIC VOID CORE_SpinLockIRQ(LPSPIN_LOCK_T Lock, DWORD_PTR dwFlags);
+    PUBLIC VOID CORE_SpinUnlockIRQ(LPSPIN_LOCK_T Lock, DWORD_PTR dwFlags);
+    
 #ifdef __cplusplus
 }
 #endif

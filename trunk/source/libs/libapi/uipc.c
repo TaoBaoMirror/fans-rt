@@ -66,8 +66,8 @@ FANSAPI RO_USER_CODE HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL S
 #endif
     }
 
-    Attribute.Value   = ((!!Automatic) << MARK_EVENT_AUTO_SHIFT)
-                      + ((!!Signal) << MARK_EVENT_SIGNAL_SHIFT);
+    Attribute.Value   = ((!!Automatic) << EVENT_AUTOMATIC_SHIFT)
+                      + ((!!Signal) << EVENT_SIGNAL_SHIFT);
 
     hEvent = caMallocObject(caName, EVT_MAGIC, &Attribute);
 
@@ -163,7 +163,7 @@ FANSAPI RO_USER_CODE HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 #endif
     }
 
-    Attribute.MutexValue = Owner ? 0 : 1;
+    Attribute.Bits.MutexValue = Owner ? 0 : 1;
 
     hMutex = caMallocObject(caName, MTX_MAGIC, &Attribute);
 
@@ -221,7 +221,7 @@ FANSAPI RO_USER_CODE E_STATUS MutexLock(HANDLE hMutex)
     E_STATUS Result;
     KIPC_WAIT_PARAM Param;
 
-    SetObjectID2Param(&Param, WAIT_INVALID_OBJECT_ID);
+    SetSignalID2Param(&Param, WAIT_SIGNAL_INVALID);
     SetWaitTime2Param(&Param, WAIT_INFINITE);
     
     if (STATE_SUCCESS != (Result = caRequestMethod(hMutex, &Param, KIPC_METHOD_WAIT)))
@@ -229,7 +229,7 @@ FANSAPI RO_USER_CODE E_STATUS MutexLock(HANDLE hMutex)
         return Result;
     }
     
-    if (WAIT_FIRST_OBJECT_ID != Param.ObjectID)
+    if (WAIT_SIGNAL_ID_0 != Param.SignalID)
     {
         Result = STATE_INVALID_OBJECT;
     }
@@ -275,8 +275,8 @@ FANSAPI RO_USER_CODE HANDLE CreateSemaphore(LPCTSTR lpCTName, SHORT Lights, SHOR
 #endif
     }
 
-    Attribute.Signal    = Lights;
-    Attribute.MaxCount  = MaxLights;
+    Attribute.Bits.Signal    = Lights;
+    Attribute.Bits.MaxCount  = MaxLights;
 
     hSemaphore = caMallocObject(caName, SEM_MAGIC, &Attribute);
 
@@ -344,7 +344,7 @@ FANSAPI RO_USER_CODE E_STATUS PostSemaphore(HANDLE hSemaphore, SHORT Lights)
  * date           author          notes
  * 2015-07-29     JiangYong       first version
  */
-FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD Mask)
+FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD Mask, BOOL WaitFull)
 {
     HANDLE hSemset;
     SEMSET_ATTRIBUTE Attribute;
@@ -365,7 +365,7 @@ FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD Mask)
 #endif
     }
 
-    Attribute.Mask    = Mask;
+    Attribute.Value =   ((Mask << SEMSET_LIGHTS_SHIFT) | ((!!WaitFull)<< SEMSET_FULL_SHIFT));
 
     hSemset = caMallocObject(caName, SEM_MAGIC, &Attribute);
 

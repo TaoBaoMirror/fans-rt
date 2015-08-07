@@ -142,15 +142,15 @@ EXPORT RO_USER_CODE SHORT caWaitObject(HANDLE handle, LONG WaitTime)
     E_STATUS Result;
     KIPC_WAIT_PARAM Param;
     
-    SetObjectID2Param(&Param, WAIT_FIRST_OBJECT_ID);
+    SetSignalID2Param(&Param, WAIT_SIGNAL_ID_0);
     SetWaitTime2Param(&Param, WaitTime);
     
     if (STATE_SUCCESS != (Result = caRequestMethod(handle, &Param, KIPC_METHOD_WAIT)))
     {
         caSetError(Result);
-        return WAIT_INVALID_OBJECT_ID;
+        return WAIT_SIGNAL_INVALID;
     }
     
-    return Param.ObjectID;
+    return Param.SignalID;
 }
 

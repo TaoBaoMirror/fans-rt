@@ -5,6 +5,7 @@
 #include <fatypes.h>
 
 #include "ktask.h"
+#include "karch.h"
 #include "kobject.h"
 
 enum{
@@ -20,14 +21,14 @@ typedef struct tagKIPC_WAIT_PARAM * PKIPC_WAIT_PARAM;
 typedef struct tagKIPC_WAIT_PARAM FAR * LPKIPC_WAIT_PARAM;
 
 struct tagKIPC_WAIT_PARAM{
-    LONG                        ObjectID;
+    SHORT                       SignalID;
     LONG                        WaitTime;
 };
 
 #define     GetWaitTime4mParam(P)       (((LPKIPC_WAIT_PARAM)(P))->WaitTime)
 #define     SetWaitTime2Param(P, Tm)    do { (((LPKIPC_WAIT_PARAM)(P))->WaitTime) = (Tm); } while(0)
-#define     GetObjectID4mParam(P)       (((LPKIPC_WAIT_PARAM)(P))->ObjectID)
-#define     SetObjectID2Param(P, Id)    do { (((LPKIPC_WAIT_PARAM)(P))->ObjectID) = (Id); } while(0)
+#define     GetSignalID4mParam(P)       (((LPKIPC_WAIT_PARAM)(P))->SignalID)
+#define     SetSignalID2Param(P, Id)    do { (((LPKIPC_WAIT_PARAM)(P))->SignalID) = (Id); } while(0)
 
 
 typedef struct tagKIPC_CLASS_DESCRIPTOR KIPC_CLASS_DESCRIPTOR;
@@ -39,25 +40,62 @@ struct tagKIPC_CLASS_DESCRIPTOR{
     FNCLASSMETHOD               fnClassMethods[KIPC_CLASS_METHODS];
 };
 
-typedef struct tagIPC_BASE_OBJECT IPC_BASE_OBJECT;
-typedef struct tagIPC_BASE_OBJECT * PIPC_BASE_OBJECT;
-typedef struct tagIPC_BASE_OBJECT FAR * LPIPC_BASE_OBJECT;
+typedef struct tagKIPC_CLASS_HEADER KIPC_CLASS_HEADER;
+typedef struct tagKIPC_CLASS_HEADER * PKIPC_CLASS_HEADER;
+typedef struct tagKIPC_CLASS_HEADER FAR * LPKIPC_CLASS_HEADER;
 
-struct tagIPC_BASE_OBJECT{
+struct tagKIPC_CLASS_HEADER{
     KOBJECT_HEADER      Header;
     LIST_HEAD           WaitQueue;
 };
-#define     IPC_ENTRY(Ptr, Member)                  ((LPIPC_BASE_OBJECT)CONTAINER_OF(Ptr, IPC_BASE_OBJECT, Member))
+
+typedef union tagKIPC_ATTRIBUTE KIPC_ATTRIBUTE;
+typedef union tagKIPC_ATTRIBUTE * PKIPC_ATTRIBUTE;
+typedef union tagKIPC_ATTRIBUTE FAR * LPKIPC_ATTRIBUTE;
+
+union tagKIPC_ATTRIBUTE{
+    struct {
+        DWORD           Lock:1;
+        DWORD           Info:31;
+    }Bits;
+    struct {
+        SPIN_LOCK_T     Lock:1;
+        BYTE            Reserved:7;
+        BYTE            Info[3];
+    }Byte;
+    DWORD               Value;
+};
+
+typedef struct tagKIPC_CLASS_BASE KIPC_CLASS_BASE;
+typedef struct tagKIPC_CLASS_BASE * PKIPC_CLASS_BASE;
+typedef struct tagKIPC_CLASS_BASE FAR * LPKIPC_CLASS_BASE;
+
+struct tagKIPC_CLASS_BASE{
+    KIPC_CLASS_HEADER           Base;
+    VOLATILE KIPC_ATTRIBUTE     Attribute;
+};
+
+#define     GetIPCSpinLock(lpHeader)                                                                \
+                (((LPKIPC_CLASS_BASE)(lpHeader))->Attribute.Byte.Lock)
+
+#define     GetIPCAttribute(lpHeader)                                                               \
+                (((LPKIPC_CLASS_BASE)(lpHeader))->Attribute.Value)
+
+#define     SetIPCAttribute(lpHeader, lpAttribute)                                                  \
+                do { (((LPKIPC_CLASS_BASE)(lpHeader))->Attribute.Value) =                           \
+                        ((lpAttribute)->Value & (~0x1)); } while(0)
+                        
+#define     IPC_ENTRY(Ptr, Member)                  ((LPKIPC_CLASS_HEADER)CONTAINER_OF(Ptr, KIPC_CLASS_HEADER, Member))
 #define     GetHeaderByWaitQueue(Ptr)               IPC_ENTRY(Ptr, WaitQueue)
-#define     GetIPCWaitQueue(lpObject)               (&(((LPIPC_BASE_OBJECT)(lpObject))->WaitQueue))
+#define     GetIPCWaitQueue(lpObject)               (&(((LPKIPC_CLASS_HEADER)(lpObject))->WaitQueue))
 #define     GetFirstWaitNode(lpObject)              LIST_NEXT_NODE(GetIPCWaitQueue(lpObject))
 #define     GetFirstWaitTask(lpObject)              GetContextByIPCNode(GetFirstWaitNode(lpObject))
 
-#define     MARK_EVENT_SIGNAL_SHIFT                 (0x0)
-#define     MARK_EVENT_SIGNAL_MASK                  (1 << MARK_EVENT_SIGNAL_SHIFT)
-#define     MARK_EVENT_AUTO_SHIFT                   (0x1)
-#define     MARK_EVENT_AUTO_MASK                    (1 << MARK_EVENT_AUTO_SHIFT)
-#define     MARK_EVENT_BITS_MASK                    (MARK_EVENT_SIGNAL_MASK | MARK_EVENT_AUTO_MASK)
+#define     EVENT_SIGNAL_SHIFT                      (0x0)
+#define     EVENT_SIGNAL_MASK                       (1 << EVENT_SIGNAL_SHIFT)
+#define     EVENT_AUTOMATIC_SHIFT                   (0x1)
+#define     EVENT_AUTOMATIC_MASK                    (1 << EVENT_AUTOMATIC_SHIFT)
+#define     EVENT_BITS_MASK                         (EVENT_SIGNAL_MASK | EVENT_AUTOMATIC_MASK)
 
 typedef union tagEVENT_ATTRIBUTE EVENT_ATTRIBUTE;
 typedef union tagEVENT_ATTRIBUTE * PEVENT_ATTRIBUTE;
@@ -71,33 +109,76 @@ union tagEVENT_ATTRIBUTE{
     BYTE               Value;
 };
 
-#define     MUTEX_VALUE_BITS        OBJECT_SID_BITS
 #define     MUTEX_ONWER_MASK        (~HANDLE_OBJECT_SID_MASK)
+#define     MUTEX_VALUE_BITS        OBJECT_SID_BITS
 
-typedef struct tagMUTEX_ATTRIBUTE MUTEX_ATTRIBUTE;
-typedef struct tagMUTEX_ATTRIBUTE * PMUTEX_ATTRIBUTE;
-typedef struct tagMUTEX_ATTRIBUTE FAR * LPMUTEX_ATTRIBUTE;
+typedef union tagMUTEX_ATTRIBUTE MUTEX_ATTRIBUTE;
+typedef union tagMUTEX_ATTRIBUTE * PMUTEX_ATTRIBUTE;
+typedef union tagMUTEX_ATTRIBUTE FAR * LPMUTEX_ATTRIBUTE;
 
-struct tagMUTEX_ATTRIBUTE{
-    S32                 MutexValue: MUTEX_VALUE_BITS;              /**< Î¨Ò»Ê¶±ðÂë */
-    HANDLE              hOnwerTask: 32 - MUTEX_VALUE_BITS;
+union tagMUTEX_ATTRIBUTE{
+    struct {
+        DWORD           Lock:1;
+        LONG            MutexValue:10;
+        HANDLE          hOnwerTask:32-MUTEX_VALUE_BITS;
+    }Bits;
+    struct {
+        SPIN_LOCK_T     Lock:1;
+        BYTE            MutexValueL:7;
+        BYTE            MutexValueH:3;
+        BYTE            hOnwerTaskL:5;
+        BYTE            hOnwerTaskH[2];
+    }Bytes;
+    HANDLE              Handle;
+    DWORD               Value;
 };
 
-typedef struct tagSEMAPHORE_ATTRIBUTE SEMAPHORE_ATTRIBUTE;
-typedef struct tagSEMAPHORE_ATTRIBUTE * PSEMAPHORE_ATTRIBUTE;
-typedef struct tagSEMAPHORE_ATTRIBUTE FAR * LPSEMAPHORE_ATTRIBUTE;
+typedef union tagSEMAPHORE_ATTRIBUTE SEMAPHORE_ATTRIBUTE;
+typedef union tagSEMAPHORE_ATTRIBUTE * PSEMAPHORE_ATTRIBUTE;
+typedef union tagSEMAPHORE_ATTRIBUTE FAR * LPSEMAPHORE_ATTRIBUTE;
 
-struct tagSEMAPHORE_ATTRIBUTE{
-    SHORT               Signal;
-    SHORT               MaxCount;
+
+union tagSEMAPHORE_ATTRIBUTE{
+    struct {
+        DWORD           Lock:1;
+        DWORD           Reserved:1;
+        LONG            Signal:15;
+        LONG            MaxCount:15;
+    }Bits;
+    struct {
+        SPIN_LOCK_T     Lock:1;
+        BYTE            InforL:7;
+        BYTE            InforH[3];
+    }Byte;
+    DWORD               Value;
 };
 
-typedef struct tagSEMSET_ATTRIBUTE SEMSET_ATTRIBUTE;
-typedef struct tagSEMSET_ATTRIBUTE * PSEMSET_ATTRIBUTE;
-typedef struct tagSEMSET_ATTRIBUTE FAR * LPSEMSET_ATTRIBUTE;
+typedef union tagSEMSET_ATTRIBUTE SEMSET_ATTRIBUTE;
+typedef union tagSEMSET_ATTRIBUTE * PSEMSET_ATTRIBUTE;
+typedef union tagSEMSET_ATTRIBUTE FAR * LPSEMSET_ATTRIBUTE;
 
-struct tagSEMSET_ATTRIBUTE{
-    DWORD               Mask:32;
+#define     SEMSET_LOCK_SHIFT           (0)
+#define     SEMSET_LOCK_MASK            (1<<SEMSET_LOCK_SHIFT)
+#define     SEMSET_FULL_SHIFT           (1)
+#define     SEMSET_FULL_MASK            (1<<SEMSET_FULL_SHIFT)
+#define     SEMSET_SIGNAL_FULL          (0xffffff)
+#define     SEMSET_LIGHTS_SHIFT         (8)
+#define     SEMSET_LIGHTS_MASK          (SEMSET_SIGNAL_FULL << SEMSET_LIGHTS_SHIFT)
+
+union tagSEMSET_ATTRIBUTE{
+    struct {
+        DWORD           Lock:1;
+        DWORD           Full:1;
+        DWORD           Reserved:6;
+        DWORD           LightMask:24;
+    }Bits;
+    struct {
+        SPIN_LOCK_T     Lock:1;
+        BOOL            Full:1;
+        BYTE            Reserved:6;
+        BYTE            LightMask[3];
+    }Byte;
+    DWORD               Value;
 };
 
 #ifdef __cplusplus
