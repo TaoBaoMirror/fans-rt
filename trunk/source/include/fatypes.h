@@ -28,7 +28,7 @@ typedef signed short S16;
 typedef signed int S32;
 typedef signed long long S64;
 
-typedef short U16;
+typedef signed short U16;
 typedef unsigned long U32;
 typedef unsigned long long U64;
 
@@ -84,16 +84,16 @@ typedef const WCHAR FAR * LPCWSTR;
 #define _TEXT(text) text
 #endif
 
-#define     WAIT_INVALID_OBJECT_ID      (-1)
-#define     WAIT_FIRST_OBJECT_ID        (0)
+#define     WAIT_SIGNAL_INVALID         (-1)
+#define     WAIT_SIGNAL_ID_0            (0)
 
-typedef short SHORT;
-typedef short * PSHORT;
-typedef short FAR * LPSHORT;
+typedef signed short SHORT;
+typedef signed short * PSHORT;
+typedef signed short FAR * LPSHORT;
 
-typedef int INT;
-typedef int * PINT;
-typedef int FAR * LPINT;
+typedef signed int INT;
+typedef signed int * PINT;
+typedef signed int FAR * LPINT;
 
 typedef unsigned int UINT;
 typedef unsigned int * PUINT;
@@ -105,22 +105,22 @@ typedef unsigned int FAR * LPUINT;
 #define TICK_INFINITE       (-1LL)
 #define WAIT_INFINITE       (-1L)
 #define SYSTEM_HAVE_TICK64
-typedef long long TICK;
-typedef long long * PTICK;
-typedef long long FAR * LPTICK;
+typedef signed long long TICK;
+typedef signed long long * PTICK;
+typedef signed long long FAR * LPTICK;
 #else
 #define SYSTEM_HAVE_TICK32
 #define INVALID_TICK        (-1L)
 #define TICK_INFINITE       (-1L)
 #define WAIT_INFINITE       (-1L)
-typedef long TICK;
-typedef long * PTICK;
-typedef long FAR * LPTICK;
+typedef signed long TICK;
+typedef signed long * PTICK;
+typedef signed long FAR * LPTICK;
 #endif
 
-typedef long LONG;
-typedef long * PLONG;
-typedef long FAR * LPLONG;
+typedef signed long LONG;
+typedef signed long * PLONG;
+typedef signed long FAR * LPLONG;
 
 typedef unsigned long ULONG;
 typedef unsigned long * PULONG;
@@ -173,9 +173,9 @@ typedef unsigned char BOOL;
 typedef unsigned char * PBOOL;
 typedef unsigned char FAR * LPBOOL;
 
-typedef long long OFF_T;
-typedef long long * POFF_T;
-typedef long long FAR * LPOFF_T;
+typedef signed long long OFF_T;
+typedef signed long long * POFF_T;
+typedef signed long long FAR * LPOFF_T;
 
 
 /**

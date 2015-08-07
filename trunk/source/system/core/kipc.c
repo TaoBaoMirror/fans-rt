@@ -22,7 +22,8 @@
 #include "klist.h"
 #include "kcore.h"
 #include "kdebug.h"
-//#define IPC_DEBUG_ENABLE TRUE
+#include "ktable.h"
+#define IPC_DEBUG_ENABLE TRUE
 
 #if (IPC_DEBUG_ENABLE == TRUE)
 #define     IPC_DEBUG(Enter, ...)                            CORE_DEBUG(Enter, __VA_ARGS__)
@@ -118,6 +119,25 @@ STATIC E_STATUS IPC_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     return STATE_SUCCESS;
 }
 
+
+STATIC E_STATUS IPC_DoSuspend(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    E_STATUS State = STATE_SUCCESS;
+    LONG WaitTime = GetWaitTime4mParam(lpParam);
+    LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
+
+    if (STATE_SUCCESS == (State = CORE_TaskSuspend(lpCurrentTask, WaitTime)))
+    {
+        /* 将当前任务插入到阻塞队列 */
+        Insert2WaitQueue(GetIPCWaitQueue(lpHeader), lpCurrentTask);
+        return STATE_TIME_OUT;
+    }
+    
+    return State;
+}
+
+
+
 STATIC E_STATUS IPC_DetachDefault(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     if (NULL != lpParam)
@@ -143,7 +163,7 @@ typedef struct tagIPC_EVENT_OBJECT * PIPC_EVENT_OBJECT;
 typedef struct tagIPC_EVENT_OBJECT * LPIPC_EVENT_OBJECT;
 
 struct tagIPC_EVENT_OBJECT{
-    IPC_BASE_OBJECT                 Base;
+    KIPC_CLASS_HEADER               Base;
     VOLATILE EVENT_ATTRIBUTE        Marks;
     BYTE                            cbReserved[3];
 };
@@ -178,7 +198,7 @@ STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
     
-    if (0 != (lpAttribute->Value & (~MARK_EVENT_BITS_MASK)))
+    if (0 != (lpAttribute->Value & (~EVENT_BITS_MASK)))
     {
         IPC_ERROR(TRUE, "Invalid value to create event '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_VALUE;
@@ -309,40 +329,31 @@ typedef struct tagIPC_MUTEX_OBJECT * PIPC_MUTEX_OBJECT;
 typedef struct tagIPC_MUTEX_OBJECT * LPIPC_MUTEX_OBJECT;
 
 struct tagIPC_MUTEX_OBJECT{
-    IPC_BASE_OBJECT                     Base;
-    VOLATILE union{
-        MUTEX_ATTRIBUTE                 Bits;
-        HANDLE                          Handle;
-        DWORD                           Attribute;
-    }un;
+    KIPC_CLASS_HEADER               Base;
+    VOLATILE MUTEX_ATTRIBUTE        Attribute;
 };
 
 #define     CheckIsOnwerTask(lpHeader, lpTask)                                                      \
             (GetMutexOnwer(lpHeader) == (GetContextHandle(lpTask) & MUTEX_ONWER_MASK))
 
 #define     GetMutexOnwer(lpHeader)                                                                 \
-            (((LPIPC_MUTEX_OBJECT)(lpHeader))->un.Handle & MUTEX_ONWER_MASK)
+            (((LPIPC_MUTEX_OBJECT)(lpHeader))->Attribute.Handle & MUTEX_ONWER_MASK)
 
 #define     SetMutexOnwer(lpHeader, hOnwer)                                                         \
             do {                                                                                    \
-                (((LPIPC_MUTEX_OBJECT)(lpHeader))->un.Bits.hOnwerTask)                              \
+                (((LPIPC_MUTEX_OBJECT)(lpHeader))->Attribute.Bits.hOnwerTask)                       \
                                     = ((hOnwer)>> MUTEX_VALUE_BITS);                                \
             } while(0)
 
 #define     GetMutexValue(lpHeader)                                                                 \
-            (((LPIPC_MUTEX_OBJECT)(lpHeader))->un.Bits.MutexValue)
+            (((LPIPC_MUTEX_OBJECT)(lpHeader))->Attribute.Bits.MutexValue)
 #define     SetMutexValue(lpHeader, data)                                                           \
-            do { (((LPIPC_MUTEX_OBJECT)(lpHeader))->un.Bits.MutexValue) = (data); } while(0)
+            do { (((LPIPC_MUTEX_OBJECT)(lpHeader))->Attribute.Bits.MutexValue) = (data); } while(0)
 #define     IncMutexValue(lpHeader)                                                                 \
-            (++ ((LPIPC_MUTEX_OBJECT)(lpHeader))->un.Bits.MutexValue)
+            (++ ((LPIPC_MUTEX_OBJECT)(lpHeader))->Attribute.Bits.MutexValue)
 #define     DecMutexValue(lpHeader)                                                                 \
-            (-- ((LPIPC_MUTEX_OBJECT)(lpHeader))->un.Bits.MutexValue)
-            
-#define     SetMutexAttribute(lpHeader, Handle, Value)                                              \
-            do {                                                                                    \
-                (((LPIPC_MUTEX_OBJECT)(lpHeader))->un.Attribute) =                                  \
-                    ((Handle & (~HANDLE_OBJECT_SID_MASK)) | (Value & HANDLE_OBJECT_SID_MASK));      \
-            } while(0)
+            (-- ((LPIPC_MUTEX_OBJECT)(lpHeader))->Attribute.Bits.MutexValue)
+
 
 STATIC E_STATUS IPC_WakeRoutineMutex(LPTASK_CONTEXT lpTaskContext)
 {
@@ -372,7 +383,7 @@ STATIC E_STATUS IPC_WakeRoutineMutex(LPTASK_CONTEXT lpTaskContext)
                     "Invalid IPC param for task(%s)!",
                     GetContextTaskName(lpTaskContext));
         
-        SetObjectID2Param(lpParam, WAIT_FIRST_OBJECT_ID);
+        SetSignalID2Param(lpParam, WAIT_SIGNAL_ID_0);
         SetREQResult(lpPacket, STATE_SUCCESS);
         IPC_INFOR(TRUE, "Mutex '%s' unlock, task '%s' will be wakeup ...",
                    GetObjectName(lpHeader), GetContextTaskName(lpTaskContext));
@@ -403,25 +414,21 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         IPC_ERROR(TRUE, "Invalid parameter to create mutex '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_PARAMETER;
     }
-        
-    if ((0 != (lpAttribute->MutexValue)) && (1 != (lpAttribute->MutexValue)))
+
+    if (0 == lpAttribute->Bits.MutexValue)
+    {
+        LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
+        IPC_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS(), "Current task context not found ?");
+        lpAttribute->Value |= GetContextHandle(lpCurrentTask) & (~HANDLE_OBJECT_SID_MASK);
+    }
+    else if (1 != lpAttribute->Bits.MutexValue)
     {
         IPC_ERROR(TRUE, "Invalid value to create mutex '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_VALUE;
     }
-    
+
     LIST_HEAD_INIT(GetIPCWaitQueue(lpHeader));
-    
-    if (lpAttribute->MutexValue)
-    {
-        SetMutexValue(lpHeader, 1);
-    }
-    else
-    {
-        LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
-        IPC_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS(), "Current task context not found ?");
-        SetMutexAttribute(lpHeader, GetContextHandle(lpCurrentTask), 0);
-    }
+    SetIPCAttribute(lpHeader, lpAttribute);
     
     IPC_INFOR(TRUE, "Create mutex (%s - 0x%P) ...", GetObjectName(lpHeader), lpHeader);
 
@@ -455,7 +462,7 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
         IPC_ASSERT(lpOnwerContext, SYSTEM_CALL_OOPS(), "Current task context not found ?");
         SetMutexOnwer(lpHeader, GetContextHandle(lpOnwerContext));
-        SetObjectID2Param(lpParam, WAIT_FIRST_OBJECT_ID);
+        SetSignalID2Param(lpParam, WAIT_SIGNAL_ID_0);
 
         return STATE_SUCCESS;
     }
@@ -493,7 +500,7 @@ STATIC E_STATUS IPC_UnlockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     LPTASK_CONTEXT lpThisContext, lpNextContext;
 
     IPC_INFOR(TRUE, "Unlock mutex '%s' by '%s', value is %d.",
-        GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
+        GetObjectName(lpHeader), CORE_GetCurrentTaskName(), 
         GetMutexValue(lpHeader));
 
     /* Mutex 的 Onwer 任务*/
@@ -514,7 +521,7 @@ STATIC E_STATUS IPC_UnlockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
             GetObjectName(lpHeader), CORE_GetCurrentTaskName());
         return STATE_INVALID_PERMISSION;
     }
-    
+
     /* 如果 MUTEX VALUE 大于 0 表示 MUTEX 未锁， 信号数量不需要增加，直接返回成功 */
     /* 如果 MUTEX VALUE + 1 后大于 0 表示，VALUE 自增前值为 0，即没有任务被阻塞 */
     if (GetMutexValue(lpHeader) > 0 || IncMutexValue(lpHeader) > 0)
@@ -615,22 +622,26 @@ typedef struct tagIPC_SEMAPHORE_OBJECT * PIPC_SEMAPHORE_OBJECT;
 typedef struct tagIPC_SEMAPHORE_OBJECT * LPIPC_SEMAPHORE_OBJECT;
 
 struct tagIPC_SEMAPHORE_OBJECT{
-    IPC_BASE_OBJECT                 Base;
+    KIPC_CLASS_HEADER               Base;
     VOLATILE SEMAPHORE_ATTRIBUTE    Attribute;
 };
 
-#define     GetSemaphoreSignals(lpHeader)                                                                  \
-                (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal)
-#define     SetSemaphoreSignals(lpHeader, data)                                                            \
-                do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal) = (data); } while(0)
-#define     IncSemaphoreSignals(lpHeader)                                                                  \
-                (++ ((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal)
-#define     DecSemaphoreSignals(lpHeader)                                                                  \
-                (-- ((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Signal)
-#define     GetSemaphoreMaxCount(lpHeader)                                                                 \
-                (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.MaxCount)
-#define     SetSemaphoreMaxCount(lpHeader, data)                                                           \
-                do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.MaxCount) = (data); } while(0)
+#define     GetSemaphoreValue(lpHeader)                                                                     \
+                (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Value)
+#define     SetSemaphoreValue(lpHeader, lpAttribute)                                                        \
+                do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Value) = (lpAttribute)->Value & (~0x1); } while(0)
+#define     GetSemaphoreSignals(lpHeader)                                                                   \
+                (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Bits.Signal)
+#define     SetSemaphoreSignals(lpHeader, data)                                                             \
+                do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Bits.Signal) = (data); } while(0)
+#define     IncSemaphoreSignals(lpHeader)                                                                   \
+                (++ ((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Bits.Signal)
+#define     DecSemaphoreSignals(lpHeader)                                                                   \
+                (-- ((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Bits.Signal)
+#define     GetSemaphoreMaxCount(lpHeader)                                                                  \
+                (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Bits.MaxCount)
+#define     SetSemaphoreMaxCount(lpHeader, data)                                                            \
+                do { (((LPIPC_SEMAPHORE_OBJECT)(lpHeader))->Attribute.Bits.MaxCount) = (data); } while(0)
 
 
 STATIC SIZE_T IPC_SizeofSemaphone(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
@@ -645,20 +656,19 @@ STATIC E_STATUS IPC_ActiveSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
     if (NULL == lpParam)
     {
-        IPC_ERROR(TRUE, "Invalid parameter to create event '%s'.", GetObjectName(lpHeader));
+        IPC_ERROR(TRUE, "Invalid parameter to create semaphore '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_PARAMETER;
     }
 
-    if (lpAttribute->MaxCount <= 0 || lpAttribute->Signal > lpAttribute->MaxCount)
+    if (lpAttribute->Bits.MaxCount <= 0 || lpAttribute->Bits.Signal > lpAttribute->Bits.MaxCount)
     {
         IPC_ERROR(TRUE, "Invalid value to create semaphore '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_VALUE;
     }
 
     LIST_HEAD_INIT(GetIPCWaitQueue(lpHeader));
-    
-    SetSemaphoreSignals(lpHeader, lpAttribute->Signal);
-    SetSemaphoreMaxCount(lpHeader, lpAttribute->MaxCount);
+
+    SetIPCAttribute(lpHeader, lpAttribute);
 
     return STATE_SUCCESS;
 }
@@ -666,44 +676,28 @@ STATIC E_STATUS IPC_ActiveSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 STATIC E_STATUS IPC_WaitSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     DWORD dwFlags;
-    LONG WaitTime;
-    LPLPC_REQUEST_PACKET lpPacket;
     E_STATUS State = STATE_SUCCESS;
-    LPTASK_CONTEXT lpCurrentTask = CORE_GetCurrentTask();
-    
+
     IPC_INFOR(TRUE, "Wait semaphore '%s' by '%s', signals is %d.",
-        GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
+        GetObjectName(lpHeader), CORE_GetCurrentTaskName(), 
         GetSemaphoreSignals(lpHeader));
 
     if (NULL == lpParam)
     {
-        CORE_ERROR(TRUE, "Invalid parameter for lock mutex '%s'.", GetObjectName(lpHeader));
+        CORE_ERROR(TRUE, "Invalid parameter for wait semaphore '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_PARAMETER;
     }
-    
-    IPC_ASSERT(lpCurrentTask, SYSTEM_CALL_OOPS(),
-        "BUG: Wait semaphore '%s' failed, invalid current task.", GetObjectName(lpHeader));
-    
-    lpPacket = GetContextLPCPacket(lpCurrentTask);
-    
-    IPC_ASSERT(lpPacket, SYSTEM_CALL_OOPS(),
-        "BUG: Wait semaphore '%s' failed, invalid request packet.", GetObjectName(lpHeader));
 
-    WaitTime = GetWaitTime4mParam(lpParam);
-
-    dwFlags = CORE_DisableIRQ();
+    CORE_SPIN_LOCK_IRQ(GetIPCSpinLock(lpHeader), dwFlags);
 
     /* 如果 SIGNALS - 1 < 0 则说明 SEMAPHORE 没有信号 */
     if (DecSemaphoreSignals(lpHeader) < 0)
     {
-        if (STATE_SUCCESS == (State = CORE_TaskSuspend(lpCurrentTask, WaitTime)))
-        {
-            /* 将当前任务插入到阻塞队列 */
-            Insert2WaitQueue(GetIPCWaitQueue(lpHeader), lpCurrentTask);
-            //SetContextWakeRoutine(lpCurrentTask, IPC_WakeRoutineSemaphore);
-            //SetREQPrivate(lpPacket, lpHeader);
-            SetREQResult(lpPacket, STATE_TIME_OUT);
-        }
+        State = IPC_DoSuspend(lpHeader, lpParam);
+    }
+    else
+    {
+        SetSignalID2Param(lpParam, WAIT_SIGNAL_ID_0);
     }
 
     CORE_RestoreIRQ(dwFlags);
@@ -713,38 +707,38 @@ STATIC E_STATUS IPC_WaitSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 STATIC E_STATUS IPC_PostSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    DWORD Flags;
+    DWORD dwFlags;
     E_STATUS State = STATE_SUCCESS;
-    
-    Flags = CORE_DisableIRQ();
     
     IPC_INFOR(TRUE, "Post semaphore '%s' by '%s', signals is %d.",
         GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
         GetSemaphoreSignals(lpHeader));
 
+    CORE_SPIN_LOCK_IRQ(GetIPCSpinLock(lpHeader), dwFlags);
     /* 如果 SIGNALS + 1 < 0 则说明有任务被 SEMAPHORE 阻塞 */
     if (IncSemaphoreSignals(lpHeader) <= 0)
     {
-        LPKIPC_WAIT_PARAM lpParam;
+        LPKIPC_WAIT_PARAM lpWaitParam;
         LPLPC_REQUEST_PACKET lpPacket;
         LPTASK_CONTEXT lpTaskContext = GetFirstWaitTask(lpHeader);
         /* 阻塞队列为空，表明有 BUG */
-        IPC_ASSERT(NULL != GetFirstWaitNode(lpHeader), SYSTEM_CALL_OOPS(),
+        IPC_ASSERT(NULL != GetFirstWaitNode(lpHeader),
+            CORE_SPIN_UNLOCK_IRQ(GetIPCSpinLock(lpHeader), dwFlags); SYSTEM_CALL_OOPS(),
             "BUG: Bad wait task queue, semaphore'%s'.",  GetObjectName(lpHeader));
 
         lpPacket = GetContextLPCPacket(lpTaskContext);
 
-        IPC_ASSERT(lpPacket, SYSTEM_CALL_OOPS(),
+        IPC_ASSERT(lpPacket, CORE_SPIN_UNLOCK_IRQ(GetIPCSpinLock(lpHeader), dwFlags); SYSTEM_CALL_OOPS(),
             "BUG: Post semaphore '%s' failed, invalid request packet.", GetObjectName(lpHeader));
 
         SetREQResult(lpPacket, STATE_SUCCESS);
 
-        lpParam = REQpParam(lpPacket, u1);
+        lpWaitParam = REQpParam(lpPacket, u1);
 
-        IPC_ASSERT(NULL != lpParam, SYSTEM_CALL_OOPS(), "Invalid IPC param for task(%s)!",
+        IPC_ASSERT(NULL != lpWaitParam, SYSTEM_CALL_OOPS(), "Invalid IPC param for task(%s)!",
                     GetContextTaskName(lpTaskContext));
 
-        SetObjectID2Param(lpParam, WAIT_FIRST_OBJECT_ID);
+        SetSignalID2Param(lpWaitParam, WAIT_SIGNAL_ID_0);
 
         State = CORE_TaskWakeup(lpTaskContext);
 
@@ -753,7 +747,7 @@ STATIC E_STATUS IPC_PostSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
             GetContextWakeRoutine(lpTaskContext), GetContextState(lpTaskContext), State);
     }
 
-    CORE_RestoreIRQ(Flags);
+    CORE_SPIN_UNLOCK_IRQ(GetIPCSpinLock(lpHeader), dwFlags);
     
     return State;
 }
@@ -814,9 +808,19 @@ typedef struct tagIPC_SEMSET_OBJECT * PIPC_SEMSET_OBJECT;
 typedef struct tagIPC_SEMSET_OBJECT * LPIPC_SEMSET_OBJECT;
 
 struct tagIPC_SEMSET_OBJECT{
-    IPC_BASE_OBJECT                 Base;
+    KIPC_CLASS_HEADER               Base;
     VOLATILE SEMSET_ATTRIBUTE       Attribute;
 };
+
+
+#define     GetSemsetMaskValue(lpHeader)                                                            \
+                (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.LightMask)
+#define     SetSemsetMaskValue(lpHeader, data)                                                      \
+                do { (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.LightMask) = (data); } while(0)
+#define     SetSemsetMaskBit(lpHeader, shift, boolean)                                              \
+                do { SET_BIT_VALUE(GetSemsetMaskValue(lpHeader), shift, boolean); } while(0)
+#define     GetSemsetWaitFull(lpHeader)                                                             \
+                 (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Full)
 
 STATIC SIZE_T IPC_SizeofSemset(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
 {
@@ -826,13 +830,66 @@ STATIC SIZE_T IPC_SizeofSemset(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
 
 STATIC E_STATUS IPC_ActiveSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
+    LPSEMSET_ATTRIBUTE lpAttribute = lpParam;
 
-    return STATE_NOT_SUPPORT;
+    if (NULL == lpParam)
+    {
+        IPC_ERROR(TRUE, "Invalid parameter to create semset '%s'.", GetObjectName(lpHeader));
+        return STATE_INVALID_PARAMETER;
+    }
+
+    LIST_HEAD_INIT(GetIPCWaitQueue(lpHeader));
+    
+    SetIPCAttribute(lpHeader, lpAttribute);
+
+    return STATE_SUCCESS;
 }
 
 STATIC E_STATUS IPC_WaitSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    return STATE_NOT_SUPPORT;
+    DWORD dwFlags = 0;
+    E_STATUS State = STATE_SUCCESS;
+
+    IPC_INFOR(TRUE, "Wait single semset '%s' by '%s', mask is 0x%08X.",
+        GetObjectName(lpHeader), CORE_GetCurrentTaskName(), 
+        GetSemsetMaskValue(lpHeader));
+
+    if (NULL == lpParam)
+    {
+        CORE_ERROR(TRUE, "Invalid parameter for wait semset '%s'.", GetObjectName(lpHeader));
+        return STATE_INVALID_PARAMETER;
+    }
+
+    CORE_SPIN_LOCK_IRQ(GetIPCSpinLock(lpHeader), dwFlags);
+    
+    if (GetSemsetWaitFull(lpHeader))
+    {
+        if (SEMSET_SIGNAL_FULL != GetSemsetMaskValue(lpHeader))
+        {
+            State = IPC_DoSuspend(lpHeader, lpParam);
+        }
+        else
+        {
+            SetSemsetMaskValue(lpHeader, 0);
+        }
+    }
+    else
+    {
+        DWORD SignalID = GetDwordLowestBit(GetSemsetMaskValue(lpHeader));
+        
+        if (SignalID >= 32)
+        {
+            State = IPC_DoSuspend(lpHeader, lpParam);
+        }
+        else
+        {
+            SetSemsetMaskBit(lpHeader, SignalID, FALSE);
+        }
+    }
+    
+    CORE_SPIN_UNLOCK_IRQ(GetIPCSpinLock(lpHeader), dwFlags);
+
+    return State;
 }
 
 STATIC E_STATUS IPC_PostSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
@@ -859,13 +916,14 @@ DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               IPC_ResetSemset,
               IPC_DetachSemset);
 
-
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
 {
-    CORE_INFOR(TRUE, "IPC_BASE_OBJECT:   %d,   IPC_EVENT_OBJECT:     %d",
-                sizeof(IPC_BASE_OBJECT), sizeof(IPC_EVENT_OBJECT));
-    CORE_INFOR(TRUE, "IPC_MUTEX_OBJECT:  %d,   IPC_SEMAPHORE_OBJECT: %d",
-        sizeof(IPC_MUTEX_OBJECT), sizeof(IPC_SEMAPHORE_OBJECT));
+    CORE_INFOR(TRUE, "KIPC_CLASS_HEADER:    %d,   KIPC_CLASS_BASE:    %d",
+        sizeof(KIPC_CLASS_HEADER), sizeof(KIPC_CLASS_BASE));
+    CORE_INFOR(TRUE, "IPC_EVENT_OBJECT:     %d,   IPC_MUTEX_OBJECT:   %d",
+        sizeof(IPC_EVENT_OBJECT), sizeof(IPC_MUTEX_OBJECT));
+    CORE_INFOR(TRUE, "IPC_SEMAPHORE_OBJECT: %d,   IPC_SEMSET_OBJECT:  %d",
+        sizeof(IPC_SEMAPHORE_OBJECT), sizeof(IPC_SEMSET_OBJECT));
 
     /* 注册EVENT对象类 */
     if (STATE_SUCCESS != REGISTER_KCLASS(EventClass))
