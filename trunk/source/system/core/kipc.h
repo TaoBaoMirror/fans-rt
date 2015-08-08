@@ -84,16 +84,19 @@ struct tagKIPC_CLASS_BASE{
 #define     SetIPCAttribute(lpHeader, lpAttribute)                                                  \
                 do { (((LPKIPC_CLASS_BASE)(lpHeader))->Attribute.Value) =                           \
                         ((lpAttribute)->Value & (~0x1)); } while(0)
-                        
+#define     IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags)                                                    \
+                CORE_SPIN_LOCK_IRQ((((LPKIPC_CLASS_BASE)(lpHeader))->Attribute.Byte.Lock), dwFlags)
+#define     IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags)                                                  \
+                CORE_SPIN_UNLOCK_IRQ((((LPKIPC_CLASS_BASE)(lpHeader))->Attribute.Byte.Lock), dwFlags)
 #define     IPC_ENTRY(Ptr, Member)                  ((LPKIPC_CLASS_HEADER)CONTAINER_OF(Ptr, KIPC_CLASS_HEADER, Member))
 #define     GetHeaderByWaitQueue(Ptr)               IPC_ENTRY(Ptr, WaitQueue)
 #define     GetIPCWaitQueue(lpObject)               (&(((LPKIPC_CLASS_HEADER)(lpObject))->WaitQueue))
 #define     GetFirstWaitNode(lpObject)              LIST_NEXT_NODE(GetIPCWaitQueue(lpObject))
 #define     GetFirstWaitTask(lpObject)              GetContextByIPCNode(GetFirstWaitNode(lpObject))
 
-#define     EVENT_SIGNAL_SHIFT                      (0x0)
+#define     EVENT_SIGNAL_SHIFT                      (0x1)
 #define     EVENT_SIGNAL_MASK                       (1 << EVENT_SIGNAL_SHIFT)
-#define     EVENT_AUTOMATIC_SHIFT                   (0x1)
+#define     EVENT_AUTOMATIC_SHIFT                   (0x2)
 #define     EVENT_AUTOMATIC_MASK                    (1 << EVENT_AUTOMATIC_SHIFT)
 #define     EVENT_BITS_MASK                         (EVENT_SIGNAL_MASK | EVENT_AUTOMATIC_MASK)
 
@@ -103,10 +106,20 @@ typedef union tagEVENT_ATTRIBUTE FAR * LPEVENT_ATTRIBUTE;
 
 union tagEVENT_ATTRIBUTE{
     struct{
-        BOOL           Signal:1;
-        BOOL           Automatic:1;                 
+        DWORD           Lock:1;
+        DWORD           Signal:1;
+        DWORD           Automatic:1;
+        DWORD           Reserved:13;
+        LONG            Blocked:16;
     }Bits;
-    BYTE               Value;
+    struct{
+        SPIN_LOCK_T     Lock:1;
+        BOOL            Signal:1;
+        BOOL            Automatic:1;
+        BYTE            Reserved:5;
+        BYTE            ReservedW[3];
+    }Byte;
+    DWORD               Value;
 };
 
 #define     MUTEX_ONWER_MASK        (~HANDLE_OBJECT_SID_MASK)
@@ -161,6 +174,7 @@ typedef union tagSEMSET_ATTRIBUTE FAR * LPSEMSET_ATTRIBUTE;
 #define     SEMSET_LOCK_MASK            (1<<SEMSET_LOCK_SHIFT)
 #define     SEMSET_FULL_SHIFT           (1)
 #define     SEMSET_FULL_MASK            (1<<SEMSET_FULL_SHIFT)
+#define     SEMSET_SIGNAL_NULL          (0x000000)
 #define     SEMSET_SIGNAL_FULL          (0xffffff)
 #define     SEMSET_LIGHTS_SHIFT         (8)
 #define     SEMSET_LIGHTS_MASK          (SEMSET_SIGNAL_FULL << SEMSET_LIGHTS_SHIFT)
@@ -169,13 +183,15 @@ union tagSEMSET_ATTRIBUTE{
     struct {
         DWORD           Lock:1;
         DWORD           Full:1;
-        DWORD           Reserved:6;
+        DWORD           Blocked:5;
+        DWORD           Reserved:1;
         DWORD           LightMask:24;
     }Bits;
     struct {
         SPIN_LOCK_T     Lock:1;
         BOOL            Full:1;
-        BYTE            Reserved:6;
+        BYTE            Blocked:5;
+        BYTE            Reserved:1;
         BYTE            LightMask[3];
     }Byte;
     DWORD               Value;

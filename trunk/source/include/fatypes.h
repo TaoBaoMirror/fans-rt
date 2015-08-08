@@ -24,6 +24,7 @@ typedef unsigned int WORD32;
 typedef unsigned long long WORD64;
 typedef unsigned int MMADDR;
 
+typedef signed char S8;
 typedef signed short S16;
 typedef signed int S32;
 typedef signed long long S64;
@@ -86,6 +87,7 @@ typedef const WCHAR FAR * LPCWSTR;
 
 #define     WAIT_SIGNAL_INVALID         (-1)
 #define     WAIT_SIGNAL_ID_0            (0)
+#define     WAIT_SIGNAL_MAX             (24)
 
 typedef signed short SHORT;
 typedef signed short * PSHORT;

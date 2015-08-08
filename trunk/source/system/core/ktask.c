@@ -907,27 +907,25 @@ EXPORT E_STATUS CORE_TaskSuspendSafe(LPTASK_CONTEXT lpTaskContext, LONG Timeout)
     return Result;
 }
 
-EXPORT E_STATUS CORE_SetThisPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority)
+EXPORT VOID CORE_SetThisPriority(LPTASK_CONTEXT lpTaskContext, TASK_PRIORITY Priority)
 {
-    DWORD dwFlags = CORE_DisableIRQ();
-
     SetTaskThisPriority(lpTaskContext, Priority);
-    
-    CORE_RestoreIRQ(dwFlags);
-
-    return STATE_SUCCESS;
 }
 
-EXPORT E_STATUS CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext)
+EXPORT VOID CORE_ResetTaskPriority(LPTASK_CONTEXT lpTaskContext)
 {
-    DWORD dwFlags = CORE_DisableIRQ();
-    TASK_PRIORITY Priority = GetContextInitPriority(lpTaskContext);
-    
-    SetTaskThisPriority(lpTaskContext, Priority);
-    
-    CORE_RestoreIRQ(dwFlags);
+    SetTaskThisPriority(lpTaskContext, GetContextInitPriority(lpTaskContext));
+}
 
-    return STATE_SUCCESS;
+EXPORT VOID CORE_PriorityUpsideCheck(LPTASK_CONTEXT lpOnwerContext, LPTASK_CONTEXT lpCurrentTask)
+{
+    TASK_PRIORITY Priority = GetContextThisPriority(lpCurrentTask);
+
+    /* 如果 onwer 的优先级大于当前任务优先级，则调整 onwer 的优先级，以防止优先级倒挂 */
+    if (Priority < GetContextThisPriority(lpOnwerContext))
+    {
+        SetTaskThisPriority(lpOnwerContext, Priority);
+    }
 }
 
 PUBLIC E_STATUS initCoreSystemTaskScheduleManager(VOID)

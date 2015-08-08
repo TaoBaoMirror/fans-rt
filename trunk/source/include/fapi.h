@@ -87,8 +87,8 @@ extern "C" {
     FANSAPI HANDLE CreateSemaphore(LPCTSTR lpCTName, SHORT Lights, SHORT MaxLights);
     FANSAPI E_STATUS PostSemaphore(HANDLE hSemaphore, SHORT Lights);
 
-    FANSAPI HANDLE CreateSemset(LPCTSTR lpCTName, DWORD Mask, BOOL WaitFull);
-    FANSAPI E_STATUS PostSemset(HANDLE hSemset, BYTE SemID);
+    FANSAPI HANDLE CreateSemset(LPCTSTR lpCTName, DWORD MaxLights, BOOL WaitFull);
+    FANSAPI E_STATUS PostSemset(HANDLE hSemset, SHORT SemID);
 
 
     FANSAPI E_STATUS GetObjectName(HANDLE hObject, LPTSTR lpName, SIZE_T SizeofBuffer);

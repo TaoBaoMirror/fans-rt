@@ -209,7 +209,7 @@ PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T K
     
     if (POL_MAGIC != GetPoolMagic(lpCorePool))
     {
-        CORE_INFOR(TRUE, "Container %s(0x%P) pool %p Pid %u, Bid %u, Kid %u magic invalid.",
+        CORE_ERROR(TRUE, "Container %s(0x%P) pool %p Pid %u, Bid %u, Kid %u magic invalid.",
             GetContainerName(lpManager), lpManager, lpCorePool, Pid, Bid, Kid);
         return STATE_SYSTEM_FAULT;
     }

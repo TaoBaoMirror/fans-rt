@@ -28,6 +28,48 @@ STATIC RO_USER_DATA CONST TEST_CASE_DESCRIPTOR g_TestCase[] =
     DEFINE_TEST_CASE(SEMSET_TEST_CASE),
 };
 
+RO_USER_DATA CONST TCHAR     g_TaskCase01Name[]  = {NAME_CASE01};
+RW_USER_DATA VOLATILE LPTSTR g_lpWakeupTaskName  = NULL;
+RW_USER_DATA VOLATILE DWORD  g_FinishedTaskCount = 0;
+
+
+RO_USER_CODE VOID TEST_TASK_CLEANUP(HANDLE * hTask, DWORD Count)
+{
+    DWORD j;
+    
+    for (j = 0; j < Count; j ++)
+    {
+        if (INVALID_HANDLE_VALUE != hTask[j]) KillTask(hTask[j]);
+    }
+}
+
+RO_USER_CODE E_STATUS TEST_TASK_CREATE(HANDLE * hTask, DWORD Count, FNTASKMAIN fnMain, LPVOID lpParam)
+{
+    DWORD i = 0;
+
+    for (i = 0; i < Count; i ++)
+    {
+        hTask[i] = INVALID_HANDLE_VALUE;
+    }
+
+    /* 创建普通优先级的测试任务 */
+    for (i = 0; i < Count; i ++)
+    {
+        TCHAR Name[OBJECT_NAME_MAX];
+
+        TSNPRINTF(Name, OBJECT_NAME_MAX, "TASK%02u", i);
+        hTask[i] = CreateTask(Name, fnMain, (void *) lpParam);
+        
+        TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hTask[i],
+            return STATE_SYSTEM_FAULT,
+            "Create task %s failed !", Name);
+        /* 休眠 100 ms 保证新创建的任务已经被对象阻塞 */
+        Sleep(100);
+    }
+    
+    return STATE_SUCCESS;
+}
+
 STATIC RO_USER_CODE E_STATUS FansMain(LPMODULE_HEADER CONST lpModule)
 {
     LONG i = 0;

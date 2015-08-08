@@ -141,6 +141,14 @@ EXPORT VOID CORE_HandlerLPC(LPLPC_REQUEST_PACKET lpPacket, DWORD ServiceID, BYTE
         lpPacket->StateCode = NULL == fnHandle
                             ? STATE_INVALID_HANDLER
                             : fnHandle(lpService->lpPrivate, lpPacket);
+        
+        if (STATE_SUCCESS != lpPacket->StateCode)
+        {
+            CORE_SetError(lpPacket->StateCode);
+        }
+        
+        CORE_DEBUG(TRUE, "Call service 0x%08x, function %d, result %d.",
+            ServiceID, FunctionID, lpPacket->StateCode);
     }
     
     return;
