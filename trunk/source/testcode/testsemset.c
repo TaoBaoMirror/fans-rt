@@ -108,7 +108,7 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
     
     GetTaskSelfName(Name, OBJECT_NAME_MAX);
 
-    LOG_INFOR(TRUE, "Task '%s' startup ...", Name);
+    LOG_DEBUG(TRUE, "Task '%s' startup ...", Name);
     
     /* 调整当前任务优先级为实时 */
     Result = SetTaskSelfPriority(TASK_PRIORITY_REAL);
@@ -130,7 +130,7 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
     /* 1. 阻塞队列顺序测试，等待信号 */
     SignalID = WaitObject(handle, WAIT_INFINITE);
     
-    LOG_INFOR(TRUE, "Task '%s' wakeup ...", Name);
+    LOG_DEBUG(TRUE, "Task '%s' wakeup ...", Name);
 
     TEST_CASE_ASSERT(TaskID == SignalID, return GetError(),
             "Task '%s' wait object %s failed, id %d, error %d.",
@@ -138,8 +138,8 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
     
     g_lpWakeupTaskName = Name;
     
-    Sleep(5000);
-    
+    Sleep(1);
+
     g_FinishedTaskCount --;
 
     Result = PostSemset(hFull, (SHORT) TaskID);
@@ -217,7 +217,11 @@ STATIC RO_USER_CODE E_STATUS SEMSET_TEST_CASE01(VOID)
     TEST_CASE_ASSERT(WAIT_SIGNAL_INVALID != SignalID, return Result,
             "Task '%s' wait object %s failed, id %d, error %d.",
             TaskName, FULL_NAME, SignalID, Result);
-            
+
+    TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+    CloseHandle(handle);
+    CloseHandle(hFull);
+
     return STATE_SUCCESS;
 }
 

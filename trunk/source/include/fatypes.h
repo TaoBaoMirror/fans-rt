@@ -87,7 +87,7 @@ typedef const WCHAR FAR * LPCWSTR;
 
 #define     WAIT_SIGNAL_INVALID         (-1)
 #define     WAIT_SIGNAL_ID_0            (0)
-#define     WAIT_SIGNAL_MAX             (24)
+#define     WAIT_SIGNAL_MAX             (20)
 
 typedef signed short SHORT;
 typedef signed short * PSHORT;
