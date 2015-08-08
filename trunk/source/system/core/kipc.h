@@ -174,18 +174,22 @@ typedef union tagSEMSET_ATTRIBUTE FAR * LPSEMSET_ATTRIBUTE;
 #define     SEMSET_LOCK_MASK            (1<<SEMSET_LOCK_SHIFT)
 #define     SEMSET_FULL_SHIFT           (1)
 #define     SEMSET_FULL_MASK            (1<<SEMSET_FULL_SHIFT)
-#define     SEMSET_SIGNAL_NULL          (0x000000)
-#define     SEMSET_SIGNAL_FULL          (0xffffff)
-#define     SEMSET_LIGHTS_SHIFT         (8)
-#define     SEMSET_LIGHTS_MASK          (SEMSET_SIGNAL_FULL << SEMSET_LIGHTS_SHIFT)
+#define     SEMSET_BLOCKS_SHIFT         (2)
+#define     SEMSET_BLOCKS_MASK          (0x1f << SEMSET_BLOCKS_SHIFT)
+#define     SEMSET_LIGHTS_SHIFT         (7)
+#define     SEMSET_LIGHTS_MASK          (0x1f << SEMSET_LIGHTS_SHIFT)
+#define     SEMSET_SIGNAL_NULL          (0x00000000u)
+#define     SEMSET_SIGNAL_FULL          (0x000fffffu)
+#define     SEMSET_SIGNAL_SHIFT         (12)
+#define     SEMSET_SIGNAL_MASK          (SEMSET_SIGNAL_FULL << SEMSET_SIGNAL_SHIFT)
 
 union tagSEMSET_ATTRIBUTE{
     struct {
         DWORD           Lock:1;
         DWORD           Full:1;
         DWORD           Blocked:5;
-        DWORD           Reserved:1;
-        DWORD           LightMask:24;
+        DWORD           Lights:5;
+        DWORD           LightMask:20;
     }Bits;
     struct {
         SPIN_LOCK_T     Lock:1;

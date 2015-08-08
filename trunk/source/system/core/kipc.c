@@ -23,7 +23,7 @@
 #include "kcore.h"
 #include "kdebug.h"
 #include "ktable.h"
-#define IPC_DEBUG_ENABLE TRUE
+//#define IPC_DEBUG_ENABLE TRUE
 
 #if (IPC_DEBUG_ENABLE == TRUE)
 #define     IPC_DEBUG(Enter, ...)                            CORE_DEBUG(Enter, __VA_ARGS__)
@@ -173,6 +173,8 @@ struct tagIPC_SEMSET_OBJECT{
                 do { SET_BIT_VALUE(GetSemsetMaskValue(lpHeader), shift, boolean); } while(0)
 #define     GetSemsetWaitFull(lpHeader)                                                             \
                  (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Full)
+#define     GetSemsetFullMask(lpHeader)                                                             \
+                 GetBitsMaskValue(((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Lights - 1)
 #define     GetSemsetBlockedTasks(lpHeader)                                                           \
                  (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
 #define     IncSemsetBlockedTasks(lpHeader)                                                           \
@@ -779,9 +781,24 @@ STATIC E_STATUS IPC_ActiveSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
 
+    if (0 != (lpAttribute->Value & (SEMSET_BLOCKS_MASK | SEMSET_SIGNAL_MASK | SEMSET_LOCK_MASK)))
+    {
+        IPC_ERROR(TRUE, "Invalid attribute to create semset '%s', value 0x%08X, mask 0x%08X.",
+            GetObjectName(lpHeader), lpAttribute->Value,
+            (SEMSET_BLOCKS_MASK | SEMSET_SIGNAL_MASK | SEMSET_LOCK_MASK));
+        return STATE_INVALID_VALUE;
+    }
+    
+    if (0 == lpAttribute->Bits.Lights || lpAttribute->Bits.Lights >= WAIT_SIGNAL_MAX)
+    {
+        IPC_ERROR(TRUE, "Invalid max lights(%u) to create semset '%s'.",
+            lpAttribute->Bits.Lights, GetObjectName(lpHeader));
+    }
+
     LIST_HEAD_INIT(GetIPCWaitQueue(lpHeader));
     
-    CORE_INFOR(TRUE, "Create semset attribute value is 0x%08X.", lpAttribute->Value);
+    IPC_INFOR(TRUE, "Create semset value is 0x%08X, full mask is 0x%08X.",
+        lpAttribute->Value, GetSemsetFullMask(lpHeader));
     
     SetIPCAttribute(lpHeader, lpAttribute);
 
@@ -809,7 +826,7 @@ STATIC E_STATUS IPC_WaitSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     if (GetSemsetWaitFull(lpHeader))
     {
         /* If the single was not full, need blocking current task. */
-        if (SEMSET_SIGNAL_FULL != GetSemsetMaskValue(lpHeader))
+        if (GetSemsetFullMask(lpHeader) != GetSemsetMaskValue(lpHeader))
         {
             State = IPC_BlockTask(lpHeader, lpParam);
             /* Inc the conter for blocked tasks */
@@ -826,8 +843,8 @@ STATIC E_STATUS IPC_WaitSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         DWORD SignalID = GetDwordLowestBit(GetSemsetMaskValue(lpHeader));
         
         /* If the signal bitmap value is 0, the lowest bit will be return 32. */
-        /* So the signal id can not large than 23, otherwise blocking current task. */
-        /* The number of signal id max value is 23, because the signal bitmap has 24 bits. */
+        /* So the signal id can not large than 19, otherwise blocking current task. */
+        /* The number of signal id max value is 19, because the signal bitmap has 20 bits. */
         if (SignalID >= WAIT_SIGNAL_MAX)
         {
             State = IPC_BlockTask(lpHeader, lpParam);
@@ -851,9 +868,9 @@ STATIC E_STATUS IPC_PostSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     SHORT SignalID;
     E_STATUS State = STATE_SUCCESS;
     
-    IPC_INFOR(TRUE, "Post signal to semset '%s' by '%s', mask is 0x%08X.",
+    IPC_INFOR(TRUE, "Post semset '%s' by '%s', value is 0x%08X, full mask is 0x%08X.",
         GetObjectName(lpHeader), CORE_GetCurrentTaskName(), 
-        GetSemsetMaskValue(lpHeader));
+        GetSemsetMaskValue(lpHeader), GetSemsetFullMask(lpHeader));
     
     if (NULL == lpParam)
     {
@@ -878,7 +895,7 @@ STATIC E_STATUS IPC_PostSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     {
         SetSemsetMaskBit(lpHeader, SignalID, TRUE);
 
-        if (SEMSET_SIGNAL_FULL == GetSemsetMaskValue(lpHeader))
+        if (GetSemsetFullMask(lpHeader) == GetSemsetMaskValue(lpHeader))
         {
             /* If the signal was full and some task has been blocked, */
             /* Then wakeup the first block task from the blocked queue. */

@@ -346,7 +346,6 @@ FANSAPI RO_USER_CODE E_STATUS PostSemaphore(HANDLE hSemaphore, SHORT Lights)
  */
 FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD MaxLights, BOOL WaitFull)
 {
-    DWORD Mask;
     HANDLE hSemset;
     SEMSET_ATTRIBUTE Attribute;
     CHAR caName[OBJECT_NAME_MAX];
@@ -365,10 +364,8 @@ FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD MaxLights, BOOL
         strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
 #endif
     }
-    
-    Mask = ((~GetBitsMaskValue(MaxLights)) & SEMSET_SIGNAL_FULL);
 
-    Attribute.Value =   ((Mask << SEMSET_LIGHTS_SHIFT) | ((!!WaitFull)<< SEMSET_FULL_SHIFT));
+    Attribute.Value =   ((MaxLights << SEMSET_LIGHTS_SHIFT) | ((!!WaitFull)<< SEMSET_FULL_SHIFT));
 
     hSemset = caMallocObject(caName, SET_MAGIC, &Attribute);
 
