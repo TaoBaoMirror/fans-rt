@@ -23,15 +23,6 @@
 #if (defined(CONFIG_BUILD_IPC_MUTEX) && (TRUE == CONFIG_BUILD_IPC_MUTEX))
 #include "testcode.h"
 
-#ifdef _UNICODE
-#define     TSNPRINTF           wsnprintf
-#define     TSTRCMP(s1, s2)     wcscmp(s1, s2)
-#else
-#define     TSNPRINTF           snprintf
-#define     TSTRCMP(s1, s2)     strcmp(s1, s2)
-#endif
-
-#define     NAME_CASE00         _TEXT("CASE00")
 /*
  * 创建、捕获、释放、名称获取、释放后再捕获、自动命名测试
  */
@@ -100,11 +91,6 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE00(VOID)
     return STATE_SUCCESS;
 }
 
-#define     NAME_CASE01         _TEXT("CASE01")
-STATIC RO_USER_DATA CONST TCHAR     g_TaskCase01MutexName[] = {NAME_CASE01};
-STATIC RW_USER_DATA VOLATILE LPTSTR g_lpWakeupTaskName  = NULL;
-STATIC RW_USER_DATA VOLATILE DWORD  g_FinishedTaskCount = 0;
-
 STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
 {
     E_STATUS Result;
@@ -151,18 +137,10 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
             "Task '%s' lock mutex %s failed, result %d.", Name, lpParam, Result);
 
     g_FinishedTaskCount ++;
+    
+    LOG_INFOR(TRUE, "Task '%s' exit, count %u.", Name, g_FinishedTaskCount);
 
     return STATE_SUCCESS;
-}
-
-STATIC RO_USER_CODE VOID MUTEX_CASE01_CLEANUP(HANDLE * hTask, DWORD Count)
-{
-    DWORD j;
-    
-    for (j = 0; j < Count; j ++)
-    {
-        if (INVALID_HANDLE_VALUE != hTask[j]) KillTask(hTask[j]);
-    }
 }
 
 /*
@@ -173,40 +151,27 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE01(VOID)
 {
     DWORD i;
     HANDLE hMutex;
-    HANDLE hTask[4];
     E_STATUS Result;
     TASK_PRIORITY Priority;
+    HANDLE hTask[MAX_TEST_TASK];
     TCHAR TaskName[OBJECT_NAME_MAX];
 
     GetTaskSelfName(TaskName, OBJECT_NAME_MAX);
 
     /* 创建一个被锁住的 MUTEX 对象*/
-    hMutex = CreateMutex(g_TaskCase01MutexName, TRUE);
+    hMutex = CreateMutex(g_TaskCase01Name, TRUE);
     
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hMutex, return GetError(),
-            "Create mutex %s failed.", g_TaskCase01MutexName);
+            "Create mutex %s failed.", g_TaskCase01Name);
     
-    for (i = 0; i < SIZEOF_ARRAY(hTask); i ++)
-    {
-        hTask[i] = INVALID_HANDLE_VALUE;
-    }
-
-    /* 创建普通优先级的测试任务 */
-    for (i = 0; i < SIZEOF_ARRAY(hTask); i ++)
-    {
-        TCHAR Name[OBJECT_NAME_MAX];
-
-        TSNPRINTF(Name, OBJECT_NAME_MAX, "TASK%02u", i);
-        hTask[i] = CreateTask(Name, TEST_CASE01_TASK, (void *) g_TaskCase01MutexName);
-        
-        TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hTask[i],
-            MUTEX_CASE01_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+    Result = TEST_TASK_CREATE(hTask, SIZEOF_ARRAY(hTask), TEST_CASE01_TASK, (void*)g_TaskCase01Name);
+    
+    TEST_CASE_ASSERT(STATE_SUCCESS == Result,
+            TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
             CloseHandle(hMutex);
-            return STATE_SYSTEM_FAULT,
-            "Create task %s failed !", Name);
-        /* 休眠 100 ms 保证新创建的任务已经被 MUTEX 对象阻塞 */
-        Sleep(100);
-    }
+            return Result,
+            "Create test task failed !");
+
     /* 调整当前任务优先级为实时 */
     Result = SetTaskSelfPriority(TASK_PRIORITY_REAL);
 
@@ -228,39 +193,39 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE01(VOID)
         Result = MutexUnlock(hMutex);
         
         TEST_CASE_ASSERT(STATE_SUCCESS == Result, 
-                MUTEX_CASE01_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+                TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
                 CloseHandle(hMutex);
                 SetTaskSelfPriority(TASK_PRIORITY_NORMAL);
                 return Result,
                 "Task '%s' lock mutex %s failed, result %d.",
-                TaskName, g_TaskCase01MutexName, Result);
+                TaskName, g_TaskCase01Name, Result);
 
         /* 锁住 MUTEX 对象，当前任务为实时任务，下次解锁 MUTEX 时，当前任务优先唤醒 */
         Result = MutexLock(hMutex);
         
         TEST_CASE_ASSERT(STATE_SUCCESS == Result, 
-                MUTEX_CASE01_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+                TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
                 CloseHandle(hMutex);
                 SetTaskSelfPriority(TASK_PRIORITY_NORMAL);
                 return Result,
                 "Task '%s' unlock mutex %s failed, result %d.",
-                TaskName, g_TaskCase01MutexName, Result);
+                TaskName, g_TaskCase01Name, Result);
 
         TEST_CASE_ASSERT(NULL != g_lpWakeupTaskName, 
-                MUTEX_CASE01_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+                TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
                 CloseHandle(hMutex);
                 SetTaskSelfPriority(TASK_PRIORITY_NORMAL);
                 return STATE_SYSTEM_FAULT,
                 "Task '%s' unlock mutex %s failed, invalid wakeup task name.",
-                TaskName, g_TaskCase01MutexName);
+                TaskName, g_TaskCase01Name);
         /* 检查唤醒任务的顺序是否符合要求 */
         TEST_CASE_ASSERT(0 == TSTRCMP(g_lpWakeupTaskName, Name),
-                MUTEX_CASE01_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+                TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
                 CloseHandle(hMutex);
                 SetTaskSelfPriority(TASK_PRIORITY_NORMAL);
                 return STATE_SYSTEM_FAULT,
                 "Task '%s' unlock mutex %s failed, wakeup task out of expetation.",
-                TaskName, g_TaskCase01MutexName);
+                TaskName, g_TaskCase01Name);
     }
 
     /* 恢复为默认优先级 */
@@ -280,11 +245,11 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE01(VOID)
     Result = CloseHandle(hMutex);
     
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, 
-            MUTEX_CASE01_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+            TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
             SetTaskSelfPriority(TASK_PRIORITY_NORMAL);
             return Result,
             "Task '%s' close mutex %s failed, result %d.",
-            TaskName, g_TaskCase01MutexName, Result);
+            TaskName, g_TaskCase01Name, Result);
 
     /* 对象被删除后，在一定时间内，所有阻塞的任务必须全部被唤醒(获得STATE_REMOVED的返回值) */
     for (i = 0; i < 1000 && g_FinishedTaskCount < SIZEOF_ARRAY(hTask); i ++)
@@ -293,12 +258,12 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE01(VOID)
     }
     /* 检查任务是否已经被全部唤醒 */
     TEST_CASE_ASSERT(SIZEOF_ARRAY(hTask) == g_FinishedTaskCount, 
-        MUTEX_CASE01_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+        TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
         return STATE_SYSTEM_FAULT,
-        "Task '%s' unlock mutex %s failed, invalid wakeup task name.",
-        TaskName, g_TaskCase01MutexName, Result);
+        "Task '%s' unlock mutex %s failed, result %d, count %u.",
+        TaskName, g_TaskCase01Name, Result, g_FinishedTaskCount);
     
-    MUTEX_CASE01_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
+    TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
     
     return STATE_SUCCESS;
 }

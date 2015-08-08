@@ -331,7 +331,7 @@ FANSAPI RO_USER_CODE E_STATUS PostSemaphore(HANDLE hSemaphore, SHORT Lights)
 /**
  * Create a semset object.
  * @param The name of object.
- * @param The light mask of semset.
+ * @param The all lights of object.
  * @return The handle of object.
  * \par
  * Call system to create semset object, if the specified name has been 
@@ -344,8 +344,9 @@ FANSAPI RO_USER_CODE E_STATUS PostSemaphore(HANDLE hSemaphore, SHORT Lights)
  * date           author          notes
  * 2015-07-29     JiangYong       first version
  */
-FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD Mask, BOOL WaitFull)
+FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD MaxLights, BOOL WaitFull)
 {
+    DWORD Mask;
     HANDLE hSemset;
     SEMSET_ATTRIBUTE Attribute;
     CHAR caName[OBJECT_NAME_MAX];
@@ -364,10 +365,12 @@ FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD Mask, BOOL Wait
         strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
 #endif
     }
+    
+    Mask = ((~GetBitsMaskValue(MaxLights)) & SEMSET_SIGNAL_FULL);
 
     Attribute.Value =   ((Mask << SEMSET_LIGHTS_SHIFT) | ((!!WaitFull)<< SEMSET_FULL_SHIFT));
 
-    hSemset = caMallocObject(caName, SEM_MAGIC, &Attribute);
+    hSemset = caMallocObject(caName, SET_MAGIC, &Attribute);
 
     if (INVALID_HANDLE_VALUE != hSemset)
     {
@@ -398,7 +401,7 @@ FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD Mask, BOOL Wait
  * date           author          notes
  * 2015-07-29     JiangYong       first version
  */
-FANSAPI RO_USER_CODE E_STATUS PostSemset(HANDLE hSemset, BYTE SemID)
+FANSAPI RO_USER_CODE E_STATUS PostSemset(HANDLE hSemset, SHORT SemID)
 {
     return caRequestMethod(hSemset, &SemID, KIPC_METHOD_POST);
 }

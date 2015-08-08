@@ -10,12 +10,11 @@
 
 #define TEST_MUTEX_ID   0
 #define TEST_EVENT_ID   1
-STATIC RW_USER_DATA VOLATILE WORD g_TaskCount = 0;
 STATIC RW_USER_DATA HANDLE g_TestHandles[2] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE};
 
 STATIC INLINE DWORD TestGetCount(VOID)
 {
-    return g_TaskCount;
+    return g_FinishedTaskCount;
 }
 
 STATIC RO_USER_CODE E_STATUS TestSetCount(DWORD Value)
@@ -25,7 +24,7 @@ STATIC RO_USER_CODE E_STATUS TestSetCount(DWORD Value)
     TEST_CASE_ASSERT((STATE_SUCCESS == (State = MutexLock(g_TestHandles[TEST_MUTEX_ID]))),
         return State, "Lock mutex failed result %d !", State);
 
-    g_TaskCount = Value;
+    g_FinishedTaskCount = Value;
 
     TEST_CASE_ASSERT((STATE_SUCCESS == (State = MutexUnlock(g_TestHandles[TEST_MUTEX_ID]))),
         return State, "Unlock mutex failed result %d !", State);
@@ -269,7 +268,7 @@ STATIC RO_USER_CODE E_STATUS TASK_TEST_CASE80(VOID)
         return STATE_NOT_MATCH, "Task name '%s' not expect '%s'",
         Name, TASK_NAME_THREAD02);
 
-    while(0==g_TaskCount)
+    while(0==g_FinishedTaskCount)
     {
         if (--i == 0)
         {
@@ -306,7 +305,7 @@ PUBLIC RO_USER_CODE E_STATUS TASK_TEST_CASE(VOID)
     g_TestHandles[TEST_EVENT_ID] = CreateEvent(_TEXT("TASKEVT"), TRUE, FALSE);
     
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != g_TestHandles[TEST_EVENT_ID],
-            return GetError();, "Create mutex failed, result %d !", GetError());
+            return GetError();, "Create event failed, result %d !", GetError());
     
     for (i = 0; i < SIZEOF_ARRAY(g_TestCase); i ++)
     {

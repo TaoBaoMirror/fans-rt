@@ -641,6 +641,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\source\system\core\klsot.c</FilePath>
             </File>
+            <File>
+              <FileName>kipc.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\source\system\core\kipc.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -970,6 +975,11 @@
               <FileName>karch_armasm_stack.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\..\source\platform\arch\stm32\arm\karch_armasm_stack.s</FilePath>
+            </File>
+            <File>
+              <FileName>karch_debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\karch_debug.c</FilePath>
             </File>
           </Files>
         </Group>

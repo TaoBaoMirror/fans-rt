@@ -417,11 +417,6 @@
               <FilePath>..\..\source\include\fapi.h</FilePath>
             </File>
             <File>
-              <FileName>fapp.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\source\include\fapp.h</FilePath>
-            </File>
-            <File>
               <FileName>fatypes.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\source\include\fatypes.h</FilePath>

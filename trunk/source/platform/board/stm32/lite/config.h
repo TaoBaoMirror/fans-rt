@@ -38,7 +38,7 @@
 #define     CONFIG_OBJECT1_POOL_MAX             0           /**< The max pools for 64 bytes class */
 #define     CONFIG_OBJECT1_BLOCK_MAX            0           /**< The max blocks for 64 bytes class */
 
-#define     CONFIG_OBJECT2_POOL_MAX             1           /**< The max pools for 128 bytes class */
+#define     CONFIG_OBJECT2_POOL_MAX             4           /**< The max pools for 128 bytes class */
 #define     CONFIG_OBJECT2_BLOCK_MAX            8           /**< The max blocks for 128 bytes class */
 
 #define     CONFIG_OBJECT3_POOL_MAX             0           /**< The max pools for 256 bytes class */
@@ -47,8 +47,8 @@
 #define     CONFIG_OBJECT4_POOL_MAX             0           /**< The max pools for 512 bytes class */
 #define     CONFIG_OBJECT4_BLOCK_MAX            0           /**< The max blocks for 512 bytes class */
 
-#define     CONFIG_OBJECT5_POOL_MAX             1           /**< The max pools for 1024 bytes class */
-#define     CONFIG_OBJECT5_BLOCK_MAX            8           /**< The max blocks for 1024 bytes class */
+#define     CONFIG_OBJECT5_POOL_MAX             0           /**< The max pools for 1024 bytes class */
+#define     CONFIG_OBJECT5_BLOCK_MAX            0           /**< The max blocks for 1024 bytes class */
 
 #define     CONFIG_OBJECT6_POOL_MAX             0           /**< The max pools for 2048 bytes class */
 #define     CONFIG_OBJECT6_BLOCK_MAX            0           /**< The max blocks for 2048 bytes class */

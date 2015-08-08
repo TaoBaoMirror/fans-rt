@@ -589,8 +589,8 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
     
     if (NULL == lpManager)
     {
-        CORE_ERROR(TRUE, "Container not found, magic(0x%08x), Tid(%d), table(0x%P).",
-            GetClassMagic(lpClass), Tid, g_GlobalObjectPoolTable);
+        CORE_ERROR(TRUE, "Container not found, magic(0x%08x), ObjectSize(%u) ==> Tid(%d), table(0x%P).",
+            GetClassMagic(lpClass), ObjectSize, Tid, g_GlobalObjectPoolTable);
         CORE_SetError(STATE_INVALID_POOL);
         return NULL;
     }
@@ -1103,11 +1103,7 @@ STATIC E_STATUS SVC_MallocObject(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_ActiveObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    E_STATUS State = CORE_ActiveObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQpParam(lpParam, u1));
-    
-    CORE_SetError(State);
-    
-    return State;
+    return CORE_ActiveObject(CORE_Handle2Header(REQhParam(lpParam, u0)), REQpParam(lpParam, u1));
 }
 
 STATIC E_STATUS SVC_TakeObject(LPVOID lpPrivate, LPVOID lpParam)
@@ -1127,11 +1123,7 @@ STATIC E_STATUS SVC_TakeObject(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_FreeObject(LPVOID lpPrivate, LPVOID lpParam)
 {
-    E_STATUS State =  CORE_FreeObject(CORE_Handle2Header(REQhParam(lpParam, u0)));  
-    
-    CORE_SetError(State);
-    
-    return State; 
+    return CORE_FreeObject(CORE_Handle2Header(REQhParam(lpParam, u0)));  
 }
 
 STATIC E_STATUS SVC_GetObjectName(LPVOID lpPrivate, LPVOID lpParam)
@@ -1144,19 +1136,15 @@ STATIC E_STATUS SVC_GetObjectName(LPVOID lpPrivate, LPVOID lpParam)
     
     if (NULL == lpHeader)
     {
-        CORE_SetError(STATE_INVALID_OBJECT);
         return STATE_INVALID_OBJECT;
     }
     
     if (NULL == REQpParam(lpParam, u1) || REQdParam(lpParam, u2) < OBJECT_NAME_MAX)
     {
-        CORE_SetError(STATE_INVALID_PARAMETER);
         return STATE_INVALID_PARAMETER;
     }
 
     DumpObjectName(lpHeader, (DWORD_PTR)(REQpParam(lpParam, u1)));
-
-    CORE_SetError(STATE_SUCCESS);
 
     return STATE_SUCCESS;
 }
@@ -1164,13 +1152,9 @@ STATIC E_STATUS SVC_GetObjectName(LPVOID lpPrivate, LPVOID lpParam)
 
 STATIC E_STATUS SVC_RequestMethod(LPVOID lpPrivate, LPVOID lpParam)
 {
-    E_STATUS State =  CORE_RequestMethod(CORE_Handle2Header(REQhParam(lpParam, u0)),
+    return CORE_RequestMethod(CORE_Handle2Header(REQhParam(lpParam, u0)),
                                          REQpParam(lpParam, u1),
                                          REQdParam(lpParam, u2));
-    
-    CORE_SetError(State);
-    
-    return State;
 }
 
 STATIC E_STATUS SVC_MallocNmObject(LPVOID lpPrivate, LPVOID lpParam)

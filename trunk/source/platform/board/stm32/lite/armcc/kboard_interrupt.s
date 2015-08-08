@@ -36,6 +36,7 @@
     IMPORT  CORE_TaskScheduling
     IMPORT  CORE_HandlerLPC
     IMPORT  CORE_SwitchTask
+    IMPORT  CORE_DebugMonitor
     IMPORT  CORE_GetCoreStackPosition
     IMPORT  CORE_GetTaskStackPosition
     IMPORT  CORE_GetCurrentPermission
@@ -125,17 +126,39 @@ SysTick_Handler PROC
     ENDP
 
 HardFault_Handler   PROC
+    B       UsageFault_Handler
+    ENDP
+MemManage_Handler   PROC
+    B       UsageFault_Handler
+    ENDP
+BusFault_Handler    PROC
+    B       UsageFault_Handler
+    ENDP
+UsageFault_Handler  PROC
+    CPSID   I
+    PUSH    {R4 - R12, LR}
+    MOV     R0,     SP
+    BL      CORE_DebugMonitor  
+    POP     {R4 - R12, LR}
+    CPSIE   I
     B       .
     ENDP
 
-MemManage_Handler   PROC
-    B       .
-    ENDP
-BusFault_Handler    PROC
-    B       .
-    ENDP
-UsageFault_Handler  PROC
-    B       .
+DEMCR_OFFSET     EQU     0xe000edfc
+DEBUG_ENABLE     EQU     0x010d0000
+
+DebugMon_Handler    PROC
+    CPSID   I
+    PUSH    {R4 - R12, LR}
+    MOV     R0,     SP
+    BL      CORE_DebugMonitor
+    LDR     R0,     =DEBUG_ENABLE
+    LDR     R1,     =DEMCR_OFFSET
+    STR     R0,     [R1]     
+    POP     {R4 - R12, LR}
+    CPSIE   I
+    BX      LR
+    NOP
     ENDP
 	
 ALIGN

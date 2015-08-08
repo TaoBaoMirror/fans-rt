@@ -652,11 +652,6 @@
               <FilePath>..\..\source\testcode\testcode.h</FilePath>
             </File>
             <File>
-              <FileName>testipc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\source\testcode\testipc.c</FilePath>
-            </File>
-            <File>
               <FileName>testtask.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\testtask.c</FilePath>
@@ -680,6 +675,26 @@
               <FileName>testlsot.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\source\testcode\testlsot.c</FilePath>
+            </File>
+            <File>
+              <FileName>testevent.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testevent.c</FilePath>
+            </File>
+            <File>
+              <FileName>testmutex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testmutex.c</FilePath>
+            </File>
+            <File>
+              <FileName>testsemaphore.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testsemaphore.c</FilePath>
+            </File>
+            <File>
+              <FileName>testsemset.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\testcode\testsemset.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -955,6 +970,11 @@
               <FileName>karch_armasm_stack.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\..\source\platform\arch\stm32\arm\karch_armasm_stack.s</FilePath>
+            </File>
+            <File>
+              <FileName>karch_debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\source\platform\arch\stm32\karch_debug.c</FilePath>
             </File>
           </Files>
         </Group>
