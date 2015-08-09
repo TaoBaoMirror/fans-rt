@@ -89,7 +89,6 @@ struct tagKIPC_CLASS_BASE{
 #define     IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags)                                                  \
                 CORE_SPIN_UNLOCK_IRQ((((LPKIPC_CLASS_BASE)(lpHeader))->Attribute.Byte.Lock), dwFlags)
 #define     IPC_ENTRY(Ptr, Member)                  ((LPKIPC_CLASS_HEADER)CONTAINER_OF(Ptr, KIPC_CLASS_HEADER, Member))
-#define     GetHeaderByWaitQueue(Ptr)               IPC_ENTRY(Ptr, WaitQueue)
 #define     GetIPCWaitQueue(lpObject)               (&(((LPKIPC_CLASS_HEADER)(lpObject))->WaitQueue))
 #define     GetFirstWaitNode(lpObject)              LIST_NEXT_NODE(GetIPCWaitQueue(lpObject))
 #define     GetFirstWaitTask(lpObject)              GetContextByIPCNode(GetFirstWaitNode(lpObject))
@@ -201,10 +200,18 @@ union tagSEMSET_ATTRIBUTE{
     DWORD               Value;
 };
 
+#define     DetachIPCObject(lpTC)                                                               \
+            do{                                                                                 \
+                if (NULL != GetContextIPCHeader(lpTC))                                          \
+                {                                                                               \
+                    CORE_RequestMethod( GetContextIPCHeader(lpTC), lpTC, KIPC_METHOD_DETACH);   \
+                }                                                                               \
+            } while(0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-    EXPORT E_STATUS CORE_DetachIPCObject(LPTASK_CONTEXT lpTaskContext);
+
 #ifdef __cplusplus
 }
 #endif

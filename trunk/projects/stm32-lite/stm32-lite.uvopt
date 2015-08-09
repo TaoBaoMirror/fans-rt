@@ -145,7 +145,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>?搢</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -168,12 +167,45 @@
           <Name>-O14 -S0 -C0 -N00("ARM Cortex-M3") -D00(1BA00477) -L00(4) -FO7 -FD20000000 -FC800 -FN1 -FF0STM32F10x_128 -FS08000000 -FL010000)</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>625</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>G:\fans-rt\trunk\source\system\core\kipc.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>193</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>G:\fans-rt\trunk\source\testcode\testmutex.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+      </Breakpoint>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>0</SubType>
-          <ItemText>0X20000DE0</ItemText>
+          <ItemText>0x2000c970</ItemText>
         </Mm>
       </MemoryWindow1>
       <DebugFlag>
@@ -212,7 +244,7 @@
 
   <Group>
     <GroupName>include</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -502,10 +534,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>19</ColumnNumber>
+      <ColumnNumber>92</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>22</TopLine>
-      <CurrentLine>26</CurrentLine>
+      <TopLine>61</TopLine>
+      <CurrentLine>74</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kdebug.c</PathWithFileName>
       <FilenameWithoutPath>kdebug.c</FilenameWithoutPath>
@@ -584,8 +616,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1</TopLine>
-      <CurrentLine>1</CurrentLine>
+      <TopLine>151</TopLine>
+      <CurrentLine>155</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\klpc.c</PathWithFileName>
       <FilenameWithoutPath>klpc.c</FilenameWithoutPath>
@@ -648,7 +680,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>3</TopLine>
+      <TopLine>1</TopLine>
       <CurrentLine>22</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kmisc.c</PathWithFileName>
@@ -662,10 +694,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>18</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>684</TopLine>
-      <CurrentLine>685</CurrentLine>
+      <TopLine>487</TopLine>
+      <CurrentLine>494</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kobject.c</PathWithFileName>
       <FilenameWithoutPath>kobject.c</FilenameWithoutPath>
@@ -760,7 +792,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>97</TopLine>
+      <TopLine>95</TopLine>
       <CurrentLine>106</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\ktable.c</PathWithFileName>
@@ -790,10 +822,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>29</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>880</TopLine>
-      <CurrentLine>882</CurrentLine>
+      <TopLine>773</TopLine>
+      <CurrentLine>791</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\ktask.c</PathWithFileName>
       <FilenameWithoutPath>ktask.c</FilenameWithoutPath>
@@ -870,10 +902,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>6</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>23</TopLine>
-      <CurrentLine>36</CurrentLine>
+      <TopLine>290</TopLine>
+      <CurrentLine>298</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kipc.c</PathWithFileName>
       <FilenameWithoutPath>kipc.c</FilenameWithoutPath>
@@ -1028,7 +1060,7 @@
 
   <Group>
     <GroupName>testcode</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1070,10 +1102,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>48</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>27</TopLine>
-      <CurrentLine>33</CurrentLine>
+      <TopLine>60</TopLine>
+      <CurrentLine>46</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\main.c</PathWithFileName>
       <FilenameWithoutPath>main.c</FilenameWithoutPath>
@@ -1150,10 +1182,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>56</ColumnNumber>
+      <ColumnNumber>31</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>247</TopLine>
-      <CurrentLine>191</CurrentLine>
+      <TopLine>206</TopLine>
+      <CurrentLine>251</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\testmutex.c</PathWithFileName>
       <FilenameWithoutPath>testmutex.c</FilenameWithoutPath>
@@ -1166,9 +1198,9 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>2</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>348</TopLine>
+      <TopLine>345</TopLine>
       <CurrentLine>349</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\testsemaphore.c</PathWithFileName>
@@ -1184,8 +1216,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>166</TopLine>
-      <CurrentLine>142</CurrentLine>
+      <TopLine>110</TopLine>
+      <CurrentLine>118</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\testsemset.c</PathWithFileName>
       <FilenameWithoutPath>testsemset.c</FilenameWithoutPath>
@@ -1256,7 +1288,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>146</TopLine>
+      <TopLine>145</TopLine>
       <CurrentLine>151</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\platform\libfw\stm32f10x\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\startup\arm\startup_stm32f10x_hd.s</PathWithFileName>
@@ -1366,10 +1398,10 @@
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>29</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>31</TopLine>
-      <CurrentLine>39</CurrentLine>
+      <TopLine>86</TopLine>
+      <CurrentLine>93</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\platform\board\stm32\lite\armcc\kboard_interrupt.s</PathWithFileName>
       <FilenameWithoutPath>kboard_interrupt.s</FilenameWithoutPath>
@@ -1380,7 +1412,7 @@
 
   <Group>
     <GroupName>libapi</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1438,10 +1470,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>58</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>355</TopLine>
-      <CurrentLine>368</CurrentLine>
+      <TopLine>242</TopLine>
+      <CurrentLine>246</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\libs\libapi\uipc.c</PathWithFileName>
       <FilenameWithoutPath>uipc.c</FilenameWithoutPath>
@@ -1760,8 +1792,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>53</TopLine>
-      <CurrentLine>59</CurrentLine>
+      <TopLine>132</TopLine>
+      <CurrentLine>154</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\libs\libcal\caobject.c</PathWithFileName>
       <FilenameWithoutPath>caobject.c</FilenameWithoutPath>
@@ -1822,9 +1854,9 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>1</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>47</TopLine>
+      <TopLine>44</TopLine>
       <CurrentLine>49</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\libs\libcal\request.c</PathWithFileName>
@@ -1916,7 +1948,7 @@
 
   <Group>
     <GroupName>arch</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1960,7 +1992,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>16</TopLine>
+      <TopLine>24</TopLine>
       <CurrentLine>30</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\platform\arch\stm32\karch_main.c</PathWithFileName>
@@ -2008,8 +2040,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>33</TopLine>
-      <CurrentLine>52</CurrentLine>
+      <TopLine>44</TopLine>
+      <CurrentLine>49</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\platform\arch\stm32\arm\karch_armasm_misc.s</PathWithFileName>
       <FilenameWithoutPath>karch_armasm_misc.s</FilenameWithoutPath>

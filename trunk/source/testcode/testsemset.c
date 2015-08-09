@@ -108,14 +108,14 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
     
     GetTaskSelfName(Name, OBJECT_NAME_MAX);
 
-    LOG_DEBUG(TRUE, "Task '%s' startup ...", Name);
+    LOG_DEBUG(TRUE, "Task '%P-%s' startup ...", Name, Name);
     
     /* 调整当前任务优先级为实时 */
     Result = SetTaskSelfPriority(TASK_PRIORITY_REAL);
 
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
             "'%s' set self priority to realtime failed, result %d.", Name, Result);
-    
+
     Priority = GetTaskSelfPriority();
 
     Result = GetError();
@@ -137,15 +137,17 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
             Name, lpParam, SignalID, GetError());
     
     g_lpWakeupTaskName = Name;
-    
-    Sleep(1);
 
     g_FinishedTaskCount --;
+    
+    Sleep(1);
 
     Result = PostSemset(hFull, (SHORT) TaskID);
     
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
             "'%s' post semset failed, result %d.", Name, Result);
+    
+    LOG_DEBUG(TRUE, "Task '%P-%s' exit ...", Name, Name);
             
     return STATE_SUCCESS;
 }
@@ -206,8 +208,9 @@ STATIC RO_USER_CODE E_STATUS SEMSET_TEST_CASE01(VOID)
                 CloseHandle(handle);
                 CloseHandle(hFull);
                 return STATE_SYSTEM_FAULT,
-                "Task '%s' post semset %s failed, wakeup task out of expetation.",
-                TaskName, g_TaskCase01Name);
+                "Task '%s' post semset %s failed, wakeup task(%P-%s) out of expetation(%s).",
+                TaskName, g_TaskCase01Name, g_lpWakeupTaskName, g_lpWakeupTaskName, Name);
+        Sleep(1);
     }
     
     SignalID = WaitObject(hFull, 6000);

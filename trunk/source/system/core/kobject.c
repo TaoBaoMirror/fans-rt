@@ -491,6 +491,11 @@ STATIC LPKCLASS_DESCRIPTOR KObject2KClass(LPKOBJECT_HEADER lpHeader)
     return NULL;
 }
 
+PUBLIC DWORD CORE_Header2Magic(LPKOBJECT_HEADER lpHeader)
+{
+    return CID2ClassDescriptor(GetObjectCid(lpHeader))->Header.un.Bits.Magic;
+}
+
 STATIC INLINE LPCORE_CONTAINER KObject2Container(LPKOBJECT_HEADER lpHeader)
 {
     DWORD Tid = GetObjectTid(lpHeader);
@@ -1021,27 +1026,6 @@ EXPORT E_STATUS CORE_FreeObject(LPKOBJECT_HEADER lpHeader)
             GetObjectName(lpHeader), GetClassName(lpClass), Result);
 
     return Result;
-}
-
-
-EXPORT E_STATUS CORE_DetachIPCQueue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    LPKCLASS_DESCRIPTOR lpClass = KObject2KClass(lpHeader);
-    
-    if (NULL == lpClass)
-    {
-        return CORE_GetError();
-    }
-    
-    if (KOBJECT_STATE_ACTIVE != GetObjectState(lpHeader))
-    {
-        CORE_ERROR(TRUE, "Object handle 0x%p state %d error.",
-                lpHeader, GetObjectState(lpHeader));
-        return STATE_INVALID_STATE;
-    }
-    
-    return STATE_SUCCESS;
-    
 }
 
 EXPORT E_STATUS CORE_RequestMethod(LPKOBJECT_HEADER lpHeader, LPVOID lpParam, DWORD Method)

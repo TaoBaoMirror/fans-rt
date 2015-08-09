@@ -100,7 +100,7 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
     
     GetTaskSelfName(Name, OBJECT_NAME_MAX);
 
-    LOG_DEBUG(TRUE, "Task '%s' startup ...", Name);
+    LOG_INFOR(TRUE, "Task '%s' startup ...", Name);
 
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hMutex, return GetError(),
             "Take mutex %s failed.", lpParam);
@@ -129,7 +129,7 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
             "Task '%s' lock mutex %s failed, priority is %d, normal is %d.",
             Name, lpParam, Priority, TASK_PRIORITY_NORMAL);
             
-    LOG_DEBUG(TRUE, "Task '%s' will be lock mutex '%s'.", Name, lpParam);
+    LOG_INFOR(TRUE, "Task '%s' will be lock mutex '%s'.", Name, lpParam);
 
     Result = MutexLock(hMutex);
     
@@ -242,6 +242,8 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE01(VOID)
     Sleep(1000);
 
     /* πÿ±’ MUTEX ∂‘œÛ */
+    g_FinishedTaskCount = 0;
+
     Result = CloseHandle(hMutex);
     
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, 
@@ -280,7 +282,7 @@ STATIC RO_USER_CODE E_STATUS MUTEX_TEST_CASE02(VOID)
 STATIC RO_USER_DATA CONST TEST_CASE_DESCRIPTOR g_TestCase[] =
 {
     DEFINE_TEST_CASE(MUTEX_TEST_CASE00),
-//    DEFINE_TEST_CASE(MUTEX_TEST_CASE01),
+    DEFINE_TEST_CASE(MUTEX_TEST_CASE01),
     DEFINE_TEST_CASE(MUTEX_TEST_CASE02),
 };
 

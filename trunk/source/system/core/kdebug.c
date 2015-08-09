@@ -70,8 +70,8 @@ EXPORT INT kDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG_LEVEL em
     INT Length;
     va_list vargs;
 
-    Length = kprintf("[%016llu][%04d][%s][%s] ", 
-            CORE_GetSystemTick(), Line, kDebugLevel2String(emLevel), Function);
+    Length = kprintf("[%016llu][%04d][%s][%s][%s] ", 
+            CORE_GetSystemTick(), Line, kDebugLevel2String(emLevel), CORE_GetCurrentTaskName(), Function);
     
     va_start (vargs, Format);
     Length += kvprintf(Format, vargs);

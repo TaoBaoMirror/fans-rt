@@ -53,11 +53,9 @@ typedef struct tagTASK_CONTEXT TASK_CONTEXT;
 typedef struct tagTASK_CONTEXT * PTASK_CONTEXT;
 typedef struct tagTASK_CONTEXT FAR * LPTASK_CONTEXT;
 
-typedef E_STATUS (* FNWAKEROUTINE)(LPTASK_CONTEXT lpTaskContext);
-
 struct tagTASK_CONTEXT{
     KOBJECT_HEADER          Header;
-    FNWAKEROUTINE           fnWakeRoutine;
+    LPKOBJECT_HEADER        lpIPCHeader;                        /* The ipc object */
     LIST_HEAD               SystemNode;                         /* 系统任务节点*/
     LIST_HEAD               IPCNode;                            /* IPC对象的任务节点 */
     union{
@@ -140,19 +138,8 @@ struct tagTASK_CONTEXT{
 #define     MISCBITS_STACKID_BITS_SHIFT         19
 #define     MISCBITS_STACKID_BITS_MASK          (MISCBITS_STACKPID_BITS_MASK + MISCBITS_STACKTID_BITS_MASK)
 
-#define     GetContextWakeRoutine(lpTC)         ((lpTC)->fnWakeRoutine)
-#define     SetContextWakeRoutine(lpTC, fn)     do { ((lpTC)->fnWakeRoutine) = fn; } while(0)
-
-#define     CallWakeRoutine(lpTC)                                                                       \
-            do {                                                                                        \
-                if (NULL != GetContextWakeRoutine(lpTC))                                                \
-                {                                                                                       \
-                    E_STATUS Result = (lpTC)->fnWakeRoutine(lpTC);                                      \
-                    SetContextWakeRoutine(lpTC, NULL);                                                  \
-                    CORE_ASSERT(STATE_SUCCESS == Result, SYSTEM_CALL_OOPS(),                            \
-                                "Wakeup task '%s' failed !", GetContextTaskName(lpTC));                 \
-                }                                                                                       \
-            } while(0)
+#define     GetContextIPCHeader(lpTC)           ((lpTC)->lpIPCHeader)
+#define     SetContextIPCHeader(lpTC, obj)      do { ((lpTC)->lpIPCHeader) = (obj); } while(0)
 
 #define     SetContextMiscBits(lpTC, Percent, State, Fault)                                             \
             do {                                                                                        \

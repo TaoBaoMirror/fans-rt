@@ -344,7 +344,7 @@ STATIC VOID ScheduleFinish(LPTASK_CONTEXT lpTaskContext)
 STATIC VOID Attach2ReadyQueue(LPTASK_CONTEXT lpTaskContext)
 {
     DetachSleep(lpTaskContext);
-    DetachIPCNode(lpTaskContext); /* Fix it, when object was freed by object manager */
+    DetachIPCObject(lpTaskContext);
     AttachReady(GetContextPriorityReadyQueue(lpTaskContext), lpTaskContext);
     SetContextState(lpTaskContext, TASK_STATE_READY);
     RelContextSliceRemain(lpTaskContext);
@@ -506,9 +506,10 @@ STATIC VOID ScheduleResumeHandler(VOID)
     {
         LPTASK_CONTEXT lpTaskContext = GetContextBySleepNode(lpList);
         TICK ResumeTick = GetContextResumeTick(lpTaskContext);
-        
-        /* 如果队列的第一个任务无限休眠，或者休眠时间未满，说明队列中的所有 */
-        /* 任务都不满足唤醒条件，则没有任务需要唤醒 */
+
+        /* If the first task is infinite or insufficient, there is no need to wake up.*/
+        /* If the first task need to wake up, then should be detected the next task, */
+        /* until no task needs to wake up. */
         if (TICK_INFINITE == ResumeTick || ResumeTick > CORE_GetSystemTick())
         {
             break;
@@ -619,10 +620,8 @@ STATIC E_STATUS WakeupTask(LPTASK_CONTEXT lpTaskContext)
     if (TASK_STATE_SLEEP == State ||
         TASK_STATE_WAITING == State)
     {
-        DetachIPCNode(lpTaskContext);
         Attach2ReadyQueue(lpTaskContext);
         SetNeedSchedule();
-        CallWakeRoutine(lpTaskContext);
 
         return STATE_SUCCESS;
     }

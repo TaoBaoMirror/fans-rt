@@ -212,7 +212,7 @@
 
   <Group>
     <GroupName>include</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -662,10 +662,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>18</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>684</TopLine>
-      <CurrentLine>685</CurrentLine>
+      <TopLine>481</TopLine>
+      <CurrentLine>494</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kobject.c</PathWithFileName>
       <FilenameWithoutPath>kobject.c</FilenameWithoutPath>
@@ -758,10 +758,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>1186188</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>5</CurrentLine>
+      <TopLine>97</TopLine>
+      <CurrentLine>106</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\ktable.c</PathWithFileName>
       <FilenameWithoutPath>ktable.c</FilenameWithoutPath>
@@ -790,10 +790,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>29</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>880</TopLine>
-      <CurrentLine>882</CurrentLine>
+      <TopLine>841</TopLine>
+      <CurrentLine>841</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\ktask.c</PathWithFileName>
       <FilenameWithoutPath>ktask.c</FilenameWithoutPath>
@@ -870,10 +870,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>83</ColumnNumber>
+      <ColumnNumber>65</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>771</TopLine>
-      <CurrentLine>784</CurrentLine>
+      <TopLine>993</TopLine>
+      <CurrentLine>1003</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\system\core\kipc.c</PathWithFileName>
       <FilenameWithoutPath>kipc.c</FilenameWithoutPath>
@@ -1028,7 +1028,7 @@
 
   <Group>
     <GroupName>testcode</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1072,7 +1072,7 @@
       <Focus>0</Focus>
       <ColumnNumber>48</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>26</TopLine>
+      <TopLine>28</TopLine>
       <CurrentLine>33</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\main.c</PathWithFileName>
@@ -1152,7 +1152,7 @@
       <Focus>0</Focus>
       <ColumnNumber>56</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>184</TopLine>
+      <TopLine>190</TopLine>
       <CurrentLine>191</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\testmutex.c</PathWithFileName>
@@ -1168,7 +1168,7 @@
       <Focus>0</Focus>
       <ColumnNumber>2</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>347</TopLine>
+      <TopLine>348</TopLine>
       <CurrentLine>349</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\testsemaphore.c</PathWithFileName>
@@ -1182,10 +1182,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>25</ColumnNumber>
+      <ColumnNumber>17</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>203</TopLine>
-      <CurrentLine>213</CurrentLine>
+      <TopLine>129</TopLine>
+      <CurrentLine>158</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\testcode\testsemset.c</PathWithFileName>
       <FilenameWithoutPath>testsemset.c</FilenameWithoutPath>
@@ -1380,7 +1380,7 @@
 
   <Group>
     <GroupName>libapi</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1438,10 +1438,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>63</ColumnNumber>
+      <ColumnNumber>58</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>360</TopLine>
-      <CurrentLine>369</CurrentLine>
+      <TopLine>361</TopLine>
+      <CurrentLine>368</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\source\libs\libapi\uipc.c</PathWithFileName>
       <FilenameWithoutPath>uipc.c</FilenameWithoutPath>

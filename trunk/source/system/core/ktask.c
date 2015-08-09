@@ -188,13 +188,6 @@ STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
     return Result;
 }
 
-EXPORT E_STATUS DetachFromIPCQueue(LPTASK_CONTEXT lpTaskContext)
-{
-    LPKOBJECT_HEADER lpHeader = (LPVOID)GetHeaderByWaitQueue(GetIPCNode(lpTaskContext));
-    return CORE_DetachIPCQueue(lpHeader, lpTaskContext);
-}
-
-
 STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
 {
     E_STATUS Result = STATE_SUCCESS;
@@ -212,7 +205,7 @@ STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
     case TASK_STATE_SLEEP:
         break;
     case TASK_STATE_WAITING:
-        Result = DetachFromIPCQueue(lpTaskContext);
+        //Result = DetachFromIPCQueue(lpTaskContext);
         break;
     default: /*unknow*/
         Result = STATE_INVALID_STATE;
@@ -453,8 +446,6 @@ STATIC E_STATUS SVC_TaskWakeup(LPVOID lpPrivate, LPVOID lpParam)
     {
         return STATE_INVALID_PARAMETER;
     }
-    
-    SetContextCancel(lpTaskContext, TRUE);
     
     return WakeupTask(lpTaskContext);
 }
@@ -844,7 +835,7 @@ EXPORT LPCSTR CORE_GetCurrentTaskName(VOID)
     
     if (NULL == lpCurrentTask)
     {
-        return "UnknowTask";
+        return "Unknow";
     }
     
     return GetContextTaskName(lpCurrentTask);

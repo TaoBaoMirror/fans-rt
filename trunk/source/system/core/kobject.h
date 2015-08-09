@@ -257,6 +257,7 @@ struct tagKOBJECT_HEADER{
 #ifdef __cplusplus
 extern "C" {
 #endif
+    EXPORT DWORD CORE_Header2Magic(LPKOBJECT_HEADER lpHeader);
 #define     CORE_Handle2Header(handle)          CORE_Handle2HeaderCheck(handle, TRUE)
     EXPORT LPKOBJECT_HEADER CORE_Handle2HeaderCheck(HANDLE handle, BOOL Check);
     EXPORT HANDLE CORE_RebuildHandle(DWORD Magic, SIZE_T Length, KOBJECT_STATE State, DWORD Pid);

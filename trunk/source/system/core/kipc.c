@@ -10,6 +10,7 @@
  *    date           author          notes
  *    2014-09-07     JiangYong       new file
  */
+#include <stdlib.h>
 #include <string.h>
 #include <fadefs.h>
 #include <faerror.h>
@@ -23,7 +24,7 @@
 #include "kcore.h"
 #include "kdebug.h"
 #include "ktable.h"
-//#define IPC_DEBUG_ENABLE TRUE
+#define IPC_DEBUG_ENABLE TRUE
 
 #if (IPC_DEBUG_ENABLE == TRUE)
 #define     IPC_DEBUG(Enter, ...)                            CORE_DEBUG(Enter, __VA_ARGS__)
@@ -56,10 +57,12 @@
 #define     IPC_TakeSemset                          IPC_DummyOperation
 #define     IPC_ResetSemset                         IPC_DummyOperation
 
-#define     IPC_DetachSemaphore                     IPC_DetachDefault
-#define     IPC_DetachSemset                        IPC_DetachDefault
-#define     IPC_DetachEvent                         IPC_DetachDefault
 
+
+STATIC E_STATUS IPC_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_SUCCESS;
+}
 /************************************************************************************
                                     Event Class
 ************************************************************************************/
@@ -85,9 +88,11 @@ struct tagIPC_EVENT_OBJECT{
             (((LPIPC_EVENT_OBJECT)(lpHeader))->Attribute.Byte.Signal)
 #define     SetEventSignal(lpHeader, value)                                                         \
             do { ((LPIPC_EVENT_OBJECT)(lpHeader))->Attribute.Byte.Signal = value; } while(0)
-#define     IncEventBlockedTasks(lpHeader)                                                               \
+#define     GetEventBlockedTasks(lpHeader)                                                          \
+            (((LPIPC_EVENT_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
+#define     IncEventBlockedTasks(lpHeader)                                                          \
             (++ ((LPIPC_EVENT_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
-#define     DecEventBlockedTasks(lpHeader)                                                               \
+#define     DecEventBlockedTasks(lpHeader)                                                          \
             (-- ((LPIPC_EVENT_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
 /************************************************************************************
                                     Mutex Class
@@ -183,19 +188,19 @@ struct tagIPC_SEMSET_OBJECT{
                  (-- ((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
 /**
  * Task insert to the IPC queue.
+ * @param The header of the wait queue.
  * @param The context of the task.
  * @return VOID
+ *
  * \par
  * If need wait an IPC object, the task will be insert to IPC wait queue
  * (Best appropriate priority in the queue).
- *
- * 如果需要等待一个 IPC 对象，任务需要插入到 IPC 对象的等待队列，插入队列
- * 的位置根据队列中任务的优先级进行排列。
+ * No safety, need be disable IRQ and lock IPC object befor call this function
  *
  * date           author          notes
  * 2015-06-13     JiangYong       first version
  */
-STATIC VOID Insert2WaitQueue(LPLIST_HEAD lpHead, LPTASK_CONTEXT lpTaskContext)
+STATIC VOID IPC_Insert2WaitQueue(LPLIST_HEAD lpHead, LPTASK_CONTEXT lpTaskContext)
 {
     LPLIST_HEAD lpList = lpHead;
 
@@ -222,12 +227,21 @@ STATIC VOID Insert2WaitQueue(LPLIST_HEAD lpHead, LPTASK_CONTEXT lpTaskContext)
 }
 
 
-STATIC E_STATUS IPC_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
-{
-    return STATE_SUCCESS;
-}
-
-
+/**
+ * Blocking a task by IPC object.
+ * @param The header of the IPC object.
+ * @param The IPC object request parameter packet.
+ * @return STATE_TIME_OUT                 successfully.
+ *
+ * \par
+ * Blocking a task by IPC object, the result code will be setting to system
+ * call packet(LPC_REQUEST_PACKET::StateCode), so return STATE_TIME_OUT for
+ * successful(see CORE_HandlerLPC).
+ * No safety, need be disable IRQ and lock IPC object befor call this function
+ *
+ * date           author          notes
+ * 2015-08-09     JiangYong       first version
+ */
 STATIC E_STATUS IPC_BlockTask(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     E_STATUS State = STATE_SUCCESS;
@@ -236,84 +250,107 @@ STATIC E_STATUS IPC_BlockTask(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
     if (STATE_SUCCESS == (State = CORE_TaskSuspend(lpCurrentTask, WaitTime)))
     {
-        /* 将当前任务插入到阻塞队列 */
-        SetREQPrivate(GetContextLPCPacket(lpCurrentTask), lpHeader);
-        Insert2WaitQueue(GetIPCWaitQueue(lpHeader), lpCurrentTask);
+        /* When awakening this task by scheduler will be call detach flow, if the IPC */
+        /* object is not a NULL. See Attach2ReadyQueue calling DetachIPCObject */
+        /* If the task was awakened by IPC object, the IPC object will be setting to NULL. */
+        /* See IPC_DetachEvent/IPC_DetachMutex/IPC_DetachSemaphore and IPC_DetachSemset. */
+        SetContextIPCHeader(lpCurrentTask, lpHeader);
+        IPC_Insert2WaitQueue(GetIPCWaitQueue(lpHeader), lpCurrentTask);
         return STATE_TIME_OUT;
     }
     
     return State;
 }
 
-
-
+/**
+ * Awakening task by IPC object.
+ * @param The header of the IPC object.
+ * @param The signal ID return to the application.
+ * @param This is a MUTEX objects.
+ * @return STATE_SUCCESS                 successfully.
+ *
+ * \par
+ * No safety, need be disable IRQ and lock IPC object befor call this function
+ *
+ * date           author          notes
+ * 2015-08-09     JiangYong       first version
+ */
 STATIC E_STATUS IPC_WakeupTask(LPKOBJECT_HEADER lpHeader, SHORT SignalID, BOOL IsMutex)
 {
     LPKIPC_WAIT_PARAM lpWaitParam;
     LPLPC_REQUEST_PACKET lpPacket;
-    E_STATUS State = STATE_SUCCESS;
-    LPTASK_CONTEXT lpTaskContext = GetFirstWaitTask(lpHeader);
-    /* 阻塞队列为空，表明有 BUG */
+    LPTASK_CONTEXT lpNextContext = GetFirstWaitTask(lpHeader);
+
     IPC_ASSERT(NULL != GetFirstWaitNode(lpHeader), SYSTEM_CALL_OOPS(),
         "BUG: Bad wait task queue, semaphore'%s'.",  GetObjectName(lpHeader));
 
-    lpPacket = GetContextLPCPacket(lpTaskContext);
+    lpPacket = GetContextLPCPacket(lpNextContext);
 
     IPC_ASSERT(lpPacket, SYSTEM_CALL_OOPS(),
         "BUG: Post semaphore '%s' failed, invalid request packet.", GetObjectName(lpHeader));
 
+    /* When awakening this task by scheduler will be call detach flow, if the IPC */
+    /* object is not a NULL. The detach flow will be change the blocking counter, */
+    /* this is repeat actions. If the blocking counter is faulty, the synchronization */
+    /* object will be unavailable. See IPC_DetachEvent/IPC_DetachMutex/IPC_DetachSemaphore */
+    /* and IPC_DetachSemset. */
+    SetContextIPCHeader(lpNextContext, NULL);
+    DetachIPCNode(lpNextContext);
+
     if (KOBJECT_STATE_ACTIVE != GetObjectState(lpHeader))
     {
         SetREQResult(lpPacket, STATE_REMOVED);
-        
-        State = CORE_TaskWakeup(lpTaskContext);
-
-        IPC_INFOR(TRUE, "Mutex '%s' remove, task '%s' will be wakeup ...",
-                   GetObjectName(lpHeader), GetContextTaskName(lpTaskContext));
     }
     else
     {
-    
-        SetREQResult(lpPacket, STATE_SUCCESS);
-
         lpWaitParam = REQpParam(lpPacket, u1);
 
-        IPC_ASSERT(NULL != lpWaitParam, SYSTEM_CALL_OOPS(), "Invalid IPC param for task(%s)!",
-                    GetContextTaskName(lpTaskContext));
+        IPC_ASSERT(NULL != lpWaitParam, SYSTEM_CALL_OOPS(),
+                "Wakeup task '0x%P-%s', invalid IPC param(0x%P)!",
+                lpNextContext, GetContextTaskName(lpNextContext), lpWaitParam);
 
         SetSignalID2Param(lpWaitParam, SignalID);
+        
+        SetREQResult(lpPacket, STATE_SUCCESS);
 
+        /* If is a mutex object, the first blocked task is the next onwer task. */
         if (IsMutex)
         {
-            SetMutexOnwer(lpHeader, GetContextHandle(lpTaskContext));
+            SetMutexOnwer(lpHeader, GetContextHandle(lpNextContext));
         }
-
-        State = CORE_TaskWakeup(lpTaskContext);
-
-        IPC_INFOR(TRUE, "Post '%s' and wakeup task '%s', task state %d, result %d...",
-            GetObjectName(lpHeader), GetContextTaskName(lpTaskContext),
-            GetContextState(lpTaskContext), State);
     }
-        
-    return State;
+
+    IPC_INFOR(TRUE, "Post '%s' and wakeup task '%s', task state %d ...",
+        GetObjectName(lpHeader), GetContextTaskName(lpNextContext),
+        GetContextState(lpNextContext));
+
+    return CORE_TaskWakeup(lpNextContext);
 }
 
-STATIC E_STATUS IPC_DetachDefault(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+/**
+ * Detaching task by IPC object.
+ * @param The header of the IPC object.
+ * @param The will be detaching task.
+ * @return STATE_SUCCESS                 successfully.
+ * @return STATE_REMOVED                 This task was detached.
+ *
+ * \par
+ * No safety, need be disable IRQ and lock IPC object befor call this function
+ *
+ * date           author          notes
+ * 2015-08-09     JiangYong       first version
+ */
+STATIC INLINE E_STATUS IPC_DetachTask(LPKOBJECT_HEADER lpHeader, LPTASK_CONTEXT lpTaskContext)
 {
-    if (NULL != lpParam)
+    if (NULL != GetContextIPCHeader(lpTaskContext))
     {
-        LPTASK_CONTEXT lpTaskContext = lpParam;
-        DWORD dwFlags = CORE_DisableIRQ();
- 
         DetachIPCNode(lpTaskContext);
-        CORE_RestoreIRQ(dwFlags);
- 
+        SetContextIPCHeader(lpTaskContext, NULL);
         return STATE_SUCCESS;
     }
-    
-    return STATE_INVALID_PARAMETER;
-}
 
+    return STATE_REMOVED;    
+}
 /************************************************************************************
                                     Event Class
 ************************************************************************************/
@@ -331,7 +368,9 @@ STATIC E_STATUS IPC_ActiveEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
         IPC_ERROR(TRUE, "Invalid parameter to create event '%s'.", GetObjectName(lpHeader));
         return STATE_INVALID_PARAMETER;
     }
-    
+
+    /* The signal and the automatic bits can be set to 1. */
+    /* The other bits must be set to 0. */
     if (0 != (lpAttribute->Value & (~EVENT_BITS_MASK)))
     {
         IPC_ERROR(TRUE, "Invalid value to create event '%s'.", GetObjectName(lpHeader));
@@ -356,12 +395,20 @@ STATIC E_STATUS IPC_WaitEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
     if (TRUE != GetEventSignal(lpHeader))
     {
+        /* If this is a no signal object, the current */
+        /* task will be blocked by this object. */
         IPC_BlockTask(lpHeader, lpParam);
         IncEventBlockedTasks(lpHeader);
     }
     else
     {
-        SetEventSignal(lpHeader, FALSE);
+        /* If this is a automatic object, current task will be */
+        /* return STATE_SUCCESS and the signal of this object */
+        /* will be lost */
+        if (GetEventAutomatic(lpHeader))
+        {
+            SetEventSignal(lpHeader, FALSE);
+        }
     }
     
     IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags);
@@ -376,19 +423,21 @@ STATIC E_STATUS IPC_PostEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
     IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags);
 
-    if (TRUE != GetEventAutomatic(lpHeader))
+    if (DecEventBlockedTasks(lpHeader) > 0)
     {
-        SetEventSignal(lpHeader, TRUE);
+        /* If this is a automatic object, the blocked all task will be */
+        /* return STATE_SUCCESS and the signal of this object will be lost */
+        SetEventSignal(lpHeader, !!GetEventAutomatic(lpHeader));
+        
+        do {
+            State = IPC_WakeupTask(lpHeader, WAIT_SIGNAL_ID_0, FALSE);
+        }while(DecEventBlockedTasks(lpHeader) > 0);
     }
     else
     {
-        SetEventSignal(lpHeader, FALSE);
+        /* If no task has been blocked, the signal will be setting to TRUE. */
+        SetEventSignal(lpHeader, TRUE);
     }
-
-    if (DecEventBlockedTasks(lpHeader) > 0)
-    do {
-        State = IPC_WakeupTask(lpHeader, WAIT_SIGNAL_ID_0, FALSE);
-    }while(DecEventBlockedTasks(lpHeader) > 0);
 
     IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags);
     
@@ -418,11 +467,16 @@ STATIC E_STATUS IPC_FreeEvent(LPKOBJECT_HEADER lpHeader)
     E_STATUS State = STATE_SUCCESS;
 
     IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags);
+    
+    SetEventSignal(lpHeader, TRUE);
 
-    if (DecEventBlockedTasks(lpHeader) > 0)
-    do {
-        State = IPC_WakeupTask(lpHeader, WAIT_SIGNAL_ID_0, FALSE);
-    }while(DecEventBlockedTasks(lpHeader) > 0);
+    if (GetEventBlockedTasks(lpHeader) > 0)
+    {
+        /* The blocked all task will be return STATE_REMOVED. */
+        do {
+            State = IPC_WakeupTask(lpHeader, WAIT_SIGNAL_INVALID, FALSE);
+        }while(DecEventBlockedTasks(lpHeader) > 0);
+    }
     
     IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags);
     
@@ -431,6 +485,33 @@ STATIC E_STATUS IPC_FreeEvent(LPKOBJECT_HEADER lpHeader)
 
     return State;
 }
+
+STATIC E_STATUS IPC_DetachEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    DWORD dwFlags = 0;
+    E_STATUS Result = STATE_SYSTEM_FAULT;
+
+    IPC_INFOR(TRUE, "Detach '%s' from '%s', blocked task is %u.",
+        GetContextTaskName((LPTASK_CONTEXT)lpParam), GetObjectName(lpHeader), 
+        GetSemsetBlockedTasks(lpHeader));
+    
+    IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags);
+
+    if (GetEventBlockedTasks(lpHeader))
+    {
+        /* If the specified task is awakened by scheduler, this task will be return STATE_TIME_OUT. */
+        /* If the specified task is awakened by the IPC object, impossible to here. */
+        if (STATE_SUCCESS == (Result = IPC_DetachTask(lpHeader, lpParam)))
+        {
+            DecEventBlockedTasks(lpHeader);
+        }
+    }
+    
+    IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags);
+    
+    return Result;
+}
+
 
 DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               EventClass,
@@ -444,9 +525,7 @@ DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               IPC_WaitEvent,
               IPC_PostEvent,
               IPC_ResetEvent,
-              IPC_DetachDefault);
-
-
+              IPC_DetachEvent);
 
 /************************************************************************************
                                     Mutex Class
@@ -492,9 +571,9 @@ STATIC E_STATUS IPC_LockMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     LPTASK_CONTEXT lpCurrentTask;
     LPTASK_CONTEXT lpOnwerContext;
 
-    IPC_INFOR(TRUE, "Lock mutex '%s' by '%s', value is %d.",
-        GetObjectName(lpHeader), GetContextTaskName(CORE_GetCurrentTask()), 
-        GetMutexValue(lpHeader));
+    IPC_INFOR(TRUE, "Lock mutex '%s' by '0x%P-%s', value is %d, packet(0x%P).",
+        GetObjectName(lpHeader), CORE_GetCurrentTask(), CORE_GetCurrentTaskName(), 
+        GetMutexValue(lpHeader), GetContextLPCPacket(CORE_GetCurrentTask()));
     
     if (NULL == lpParam)
     {
@@ -621,19 +700,26 @@ STATIC E_STATUS IPC_FreeMutex(LPKOBJECT_HEADER lpHeader)
 
 STATIC E_STATUS IPC_DetachMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
-    if (NULL != lpParam)
-    {
-        LPTASK_CONTEXT lpTaskContext = lpParam;
-        DWORD dwFlags = CORE_DisableIRQ();
- 
-        IncMutexValue(lpHeader);
-        DetachIPCNode(lpTaskContext);
-        CORE_RestoreIRQ(dwFlags);
- 
-        return STATE_SUCCESS;
-    }
+    DWORD dwFlags = 0;
+    E_STATUS Result = STATE_SYSTEM_FAULT;
 
-    return STATE_INVALID_PARAMETER;
+    IPC_INFOR(TRUE, "Detach '%s' from '%s', blocked task is %u.",
+        GetContextTaskName((LPTASK_CONTEXT)lpParam), GetObjectName(lpHeader), 
+        abs(GetMutexValue(lpHeader)));
+
+    IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags);
+
+    if (GetMutexValue(lpHeader) < 0)
+    {
+        if (STATE_SUCCESS == (Result = IPC_DetachTask(lpHeader, lpParam)))
+        {
+            IncMutexValue(lpHeader);
+        }
+    }
+    
+    IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags);
+    
+    return Result;
 }
 
 DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
@@ -747,6 +833,31 @@ STATIC E_STATUS IPC_FreeSemaphore(LPKOBJECT_HEADER lpHeader)
     
     return STATE_SUCCESS;
 }
+
+STATIC E_STATUS IPC_DetachSemaphore(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    DWORD dwFlags = 0;
+    E_STATUS Result = STATE_SYSTEM_FAULT;
+
+    IPC_INFOR(TRUE, "Detach '%s' from '%s', blocked task is %u.",
+        GetContextTaskName((LPTASK_CONTEXT)lpParam), GetObjectName(lpHeader), 
+        abs(GetSemaphoreSignals(lpHeader)));
+    
+    IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags);
+
+    if (GetSemaphoreSignals(lpHeader) < 0)
+    {
+        if (STATE_SUCCESS == (Result = IPC_DetachTask(lpHeader, lpParam)))
+        {
+            IncSemaphoreSignals(lpHeader);
+        }
+    }
+    
+    IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags);
+    
+    return Result;
+}
+
 
 DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               SemaphoreClass,
@@ -941,6 +1052,32 @@ STATIC E_STATUS IPC_FreeSemset(LPKOBJECT_HEADER lpHeader)
     
     return STATE_SUCCESS;
 }
+
+
+STATIC E_STATUS IPC_DetachSemset(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    DWORD dwFlags = 0;
+    E_STATUS Result = STATE_SYSTEM_FAULT;
+
+    IPC_INFOR(TRUE, "Detach '%s' from '%s', blocked task is %u.",
+        GetContextTaskName(((LPTASK_CONTEXT)lpParam)), GetObjectName(lpHeader), 
+        GetSemsetBlockedTasks(lpHeader));
+    
+    IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags);
+
+    if (GetSemsetBlockedTasks(lpHeader))
+    {
+        if (STATE_SUCCESS == (Result = IPC_DetachTask(lpHeader, lpParam)))
+        {
+            DecSemsetBlockedTasks(lpHeader);
+        }
+    }
+    
+    IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags);
+    
+    return Result;
+}
+
 
 DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               SemsetClass,
