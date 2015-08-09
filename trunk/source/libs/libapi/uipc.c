@@ -218,6 +218,13 @@ FANSAPI RO_USER_CODE E_STATUS MutexUnlock(HANDLE hMutex)
  */
 FANSAPI RO_USER_CODE E_STATUS MutexLock(HANDLE hMutex)
 {
+    if (WAIT_SIGNAL_ID_0 != caWaitObject(hMutex, WAIT_INFINITE))
+    {
+        return GetError();
+    }
+    
+    return STATE_SUCCESS;
+#if 0
     E_STATUS Result;
     KIPC_WAIT_PARAM Param;
 
@@ -235,6 +242,7 @@ FANSAPI RO_USER_CODE E_STATUS MutexLock(HANDLE hMutex)
     }
     
     return Result;
+#endif
 }
 
 

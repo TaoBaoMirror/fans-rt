@@ -75,13 +75,11 @@ typedef struct tagLPC_REQUEST_PACKET FAR * LPLPC_REQUEST_PACKET;
 
 #define     GetReqData(lpP)                 ((LPLPC_REQUEST_PACKET)lpP)
 #define     GetREQResult(lpP)               (((LPLPC_REQUEST_PACKET)lpP)->StateCode)
-#define     GetREQPrivate(lpP)              (((LPLPC_REQUEST_PACKET)lpP)->lpPrivate)
 #define     REQpParam(lpP, uNid)            (((LPLPC_REQUEST_PACKET)lpP)->uNid.pParam)
 #define     REQhParam(lpP, uNid)            (((LPLPC_REQUEST_PACKET)lpP)->uNid.hParam)
 #define     REQdParam(lpP, uNid)            (((LPLPC_REQUEST_PACKET)lpP)->uNid.dParam)
 #define     REQlParam(lpP, uNid)            (((LPLPC_REQUEST_PACKET)lpP)->uNid.lParam)
 #define     SetREQResult(lpP, V)            do { (((LPLPC_REQUEST_PACKET)lpP)->StateCode) = (V); } while(0)
-#define     SetREQPrivate(lpP, Pv)          do { (((LPLPC_REQUEST_PACKET)lpP)->lpPrivate) = (Pv); } while(0)
 #define     SetREQpParam(lpP, uNid, V)      do { (((LPLPC_REQUEST_PACKET)lpP)->uNid.pParam) = (V); } while(0)
 #define     SetREQhParam(lpP, uNid, V)      do { (((LPLPC_REQUEST_PACKET)lpP)->uNid.hParam) = (V); } while(0)
 #define     SetREQdParam(lpP, uNid, V)      do { (((LPLPC_REQUEST_PACKET)lpP)->uNid.dParam) = (V); } while(0)
@@ -95,7 +93,6 @@ struct tagLPC_REQUEST_PACKET{
     VOLATILE E_STATUS               StateCode;
     VOLATILE BYTE                   Reserved;
     VOLATILE BYTE                   FunctionID;
-    LPVOID                          lpPrivate;
     union{
         VOLATILE LONG               lParam;
         VOLATILE DWORD              dParam;
