@@ -70,7 +70,7 @@ STATIC  RW_CORE_DATA    VOLATILE        BYTE                g_PriorityReadyBitma
 #define     IncGlobalTaskContextCount()                 (g_SystemTaskCount ++)
 #define     DecGlobalTaskContextCount()                 (-- g_SystemTaskCount)
 #define     GetContextPriorityReadyQueue(lpC)           (&g_TaskReadyQueue[GetContextThisPriority(lpC)])
-#define     Attach2SystemTaskTable(lpTaskContext)       AttachSystem(&g_SystemTaskTable, lpTaskContext)
+#define     Attach2SystemTable(lpTaskContext)           AttachSystem(&g_SystemTaskTable, lpTaskContext)
 #define     GetPriorityFirstContext(Priority)           GetContextByReadyNode(LIST_FIRST_NODE(&g_TaskReadyQueue[Priority]))
 
 #define     GetIdleContext()                            GetPriorityFirstContext(TASK_PRIORITY_IDLE)
@@ -352,6 +352,17 @@ STATIC VOID Attach2ReadyQueue(LPTASK_CONTEXT lpTaskContext)
     SetNeedSchedule();
 }
 
+STATIC VOID Detach4mReadyQueue(LPTASK_CONTEXT lpTaskContext)
+{
+    DetachReady(lpTaskContext);
+    ClearTaskReadyBitmap(lpTaskContext);
+    
+    if (lpTaskContext == GetCurrentTaskContext())
+    {
+        SetNeedSchedule();
+    }
+}
+
 #ifdef SYSTEM_HAVE_TICK64
 /**
  * Task insert to the suspend queue(only for have system tick64).
@@ -428,22 +439,6 @@ STATIC VOID Attach2SuspendQueue(LPTASK_CONTEXT lpTaskContext, TICK Ticks)
     ClearTaskReadyBitmap(lpTaskContext);
 }
 
-/**
- * Task will be detach state.
- * @param The context of the task.
- * @return VOID
- *
- * date           author          notes
- * 2015-06-28     JiangYong       first version
- */
-STATIC VOID Context2DetachState(LPTASK_CONTEXT lpTaskContext)
-{
-    DetachReady(lpTaskContext);
-    DetachIPCNode(lpTaskContext);
-    SetContextCancel(lpTaskContext, TRUE);
-    SetContextState(lpTaskContext, TASK_STATE_DETACH);
-    ClearTaskReadyBitmap(lpTaskContext);
-}
 /**
  * The slice handler for the scheduler.
  * \par

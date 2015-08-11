@@ -24,7 +24,7 @@
 #include "kcore.h"
 #include "kdebug.h"
 #include "ktable.h"
-#define IPC_DEBUG_ENABLE TRUE
+//#define IPC_DEBUG_ENABLE TRUE
 
 #if (IPC_DEBUG_ENABLE == TRUE)
 #define     IPC_DEBUG(Enter, ...)                            CORE_DEBUG(Enter, __VA_ARGS__)
@@ -170,21 +170,21 @@ struct tagIPC_SEMSET_OBJECT{
 };
 
 
-#define     GetSemsetMaskValue(lpHeader)                                                            \
+#define     GetSemsetMaskValue(lpHeader)                                                                    \
                 (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.LightMask)
-#define     SetSemsetMaskValue(lpHeader, data)                                                      \
+#define     SetSemsetMaskValue(lpHeader, data)                                                              \
                 do { (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.LightMask) = (data); } while(0)
-#define     SetSemsetMaskBit(lpHeader, shift, boolean)                                              \
+#define     SetSemsetMaskBit(lpHeader, shift, boolean)                                                      \
                 do { SET_BIT_VALUE(GetSemsetMaskValue(lpHeader), shift, boolean); } while(0)
-#define     GetSemsetWaitFull(lpHeader)                                                             \
+#define     GetSemsetWaitFull(lpHeader)                                                                     \
                  (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Full)
-#define     GetSemsetFullMask(lpHeader)                                                             \
+#define     GetSemsetFullMask(lpHeader)                                                                     \
                  GetBitsMaskValue(((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Lights - 1)
-#define     GetSemsetBlockedTasks(lpHeader)                                                           \
+#define     GetSemsetBlockedTasks(lpHeader)                                                                 \
                  (((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
-#define     IncSemsetBlockedTasks(lpHeader)                                                           \
+#define     IncSemsetBlockedTasks(lpHeader)                                                                 \
                  (++ ((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
-#define     DecSemsetBlockedTasks(lpHeader)                                                           \
+#define     DecSemsetBlockedTasks(lpHeader)                                                                 \
                  (-- ((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
 /**
  * Task insert to the IPC queue.

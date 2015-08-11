@@ -319,8 +319,7 @@ extern "C" {
     EXPORT LPTASK_CONTEXT CORE_CreatePriorityTask(LPCSTR __IN lpTaskName, FNTASKMAIN fnMain,
                           LPVOID lpArgument, TASK_PRIORITY Priority);
     EXPORT LPTASK_CONTEXT CORE_CreateTaskEx(LPCSTR lpTaskName, LPTASK_CREATE_PARAM lpParam);
-    
-    EXPORT VOID CORE_CloseTask(LPTASK_CONTEXT lpTaskContext);
+
 #ifdef __cplusplus
 }
 #endif

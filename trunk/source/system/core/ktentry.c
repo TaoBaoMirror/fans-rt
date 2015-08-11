@@ -83,6 +83,6 @@ EXPORT RO_CODE VOID CORE_TaskEntry(FNTASKMAIN fnMain, LPVOID lpArgument, LPTASK_
 
 EXPORT VOID CORE_TaskLeave(VOID)
 {
-    CORE_CloseTask(CORE_GetCurrentTask());
+    caCloseTask(TASK_SELF_HANDLE);
     while(1) caScheduleTimeout(1000);
 }
