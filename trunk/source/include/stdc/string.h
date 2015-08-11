@@ -16,6 +16,24 @@
 /* All the headers include this file. */
 #include <stddef.h>
 
+#ifdef __CC_ARM
+#define     memset      __libc_memset
+#define     memcpy      __libc_memcpy
+#define     strlen      __libc_strlen
+#define     strcpy      __libc_strncpy
+#define     strcmp      __libc_strcmp
+#define     strncmp     __libc_strncmp
+#define     strcat      __libc_strcat
+#define     strncat     __libc_strncat
+#define     strchr      __libc_strchr
+#define     strrchr     __libc_strrchr
+#define     strdup      __libc_strdup
+#define     strpbrk     __libc_strpbrk
+#define     strspn      __libc_strspn
+#define     strcspn     __libc_strcspn
+#define     memchr      __libc_memchr
+#define     memrchr     __libc_memrchr
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif

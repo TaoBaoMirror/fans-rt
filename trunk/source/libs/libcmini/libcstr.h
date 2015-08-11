@@ -10,6 +10,7 @@
  *    date           author          notes
  *    2014-09-07     JiangYong       new file
  */
+#include <string.h>
 #include <fauser.h>
 #include <fadefs.h>
 #include <fatypes.h>
@@ -209,7 +210,6 @@ EXPORT RO_CODE void *memrchr_lib(const STRING_CHAR_T *ptr, STRING_CHAR_T ch, siz
 
 
 #if (BUILD_CHAR_WIDTH == 1)
-#ifndef __CC_ARM
 STATIC RO_CODE void * fast_memcpy(void * dst, const void * src, size_t length)
 {
     union{
@@ -335,5 +335,4 @@ EXPORT RO_CODE void * memset(void * ptr, int ch, size_t length)
 
     return ptr;
 }
-#endif
 #endif

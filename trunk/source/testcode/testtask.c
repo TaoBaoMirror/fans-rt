@@ -8,10 +8,6 @@
 
 #include "testcode.h"
 
-#define TEST_MUTEX_ID   0
-#define TEST_EVENT_ID   1
-STATIC RW_USER_DATA HANDLE g_TestHandles[2] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE};
-
 STATIC INLINE DWORD TestGetCount(VOID)
 {
     return g_FinishedTaskCount;
@@ -19,17 +15,9 @@ STATIC INLINE DWORD TestGetCount(VOID)
 
 STATIC RO_USER_CODE E_STATUS TestSetCount(DWORD Value)
 {
-    E_STATUS State;
-    
-    TEST_CASE_ASSERT((STATE_SUCCESS == (State = MutexLock(g_TestHandles[TEST_MUTEX_ID]))),
-        return State, "Lock mutex failed result %d !", State);
-
     g_FinishedTaskCount = Value;
 
-    TEST_CASE_ASSERT((STATE_SUCCESS == (State = MutexUnlock(g_TestHandles[TEST_MUTEX_ID]))),
-        return State, "Unlock mutex failed result %d !", State);
-    
-    return State;
+    return STATE_SUCCESS;
 }
 
 STATIC RO_USER_CODE E_STATUS TASK_TEST_CASE00(VOID)
@@ -131,7 +119,7 @@ STATIC RO_USER_CODE E_STATUS TASK_TEST_THREAD02(LPVOID lpArgment)
 
     while(2 != TestGetCount());
     
-    LOG_INFOR(TRUE, "The test task '%s' exiting...", TASK_NAME_THREAD02);
+    LOG_DEBUG(TRUE, "The test task '%s' exiting...", TASK_NAME_THREAD02);
 
     return STATE_SUCCESS;
 }
@@ -145,7 +133,6 @@ STATIC RO_USER_CODE E_STATUS TASK_TEST_CASE02(VOID)
     DWORD i = 0x10000000;
     TASK_PRIORITY Priority;
     TASK_STATUS TaskState;
-//    TICK StartTick = GetSystemTick();
     CHAR TaskName[OBJECT_NAME_MAX] = {TASK_NAME_THREAD02};
 
     TEST_CASE_ASSERT((STATE_SUCCESS == (State = TestSetCount(0))),
@@ -188,9 +175,6 @@ STATIC RO_USER_CODE E_STATUS TASK_TEST_CASE02(VOID)
         }
     }
 
-    TEST_CASE_ASSERT((STATE_SUCCESS == (State = TestSetCount(2))),
-        return State, "Set count failed, result %d.", State);
-    
     Sleep(1000);
 
     memset(TaskName, 0, sizeof(TaskName));
@@ -215,6 +199,9 @@ STATIC RO_USER_CODE E_STATUS TASK_TEST_CASE02(VOID)
     TEST_CASE_ASSERT(TASK_STATE_WORKING == TaskState,
         return STATE_INVALID_STATE,
         "Task name '%s' state %d invalid.", TaskName, TaskState);
+
+    TEST_CASE_ASSERT((STATE_SUCCESS == (State = TestSetCount(2))),
+        return State, "Set count failed, result %d.", State);
 
     return STATE_SUCCESS;
 }
@@ -297,16 +284,6 @@ PUBLIC RO_USER_CODE E_STATUS TASK_TEST_CASE(VOID)
     E_STATUS Temp;
     E_STATUS Result = STATE_SUCCESS;
     
-    g_TestHandles[TEST_MUTEX_ID] = CreateMutex(_TEXT("TASKMTX"), FALSE);
-    
-    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != g_TestHandles[TEST_MUTEX_ID],
-            return GetError();, "Create mutex failed, result %d !", GetError());
-    
-    g_TestHandles[TEST_EVENT_ID] = CreateEvent(_TEXT("TASKEVT"), TRUE, FALSE);
-    
-    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != g_TestHandles[TEST_EVENT_ID],
-            return GetError();, "Create event failed, result %d !", GetError());
-    
     for (i = 0; i < SIZEOF_ARRAY(g_TestCase); i ++)
     {
         Temp = g_TestCase[i].fnTestCase();
@@ -321,9 +298,6 @@ PUBLIC RO_USER_CODE E_STATUS TASK_TEST_CASE(VOID)
             LOG_ERROR(TRUE, "%s .... [SUCCESS]", g_TestCase[i].lpTestName);
         }
     }
-    
-    CloseHandle(g_TestHandles[TEST_MUTEX_ID]);
-    CloseHandle(g_TestHandles[TEST_EVENT_ID]);
 
     return Result;
 }

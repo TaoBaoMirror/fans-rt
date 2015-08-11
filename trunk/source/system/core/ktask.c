@@ -28,9 +28,6 @@
 #include "kdebug.h"
 #include "schedule.h"
 
-#define     BOOT_TASK_ID                0
-#define     IDLE_TASK_ID                1
-
 EXPORT DWORD CORE_GetGlobalTaskCount(VOID)
 {
     return g_SystemTaskCount;
@@ -87,6 +84,7 @@ STATIC VOID SetContextParam(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE_PARAM lp
     SetContextInitPriority(lpTaskContext, lpTaskParam->Priority);
     SetContextTaskError(lpTaskContext, STATE_SUCCESS);
     SetContextLsotObject(lpTaskContext, NULL);
+    SetContextCancel(lpTaskContext, FALSE);
     //SetContextPermission(lpTaskContext, TASK_PERMISSION_USER);  /* no need see @SetContextMiscBits*/
     CORE_SetArchContextParam(GetContextArchParameter(lpTaskContext), lpTaskParam);
 
@@ -120,14 +118,15 @@ STATIC E_STATUS AttachContext2System(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE
                           : TASK_STATE_SLEEP;
     DWORD dwFlags = CORE_DisableIRQ();
 
+    TaskContextSystemNodeInit(lpTaskContext);
     TaskContextReadyNodeInit(lpTaskContext);
     TaskContextIPCNodeInit(lpTaskContext);
     
     if (STATE_SUCCESS == (State = AttachQueue(lpTaskContext, TaskState)))
     {
-        Attach2SystemTaskTable(lpTaskContext);
+        Attach2SystemTable(lpTaskContext);
         SetContextWorkTimes(lpTaskContext, 0);
-        SetContextCancel(lpTaskContext, FALSE);
+
         if (IncGlobalTaskContextCount())
         {
             SetContextStartTick(lpTaskContext, INVALID_TICK);
@@ -148,78 +147,65 @@ STATIC E_STATUS AttachContext2System(LPTASK_CONTEXT lpTaskContext, LPTASK_CREATE
 
 STATIC E_STATUS DetachContextFromSystem(LPTASK_CONTEXT lpTaskContext)
 {
-    E_STATUS Result = STATE_SUCCESS;
     DWORD dwFlags = CORE_DisableIRQ();
-    
-    /* 任务 Cancel 标志必须被置位，参考 Context2DetachState */
-    if (TRUE != GetContextCancel(lpTaskContext))
+
+    if (TASK_STATE_DETACH == GetContextState(lpTaskContext))
+    {
+        DetachSystem(lpTaskContext);
+    }
+    else if (TASK_STATE_CREATE != GetContextState(lpTaskContext))
     {
         CORE_RestoreIRQ(dwFlags);
         return STATE_NOT_READY;
     }
 
-    switch(GetContextState(lpTaskContext))
-    {
-    case TASK_STATE_DEATH:
-        Result = STATE_REMOVED;
-        break;
-    case TASK_STATE_READY:
-    case TASK_STATE_WORKING:
-    case TASK_STATE_SLEEP:
-    case TASK_STATE_WAITING:
-        Result = STATE_SYSTEM_BUSY;
-        break;
-    case TASK_STATE_DETACH:
-        DecGlobalTaskContextCount();
-        DetachSystem(lpTaskContext);
-        SetContextState(lpTaskContext, TASK_STATE_DEATH);
-        break;
-    case TASK_STATE_CREATE:
-        DecGlobalTaskContextCount();
-        SetContextState(lpTaskContext, TASK_STATE_DEATH);
-        break;
-    default: /*unknow*/
-        Result = STATE_INVALID_STATE;
-        break;
-    }
+    DecGlobalTaskContextCount();
+    SetContextState(lpTaskContext, TASK_STATE_DEATH);
 
     CORE_RestoreIRQ(dwFlags);
 
-    return Result;
+    return STATE_SUCCESS;
 }
 
-STATIC E_STATUS AttachContext2Death(LPTASK_CONTEXT lpTaskContext)
+STATIC E_STATUS DetachContexAndReleaseObjects(LPTASK_CONTEXT lpTaskContext)
 {
-    E_STATUS Result = STATE_SUCCESS;
+    LPKOBJECT_HEADER lpLsot;
     DWORD dwFlags = CORE_DisableIRQ();
+    
 
-    switch(GetContextState(lpTaskContext))
+    if (TASK_STATE_READY != GetContextState(lpTaskContext) &&
+        TASK_STATE_SLEEP != GetContextState(lpTaskContext) &&
+        TASK_STATE_WORKING != GetContextState(lpTaskContext) &&
+        TASK_STATE_WAITING != GetContextState(lpTaskContext))
     {
-    case TASK_STATE_CREATE:
-    case TASK_STATE_DETACH:
-    case TASK_STATE_DEATH:
-        Result = STATE_REMOVED;
-        break;
-    case TASK_STATE_READY:
-    case TASK_STATE_WORKING:
-    case TASK_STATE_SLEEP:
-        break;
-    case TASK_STATE_WAITING:
-        //Result = DetachFromIPCQueue(lpTaskContext);
-        break;
-    default: /*unknow*/
-        Result = STATE_INVALID_STATE;
-        break;
+        CORE_RestoreIRQ(dwFlags);
+        return STATE_INVALID_STATE;
     }
     
-    if (STATE_SUCCESS == Result)
+    if (TRUE == GetContextCancel(lpTaskContext))
     {
-        Context2DetachState(lpTaskContext);
+        CORE_RestoreIRQ(dwFlags);
+        return STATE_REMOVED;
     }
+
+    SetContextCancel(lpTaskContext, TRUE);
+    SetContextState(lpTaskContext, TASK_STATE_DETACH);
+    Detach4mReadyQueue(lpTaskContext);
+    lpLsot = GetContextLsotObject(lpTaskContext);
+    SetContextLsotObject(lpTaskContext, NULL);
 
     CORE_RestoreIRQ(dwFlags);
 
-    return Result;
+    DetachIPCObject(lpTaskContext);
+
+    if (NULL != lpLsot)
+    {
+        CORE_FreeObject(lpLsot);
+    }
+
+    CORE_FreeObject(GetContextHeader(lpTaskContext));
+    
+    return STATE_SUCCESS;
 }
 
 /************************************************************************************************
@@ -307,7 +293,7 @@ STATIC E_STATUS OBJ_FreeContext(LPKOBJECT_HEADER lpHeader)
 {
     LPTASK_CONTEXT lpTaskContext = (LPVOID) lpHeader;
 
-    CORE_INFOR(TRUE, "Free 0x%P task '%s' ...", lpHeader, GetObjectName(lpHeader));
+    CORE_DEBUG(TRUE, "Free 0x%P task '%s' ...", lpHeader, GetObjectName(lpHeader));
     
     return DetachContextFromSystem(lpTaskContext);
 }
@@ -541,7 +527,7 @@ STATIC E_STATUS SVC_CloseTask(LPVOID lpPrivate, LPVOID lpParam)
         return STATE_INVALID_PARAMETER;
     }
 
-    return AttachContext2Death(lpTaskContext);
+    return DetachContexAndReleaseObjects(lpTaskContext);
 }
 
 STATIC E_STATUS SVC_GetTaskInfo(LPVOID lpPrivate, LPVOID lpParam)
@@ -712,14 +698,6 @@ EXPORT RO_CODE LPTASK_CONTEXT CORE_CreatePriorityTask(LPCSTR __IN lpTaskName, FN
     return CORE_CreateTaskEx(lpTaskName, &TaskParam);
 }
 EXPORT_SYMBOL(CORE_CreatePriorityTask);
-
-EXPORT RO_CODE VOID CORE_CloseTask(LPTASK_CONTEXT lpTaskContext)
-{
-    if (lpTaskContext)
-    {
-        AttachContext2Death(lpTaskContext);
-    }
-}
 
 EXPORT RO_CODE BOOL CORE_CheckMustbeSchedule(VOID)
 {

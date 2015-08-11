@@ -204,7 +204,7 @@ union tagSEMSET_ATTRIBUTE{
             do{                                                                                 \
                 if (NULL != GetContextIPCHeader(lpTC))                                          \
                 {                                                                               \
-                    CORE_RequestMethod( GetContextIPCHeader(lpTC), lpTC, KIPC_METHOD_DETACH);   \
+                    CORE_RequestMethod(GetContextIPCHeader(lpTC), lpTC, KIPC_METHOD_DETACH);    \
                 }                                                                               \
             } while(0)
 

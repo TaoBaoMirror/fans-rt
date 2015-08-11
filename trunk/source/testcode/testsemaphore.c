@@ -101,7 +101,7 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
     
     GetTaskSelfName(Name, OBJECT_NAME_MAX);
 
-    LOG_DEBUG(TRUE, "Task '%s' startup ...", Name);
+    LOG_INFOR(TRUE, "Task '%s' startup ...", Name);
 
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hSemaphore, return GetError(),
             "Take mutex %s failed.", lpParam);
@@ -123,19 +123,16 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
             "Task '%s' post semaphore %s failed, result %d.", Name, lpParam, Result);
 
-    LOG_DEBUG(TRUE, "Task '%s' wakeup finished, task id is %d, conter is %d.",
+    LOG_INFOR(TRUE, "Task '%s' wakeup finished, task id is %d, conter is %d.",
             Name, TaskID, g_FinishedTaskCount);
     
-    /* 2. 等待其他阻塞任务被全部唤醒 */
+    /* 2. 优先级唤醒顺序测试，等待其他阻塞任务被全部唤醒 */
     while(g_FinishedTaskCount < 4);
 
     Sleep(1000);
 
     /* 2. 按 ID 倒序进入阻塞队列 */
     while (TaskID + 1 != g_FinishedTaskCount) Sleep(100);
-    
-    LOG_DEBUG(TRUE, "Task '%s' begin to priority test, conter is %d.",
-        Name, g_FinishedTaskCount);
 
     /* 2. 计数器减一，使下一个任务进入阻塞队列 */
     g_FinishedTaskCount --;
@@ -150,6 +147,9 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
 
     TEST_CASE_ASSERT(TaskID + 1 == Priority, return GetError(),
             "'%s' set self priority to %u failed, priority is %d.", Name, TaskID + 1, Priority);
+            
+    LOG_INFOR(TRUE, "Task '%s' begin to priority test, conter is %d, priority is %u.",
+        Name, g_FinishedTaskCount, Priority);
 
     /* 2. 当前任务等待信号 */
     SignalID = WaitObject(hSemaphore, WAIT_INFINITE);
@@ -166,7 +166,7 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
             
     g_FinishedTaskCount ++;
     
-    LOG_DEBUG(TRUE, "******Task '%s' priority wakeup finished, conter is %d.",
+    LOG_INFOR(TRUE, "******Task '%s' priority wakeup finished, conter is %d.",
         Name, g_FinishedTaskCount);
         
     /* 3.恢复默认优先级 */
@@ -190,7 +190,7 @@ STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
 
     g_FinishedTaskCount --;
     
-    LOG_DEBUG(TRUE, "Task '%s' test finished, conter is %d.", Name, g_FinishedTaskCount);
+    LOG_INFOR(TRUE, "Task '%s' test finished, conter is %d.", Name, g_FinishedTaskCount);
 
     return STATE_SUCCESS;
 }
@@ -249,6 +249,8 @@ STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE01(VOID)
     TCHAR TaskName[OBJECT_NAME_MAX];
 
     GetTaskSelfName(TaskName, OBJECT_NAME_MAX);
+    
+    g_FinishedTaskCount = 0;
 
     /* 创建一个被锁住的 MUTEX 对象*/
     hSemaphore = CreateSemaphore(g_TaskCase01Name, 0, 127);
@@ -286,7 +288,7 @@ STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE01(VOID)
 
     while(g_FinishedTaskCount) Sleep(1);
 
-    LOG_DEBUG(TRUE, "Semaphore highest test ...");
+    LOG_INFOR(TRUE, "Semaphore highest test ...");
 
     Result = SEMAPHORE_CASE01_POST(hSemaphore, hTask, SIZEOF_ARRAY(hTask));
     
@@ -346,7 +348,7 @@ STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE02(VOID)
 STATIC RO_USER_DATA CONST TEST_CASE_DESCRIPTOR g_TestCase[] =
 {
     DEFINE_TEST_CASE(SEMAPHORE_TEST_CASE00),
-    DEFINE_TEST_CASE(SEMAPHORE_TEST_CASE01),
+//    DEFINE_TEST_CASE(SEMAPHORE_TEST_CASE01),
     DEFINE_TEST_CASE(SEMAPHORE_TEST_CASE02),
 };
 
