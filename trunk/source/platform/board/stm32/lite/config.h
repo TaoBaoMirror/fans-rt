@@ -16,7 +16,7 @@
 #define     CONFIG_MEM_REGION_MAX               1           /* 内存域数量 */
 #define     CONFIG_MEM_BUDDY_MAX                8           /* 内存管理模块支持的 BUDDY 级数 */
 #define     CONFIG_MEM_PAGE_SIZE                512         /* 系统页面大小 */
-#define     CONFIG_MEM_ONCHIP_LENGTH            0x3a00      /* 片上内存长度 */
+#define     CONFIG_MEM_ONCHIP_LENGTH            0x2a00      /* 片上内存长度 */
 #define     CONFIG_MEM_ONCHIP_PAGES                         \
             (CONFIG_MEM_ONCHIP_LENGTH/CONFIG_MEM_PAGE_SIZE) /* 片上内存页数量 */
 #define     CONFIG_CORE_POOL_MAX                4           /**< 支持的最大 POOL 数量 */

@@ -57,7 +57,6 @@ PUBLIC VOID USART_Configuration(VOID)
     USART_InitTypeDef USART_InitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
 
-    
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1|RCC_APB2Periph_GPIOA, ENABLE); 
     USART_DeInit(USART1);
 
