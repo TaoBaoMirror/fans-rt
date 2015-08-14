@@ -203,6 +203,9 @@ STATIC E_STATUS DetachContexAndReleaseObjects(LPTASK_CONTEXT lpTaskContext)
         CORE_FreeObject(lpLsot);
     }
 
+    CORE_FreeObject(lpLsot);
+    CORE_StackFree(lpTaskContext, TASK_PERMISSION_CORE);
+    CORE_StackFree(lpTaskContext, TASK_PERMISSION_USER);
     CORE_FreeObject(GetContextHeader(lpTaskContext));
     
     return STATE_SUCCESS;
