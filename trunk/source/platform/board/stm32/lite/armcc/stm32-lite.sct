@@ -14,8 +14,8 @@
 ;    date           author          notes
 ;    2015-06-25     JiangYong       new file
 
-LR_IROM1 0x08000000 0x00010000  {    ; load region size_region
-  CORE_ROM 0x08000000 0x00010000  {  ; load address = execution address
+LR_IROM1 0x08000000 0x00020000  {    ; load region size_region
+  CORE_ROM 0x08000000 0x00020000  {  ; load address = execution address
    *.o (RESET, +First)
    *(InRoot$$Sections)
    *.o (.CoreText, +RO)
@@ -44,7 +44,7 @@ LR_IROM1 0x08000000 0x00010000  {    ; load region size_region
    .ANY (+ZI +RW)
   }
 
-  STACK_RAM 0x20001000 0x0000f000  {  ; RW data
+  STACK_RAM 0x20001000 0x00005000  {  ; RW data
    startup_stm32f10x_hd.o (STACK, +First)
    startup_stm32f10x_hd.o (HEAP, +RW +ZI)
    kbcom_stack.o (.IdleStack, +RW +ZI)

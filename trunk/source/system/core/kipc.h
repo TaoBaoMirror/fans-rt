@@ -53,6 +53,9 @@ typedef union tagKIPC_ATTRIBUTE KIPC_ATTRIBUTE;
 typedef union tagKIPC_ATTRIBUTE * PKIPC_ATTRIBUTE;
 typedef union tagKIPC_ATTRIBUTE FAR * LPKIPC_ATTRIBUTE;
 
+#define     KIPC_LOCK_SHIFT             0
+#define     KIPC_LOCK_MASK              (0x1<<KIPC_LOCK_SHIFT)
+
 union tagKIPC_ATTRIBUTE{
     struct {
         DWORD           Lock:1;
@@ -169,8 +172,7 @@ typedef union tagSEMSET_ATTRIBUTE SEMSET_ATTRIBUTE;
 typedef union tagSEMSET_ATTRIBUTE * PSEMSET_ATTRIBUTE;
 typedef union tagSEMSET_ATTRIBUTE FAR * LPSEMSET_ATTRIBUTE;
 
-#define     SEMSET_LOCK_SHIFT           (0)
-#define     SEMSET_LOCK_MASK            (1<<SEMSET_LOCK_SHIFT)
+#define     SEMSET_LOCK_MASK            (KIPC_LOCK_MASK)
 #define     SEMSET_FULL_SHIFT           (1)
 #define     SEMSET_FULL_MASK            (1<<SEMSET_FULL_SHIFT)
 #define     SEMSET_BLOCKS_SHIFT         (2)
@@ -199,6 +201,38 @@ union tagSEMSET_ATTRIBUTE{
     }Byte;
     DWORD               Value;
 };
+
+
+
+typedef union tagPIPE_ATTRIBUTE PIPE_ATTRIBUTE;
+typedef union tagPIPE_ATTRIBUTE * PPIPE_ATTRIBUTE;
+typedef union tagPIPE_ATTRIBUTE FAR * LPPIPE_ATTRIBUTE;
+
+#define     PIPE_LOCK_MASK          (KIPC_LOCK_MASK)
+#define     PIPE_LENGTH_SHIFT       (2)
+#define     PIPE_LENGTH_MASK        (0x3ff<<PIPE_LENGTH_SHIFT)
+#define     PIPE_WSCALE_SHIFT       (12)
+#define     PIPE_WSCALE_MASK        (0x3ff<<PIPE_WSCALE_SHIFT)
+#define     PIPE_RSCALE_SHIFT       (22)
+#define     PIPE_RSCALE_MASK        (0x3ff<<PIPE_RSCALE_SHIFT)
+
+union tagPIPE_ATTRIBUTE{
+    struct {
+        DWORD           Lock:1;
+        DWORD           Reserved:1;
+        DWORD           Length:10;
+        DWORD           wScale:10;
+        DWORD           rScale:10;
+    }Bits;
+    struct {
+        SPIN_LOCK_T     Lock:1;
+        BYTE            Reserved:1;
+        BYTE            InforL:6;
+        BYTE            InforH[3];
+    }Byte;
+    DWORD               Value;
+};
+
 
 #define     DetachIPCObject(lpTC)                                                               \
             do{                                                                                 \

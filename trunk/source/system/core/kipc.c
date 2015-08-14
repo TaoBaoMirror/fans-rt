@@ -57,6 +57,10 @@
 #define     IPC_TakeSemset                          IPC_DummyOperation
 #define     IPC_ResetSemset                         IPC_DummyOperation
 
+#define     IPC_MallocPipe                          IPC_DummyOperation
+#define     IPC_TakePipe                            IPC_DummyOperation
+#define     IPC_ResetPipe                           IPC_DummyOperation
+
 
 
 STATIC E_STATUS IPC_DummyOperation(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
@@ -186,6 +190,22 @@ struct tagIPC_SEMSET_OBJECT{
                  (++ ((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
 #define     DecSemsetBlockedTasks(lpHeader)                                                                 \
                  (-- ((LPIPC_SEMSET_OBJECT)(lpHeader))->Attribute.Bits.Blocked)
+
+
+/****************************************************************************
+                               Pipe Class
+****************************************************************************/
+
+typedef struct tagIPC_PIPE_OBJECT IPC_PIPE_OBJECT;
+typedef struct tagIPC_PIPE_OBJECT * PIPC_PIPE_OBJECT;
+typedef struct tagIPC_PIPE_OBJECT * LPIPC_PIPE_OBJECT;
+
+struct tagIPC_PIPE_OBJECT{
+    KIPC_CLASS_HEADER               Base;
+    VOLATILE PIPE_ATTRIBUTE         Attribute;
+};
+
+
 /**
  * Task insert to the IPC queue.
  * @param The header of the wait queue.
@@ -878,7 +898,7 @@ DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
 ****************************************************************************/
 STATIC SIZE_T IPC_SizeofSemset(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
 {
-    return sizeof(IPC_SEMSET_OBJECT);
+    return sizeof(IPC_PIPE_OBJECT);
 }
 
 
@@ -1093,6 +1113,56 @@ DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               IPC_ResetSemset,
               IPC_DetachSemset);
 
+/****************************************************************************
+                               Pipe Class
+****************************************************************************/
+STATIC SIZE_T IPC_SizeofPipe(LPKCLASS_DESCRIPTOR lpClass, LPVOID lpParam)
+{
+    return sizeof(IPC_SEMSET_OBJECT);
+}
+
+
+STATIC E_STATUS IPC_ActivePipe(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS IPC_WaitPipe(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS IPC_PostPipe(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{   
+    return STATE_SUCCESS;
+}
+
+STATIC E_STATUS IPC_FreePipe(LPKOBJECT_HEADER lpHeader)
+{
+    return STATE_SUCCESS;
+}
+
+
+STATIC E_STATUS IPC_DetachPipe(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
+{   
+    return STATE_SYSTEM_FAULT;
+}
+
+
+DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
+              PipeClass,
+              PIP_MAGIC,
+              KIPC_CLASS_METHODS,
+              IPC_SizeofPipe,
+              IPC_MallocPipe,
+              IPC_ActivePipe,
+              IPC_TakePipe,
+              IPC_FreePipe,
+              IPC_WaitPipe,
+              IPC_PostPipe,
+              IPC_ResetPipe,
+              IPC_DetachPipe);
+
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
 {
     CORE_INFOR(TRUE, "KIPC_CLASS_HEADER:    %d,   KIPC_CLASS_BASE:    %d",
@@ -1101,35 +1171,43 @@ PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
         sizeof(IPC_EVENT_OBJECT), sizeof(IPC_MUTEX_OBJECT));
     CORE_INFOR(TRUE, "IPC_SEMAPHORE_OBJECT: %d,   IPC_SEMSET_OBJECT:  %d",
         sizeof(IPC_SEMAPHORE_OBJECT), sizeof(IPC_SEMSET_OBJECT));
+    CORE_INFOR(TRUE, "IPC_SEMAPHORE_OBJECT: %d,   IPC_SEMSET_OBJECT:  %d",
+        sizeof(IPC_SEMAPHORE_OBJECT), sizeof(IPC_SEMSET_OBJECT));
 
-    /* 注册EVENT对象类 */
+    /* Register event class to object manager service */
     if (STATE_SUCCESS != REGISTER_KCLASS(EventClass))
     {
         IPC_ERROR(TRUE, "Register event class failed !");
         SYSTEM_CALL_OOPS();
     }
 
-    /* 注册MUTEX对象类 */
+    /* Register mutex class to object manager service */
     if (STATE_SUCCESS != REGISTER_KCLASS(MutexClass))
     {
         IPC_ERROR(TRUE, "Register mutex class failed !");
         SYSTEM_CALL_OOPS();
     }
 
-    /* 注册SEMAPHORE对象类 */
+    /* Register semaphore class to object manager service */
     if (STATE_SUCCESS != REGISTER_KCLASS(SemaphoreClass))
     {
         IPC_ERROR(TRUE, "Register semaphore class failed !");
         SYSTEM_CALL_OOPS();
     }
 
-    /* 注册SEMSET对象类 */
+    /* Register semset class to object manager service */
     if (STATE_SUCCESS != REGISTER_KCLASS(SemsetClass))
     {
         IPC_ERROR(TRUE, "Register semset class failed !");
         SYSTEM_CALL_OOPS();
-    }    
-    //LPC_INSTALL(&LPCService, "inter process communication(IPC) manager starting");
+    }
+
+    /* Register pipe class to object manager service */
+    if (STATE_SUCCESS != REGISTER_KCLASS(PipeClass))
+    {
+        IPC_ERROR(TRUE, "Register pipe class failed !");
+        SYSTEM_CALL_OOPS();
+    }
 
     return STATE_SUCCESS;
 }
