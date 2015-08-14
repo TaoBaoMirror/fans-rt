@@ -16,7 +16,7 @@
 #define     CONFIG_MEM_REGION_MAX               1           /* 内存域数量 */
 #define     CONFIG_MEM_BUDDY_MAX                8           /* 内存管理模块支持的 BUDDY 级数 */
 #define     CONFIG_MEM_PAGE_SIZE                512         /* 系统页面大小 */
-#define     CONFIG_MEM_ONCHIP_LENGTH            0x2a00      /* 片上内存长度 */
+#define     CONFIG_MEM_ONCHIP_LENGTH            0x2e00      /* 片上内存长度 */
 #define     CONFIG_MEM_ONCHIP_PAGES                         \
             (CONFIG_MEM_ONCHIP_LENGTH/CONFIG_MEM_PAGE_SIZE) /* 片上内存页数量 */
 #define     CONFIG_CORE_POOL_MAX                4           /**< 支持的最大 POOL 数量 */
@@ -58,11 +58,11 @@
 
 #define     CONFIG_TASK_PRIORITY_MAX            8           /**< 任务管理器支持的任务优先级数量 */
 #define     CONFIG_DEFAULT_SLOT_KEYS            3           /**< 默认的局部变量KEY数量 */
-#define     CONFIG_DEFAULT_STACK_SIZE           2048        /**< 默认的堆栈长度 */
+#define     CONFIG_DEFAULT_STACK_SIZE           1024        /**< 默认的堆栈长度 */
 #define     CONFIG_BOOT_STACK_SIZE              1536        /**< 引导任务的堆栈长度 */
 #define     CONFIG_IDLE_STACK_SIZE              2048        /**< 空闲任务的堆栈长度 */
-#define     CONFIG_CORE_STACK_SIZE              2048        /**< 内核的堆栈长度 */
-#define     CONFIG_KTASK_STACK_SIZE             2048        /**< 内核任务的堆栈长度 */
+#define     CONFIG_CORE_STACK_SIZE              1024        /**< 内核的堆栈长度 */
+#define     CONFIG_KTASK_STACK_SIZE             1024        /**< 内核任务的堆栈长度 */
 #define     CONFIG_ARCH_SUPPORT_KSTACK          TRUE        /**< CPU 是否支持全局内核栈 */
 #define     CONFIG_ARCH_SUPPORT_HWSTACK         TRUE        /**< CPU 是否支持硬件堆栈切换 */
 #define     CONFIG_ARCH_SUPPORT_SCHEDULE        TRUE        /**< CPU 是否支持任务调度中断 */

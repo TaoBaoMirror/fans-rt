@@ -40,6 +40,12 @@ union tagKLSOT_REQUEST_PACKET{
 #define     GetKLPValue(lpVoid)                 (((LPKLSOT_REQUEST_PACKET)(lpVoid))->Value.Value)
 #define     SetKLPValue(lpVoid, V)              do {(((LPKLSOT_REQUEST_PACKET)(lpVoid))->Value.Value) = (V);} while(0)
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+#ifdef __cplusplus
+}
+#endif
 #endif
 
