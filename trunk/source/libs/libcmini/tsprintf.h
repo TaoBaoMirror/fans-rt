@@ -268,7 +268,7 @@ STATIC RO_CODE void fa_p_show_number(int * result, FNPUTCHAR fnPut, LPVOID lpPri
         STRING_CHAR_T fill = (flags & F_ZERO) ? '0' : ' ';                                                      \
         STRING_CHAR_T * string;                                                                                 \
         ULL_TYPE unumber = (ULL_TYPE) number;                                                                   \
-        const STRING_CHAR_T * charset = g_CharsetLowLetterTable;                                                               \
+        const STRING_CHAR_T * charset = g_CharsetLowLetterTable;                                                \
         STRING_CHAR_T buffer[N_BUFFER_SIZE];                                                                    \
                                                                                                                 \
         switch (type)                                                                                           \
