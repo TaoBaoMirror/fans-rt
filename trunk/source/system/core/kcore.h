@@ -29,8 +29,8 @@
 #define     MTX_MAGIC                   MAKE_DWORD('M', 'T', 'X')               /**< The mutex object */
 #define     SEM_MAGIC                   MAKE_DWORD('S', 'E', 'M')               /**< The semaphore object */
 #define     SET_MAGIC                   MAKE_DWORD('S', 'E', 'T')               /**< The semset object */
-#define     PIP_MAGIC                   MAKE_DWORD('P', 'I', 'P')               /**< The pipe object */
-#define     LST_MAGIC                   MAKE_DWORD('S', 'L', 'T')               /**< System local storage of task */
+#define     PPE_MAGIC                   MAKE_DWORD('P', 'P', 'E')               /**< The pipe object */
+#define     SLT_MAGIC                   MAKE_DWORD('S', 'L', 'T')               /**< System local storage of task */
 
 
 /* The some system modules magic */

@@ -223,7 +223,7 @@ STATIC E_STATUS KLSOT_SetValue(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 DEFINE_KCLASS(KLSOT_CLASS_DESCRIPTOR,
             KlsotClass,
-            LST_MAGIC,
+            SLT_MAGIC,
             KLSOT_CLASS_METHODS,
             KLSOT_SizeofObject,
             KLSOT_MallocObject,

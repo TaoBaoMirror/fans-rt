@@ -1113,7 +1113,7 @@ DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               IPC_ResetSemset,
               IPC_DetachSemset);
 
-#if 0
+
 /****************************************************************************
                                Pipe Class
 ****************************************************************************/
@@ -1152,7 +1152,7 @@ STATIC E_STATUS IPC_DetachPipe(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 
 DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               PipeClass,
-              PIP_MAGIC,
+              PPE_MAGIC,
               KIPC_CLASS_METHODS,
               IPC_SizeofPipe,
               IPC_MallocPipe,
@@ -1163,7 +1163,7 @@ DEFINE_KCLASS(KIPC_CLASS_DESCRIPTOR,
               IPC_PostPipe,
               IPC_ResetPipe,
               IPC_DetachPipe);
-#endif
+
 PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
 {
     CORE_INFOR(TRUE, "KIPC_CLASS_HEADER:    %d,   KIPC_CLASS_BASE:    %d",
@@ -1204,10 +1204,10 @@ PUBLIC E_STATUS initCoreInterProcessCommunicationManager(VOID)
     }
 
     /* Register pipe class to object manager service */
-    //if (STATE_SUCCESS != REGISTER_KCLASS(PipeClass))
+    if (STATE_SUCCESS != REGISTER_KCLASS(PipeClass))
     {
-    //    IPC_ERROR(TRUE, "Register pipe class failed !");
-     //   SYSTEM_CALL_OOPS();
+        IPC_ERROR(TRUE, "Register pipe class failed !");
+        SYSTEM_CALL_OOPS();
     }
 
     return STATE_SUCCESS;
