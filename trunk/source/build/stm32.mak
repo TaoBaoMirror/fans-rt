@@ -1,10 +1,14 @@
-CC						?=	$(COMPILER_PREFIX)gcc.exe
-AS						?=	$(COMPILER_PREFIX)as.exe
-AR						?=	$(COMPILER_PREFIX)ar.exe
-LD						?=	$(COMPILER_PREFIX)ld.exe
-OC						?=	$(COMPILER_PREFIX)objcopy.exe
-RL						?=	$(COMPILER_PREFIX)ranlib.exe
-GDB						?=	$(COMPILER_PREFIX)gdb.exe
+COMPILER_PATH_PREFIX	?=	/usr/local
+COMPILER_PREFIX			?=	arm-none-eabi
+COMPILER_PATH			?=	$(COMPILER_PATH_PREFIX)/$(COMPILER_PREFIX)-gcc
+
+CC						:=	$(COMPILER_PATH)/bin/$(COMPILER_PREFIX)-gcc.exe
+AS						:=	$(COMPILER_PATH)/bin/$(COMPILER_PREFIX)-as.exe
+AR						:=	$(COMPILER_PATH)/bin/$(COMPILER_PREFIX)-ar.exe
+LD						:=	$(COMPILER_PATH)/bin/$(COMPILER_PREFIX)-ld.exe
+OC						:=	$(COMPILER_PATH)/bin/$(COMPILER_PREFIX)-objcopy.exe
+RL						:=	$(COMPILER_PATH)/bin/$(COMPILER_PREFIX)-ranlib.exe
+GDB						:=	$(COMPILER_PATH)/bin/$(COMPILER_PREFIX)-gdb.exe
 CP						=	cp
 RM						=	rm
 MV						=	mv
@@ -15,14 +19,16 @@ ECHO					=	echo
 
 FWLIB					=	stm32f10x
 
+ARM_CL_INCLUDES			=	-I$(COMPILER_PATH)/lib/gcc/$(COMPILER_PREFIX)/4.8.3/include										\
+							-I$(COMPILER_PATH)/lib/gcc/$(COMPILER_PREFIX)/4.8.3/include-fixed								\
+							-I$(COMPILER_PATH)/lib/gcc/$(COMPILER_PREFIX)/4.8.3/install-tools/include
 LD_SCRIPT				=	$(SOURCES_ROOT)/platform/board/$(ARCH)/$(BOARD)/$(COMPILER)/$(ARCH)-$(BOARD).ld
-#LD_LIBRARYS_ROOT		?=	-L/usr/local/$(COMPILER_PREFIX)msys/lib/gcc/arm-none-eabi/4.8.3/thumb
+LD_LIBRARYS_ROOT		?=	-L$(COMPILER_PATH)/lib/gcc/$(COMPILER_PREFIX)/4.8.3/thumb
 LD_LIBARAYS_FLAGS		?=	-lgcc_shortwchar
 
 STATIC_LIBRARY			=	.a
 DYNAMIC_LIBRARY			=	.a
 TARGET_SUFFIX			=	elf
-
 
 DEBUG					?=	true
 

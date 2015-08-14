@@ -40,7 +40,7 @@ EXPORT RO_CODE HANDLE caMallocLsotObject(DWORD Total)
 
     SetKLPTotal(&Packet, Total);
 
-    return caMallocNoNameObject(LST_MAGIC, &Packet);
+    return caMallocNoNameObject(SLT_MAGIC, &Packet);
 }
 
 /**

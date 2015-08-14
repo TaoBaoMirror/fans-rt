@@ -1,24 +1,14 @@
+BOARD					?=	lite
+ARCH					?=	stm32
+COMPILER				?=	gcc
+
+SOURCES_ROOT			?=	$(shell pwd)
 HELPFILE				=	$(SOURCES_ROOT)/build/build.hlp
 MAKEARCH				=	$(wildcard $(SOURCES_ROOT)/build/$(ARCH).mak)
 MAKEHELP				=	$(wildcard $(HELPFILE))
 
 ifeq ($(strip $(MAKEARCH)),)
 ERROR_REASON			=	error_makearch
-endif
-
-ifeq ($(strip $(BOARD)),)
-ERROR_VARIABLE			=	"BOARD"
-ERROR_REASON			=	error_environment
-endif
-
-ifeq ($(strip $(ARCH)),)
-ERROR_VARIABLE			=	"ARCH"
-ERROR_REASON			=	error_environment
-endif
-
-ifeq ($(strip $(SOURCES_ROOT)),)
-ERROR_VARIABLE			=	SOURCES_ROOT
-ERROR_REASON			=	error_sourceroot
 endif
 
 ifeq ($(strip $(ERROR_REASON)),)
