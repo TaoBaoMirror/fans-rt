@@ -27,8 +27,8 @@ LR_IROM1 0x08000000 0x00010000  {    ; load region size_region
   }
 
   USER_RAM 0x20000000 0x00000200  {  ; RW data
-   testtask.o (.UserRWdata, +RW +ZI)
    main.o (.UserRWdata, +RW +ZI)
+   cadebug.o (.UserRWdata, +RW +ZI)
    caobject.o (.UserRWdata, +RW +ZI)
   }
 

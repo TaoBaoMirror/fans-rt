@@ -17,12 +17,13 @@
 #include <faerror.h>
 #include <fatypes.h>
 
+#include "kipc.h"
 #include "request.h"
 #include "libcal.h"
 #include "libcmini.h"
 #include "cadebug.h"
 
-CONST RO_DATA CHAR * CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1] = {
+CONST RO_USER_DATA CHAR * CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1] = {
     "FATAL",
     "ERROR",
     "WARN",
@@ -33,6 +34,8 @@ CONST RO_DATA CHAR * CONST g_DebugLevelStringTable[LOG_LEVEL_MAX + 1] = {
     "DEBUG",
     "UNKNOW",
 };
+
+STATIC RW_USER_DATA HANDLE g_caDebugMutexHandle = INVALID_HANDLE_VALUE;
 
 STATIC RO_CODE E_STATUS REQ_WriteDebug(BYTE cbData)
 {
@@ -124,6 +127,8 @@ EXPORT RO_CODE int caDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG
     {
         return STATE_SUCCESS;
     }
+    
+    caWaitObject(g_caDebugMutexHandle, WAIT_INFINITE);
 
     Length += caDebugPrintf(FALSE, "[%016lld][Line: %04d][%s][%s] ",
             caGetSystemTick(), Line, caDebugLevel2String(emLevel), Function);
@@ -131,6 +136,8 @@ EXPORT RO_CODE int caDebugLog(BOOL Enter, INT Line, CONST CHAR * Function, E_LOG
     VA_START (Args, Format);
     
     Length += caDebugVPrintf(Enter, Format, Args);
+    
+    caRequestMethod(g_caDebugMutexHandle, NULL, KIPC_METHOD_POST);
 
     VA_END(Args);
 
@@ -148,6 +155,8 @@ EXPORT RO_CODE VOID caDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T
     {
         return;
     }
+    
+    caWaitObject(g_caDebugMutexHandle, WAIT_INFINITE);
 
     caDebugPrintf(FALSE, "Show buffer(%p) is:", lpBuffer);
     
@@ -172,5 +181,35 @@ EXPORT RO_CODE VOID caDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T
     }
 
     caDebugPrintf(FALSE, "\n");
+    
+    caRequestMethod(g_caDebugMutexHandle, NULL, KIPC_METHOD_POST);
+}
+
+
+PUBLIC E_STATUS initSystemApplicationDebug(VOID)
+{
+    E_STATUS State;
+    MUTEX_ATTRIBUTE Attribute;
+    
+    Attribute.Bits.MutexValue = 1;
+
+    g_caDebugMutexHandle = caMallocNoNameObject(MTX_MAGIC, &Attribute);
+    
+    if (INVALID_HANDLE_VALUE == g_caDebugMutexHandle)
+    {
+        caDebugPrintf(TRUE, "Create debug mutex failed !\r\n");
+        return caGetError();
+    }
+    
+    State = caActiveObject(g_caDebugMutexHandle, &Attribute);
+    
+    if (STATE_SUCCESS != State)
+    {
+        caDebugPrintf(TRUE, "Active debug mutex failed.\r\n");
+        caFreeObject(g_caDebugMutexHandle);
+        g_caDebugMutexHandle = INVALID_HANDLE_VALUE;
+    }
+    
+    return State;
 }
 
