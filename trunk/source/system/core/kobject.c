@@ -26,6 +26,8 @@
 #include "kdebug.h"
 #include "kobject.h"
 
+//#define KOBJECT_DEBUG_ENABLE TRUE
+
 #if (KOBJECT_DEBUG_ENABLE == TRUE)
 #define     KOBJECT_DEBUG(Enter, ...)                            CORE_DEBUG(Enter, __VA_ARGS__)
 #define     KOBJECT_INFOR(Enter, ...)                            CORE_INFOR(Enter, __VA_ARGS__)
@@ -386,6 +388,9 @@ STATIC RW_CORE_DATA LIST_HEAD g_GlobalHashTable[CONFIG_OBJECT_HASH_TABLE_MAX];
 STATIC RW_CORE_DATA LPKCLASS_DESCRIPTOR g_GlobalClassTable[CONFIG_SYSTEM_CLASS_MAX];
 STATIC RW_CORE_DATA WORD g_SystemIDValue = 2;
 
+
+#define     InitHashNode(lpHeader)                                          \
+            LIST_HEAD_INIT(&(lpHeader)->HashNode)
 #define     Attach2HashList(HashValue, lpHeader)                            \
             LIST_INSERT_TAIL(&g_GlobalHashTable[HashValue], &(lpHeader)->HashNode)
 #define     DetachHashList(lpHeader)                                        \
@@ -648,6 +653,7 @@ STATIC LPKOBJECT_HEADER MallocObjectFromPool(LPKCLASS_DESCRIPTOR lpClass, LPCSTR
     }
     else
     {
+        InitHashNode(lpHeader);
         initNonameObject(lpHeader, GetClassMagic(lpClass), Pid, GetSystemObjectSid(), Tid);
     }
    
