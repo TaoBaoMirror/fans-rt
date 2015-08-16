@@ -154,3 +154,36 @@ EXPORT RO_USER_CODE SHORT caWaitObject(HANDLE handle, LONG WaitTime)
     return Param.SignalID;
 }
 
+
+
+EXPORT RO_USER_CODE HANDLE caCreateObject(LPCTSTR lpCTName, DWORD ClassMagic, LPVOID Attribute)
+{
+    HANDLE Handle;
+    CHAR caName[OBJECT_NAME_MAX];
+
+    if (NULL == lpCTName)
+    {
+        Handle = caMallocNoNameObject(ClassMagic, Attribute);
+    }
+    else
+    {
+        memset(caName, 0, sizeof(caName));
+#ifdef _UNICODE
+#error "Not implemented unicode."
+#else
+        strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
+#endif
+        Handle = caMallocObject(caName, ClassMagic, Attribute);
+    }
+
+    if (INVALID_HANDLE_VALUE != Handle)
+    {
+        if (STATE_SUCCESS != caActiveObject(Handle, Attribute))
+        {
+            caFreeObject(Handle);
+            Handle = INVALID_HANDLE_VALUE;
+        }
+    }
+
+    return Handle;
+}

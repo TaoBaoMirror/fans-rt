@@ -188,12 +188,11 @@ EXPORT RO_CODE VOID caDebugShowData(E_LOG_LEVEL emLevel, LPVOID lpBuffer, SIZE_T
 
 PUBLIC E_STATUS initSystemApplicationDebug(VOID)
 {
-    E_STATUS State;
     MUTEX_ATTRIBUTE Attribute;
     
     Attribute.Bits.MutexValue = 1;
 
-    g_caDebugMutexHandle = caMallocNoNameObject(MTX_MAGIC, &Attribute);
+    g_caDebugMutexHandle = caCreateObject(NULL, MTX_MAGIC, &Attribute);
     
     if (INVALID_HANDLE_VALUE == g_caDebugMutexHandle)
     {
@@ -201,15 +200,6 @@ PUBLIC E_STATUS initSystemApplicationDebug(VOID)
         return caGetError();
     }
     
-    State = caActiveObject(g_caDebugMutexHandle, &Attribute);
-    
-    if (STATE_SUCCESS != State)
-    {
-        caDebugPrintf(TRUE, "Active debug mutex failed.\r\n");
-        caFreeObject(g_caDebugMutexHandle);
-        g_caDebugMutexHandle = INVALID_HANDLE_VALUE;
-    }
-    
-    return State;
+    return STATE_SUCCESS;
 }
 

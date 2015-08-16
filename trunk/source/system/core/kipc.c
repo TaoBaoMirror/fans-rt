@@ -573,7 +573,8 @@ STATIC E_STATUS IPC_ActiveMutex(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     }
     else if (1 != lpAttribute->Bits.MutexValue)
     {
-        IPC_ERROR(TRUE, "Invalid value to create mutex '%s'.", GetObjectName(lpHeader));
+        IPC_ERROR(TRUE, "Invalid value to create mutex '%s', value 0x%08x.",
+            GetObjectName(lpHeader), lpAttribute->Value);
         return STATE_INVALID_VALUE;
     }
 

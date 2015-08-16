@@ -47,40 +47,12 @@
  */
 FANSAPI RO_USER_CODE HANDLE CreateEvent(LPCTSTR lpCTName, BOOL Automatic, BOOL Signal)
 {
-    HANDLE hEvent;
     EVENT_ATTRIBUTE Attribute;
-    CHAR caName[OBJECT_NAME_MAX];
     
-    memset(caName, 0, sizeof(caName));
-
-    if (NULL == lpCTName)
-    {
-        caChooseName(caName, "EVT");
-    }
-    else
-    {
-#ifdef _UNICODE
-#error "Not implemented unicode."
-#else
-        strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
-#endif
-    }
-
     Attribute.Value   = ((!!Automatic) << EVENT_AUTOMATIC_SHIFT)
                       + ((!!Signal) << EVENT_SIGNAL_SHIFT);
 
-    hEvent = caMallocObject(caName, EVT_MAGIC, &Attribute);
-
-    if (INVALID_HANDLE_VALUE != hEvent)
-    {
-        if (STATE_SUCCESS != caActiveObject(hEvent, &Attribute))
-        {
-            caFreeObject(hEvent);
-            hEvent = INVALID_HANDLE_VALUE;
-        }
-    }
-
-    return hEvent;
+    return caCreateObject(lpCTName, EVT_MAGIC, &Attribute);
 }
 
 /**
@@ -144,39 +116,11 @@ FANSAPI RO_USER_CODE E_STATUS ResetEvent(HANDLE handle)
  */
 FANSAPI RO_USER_CODE HANDLE CreateMutex(LPCTSTR lpCTName, BOOL Owner)
 {
-    HANDLE hMutex;
     MUTEX_ATTRIBUTE Attribute;
-    CHAR caName[OBJECT_NAME_MAX];
     
-    memset(caName, 0, sizeof(caName));
-
-    if (NULL == lpCTName)
-    {
-        caChooseName(caName, "MTX");
-    }
-    else
-    {
-#ifdef _UNICODE
-#error "Not implemented unicode."
-#else
-        strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
-#endif
-    }
-
     Attribute.Bits.MutexValue = Owner ? 0 : 1;
-
-    hMutex = caMallocObject(caName, MTX_MAGIC, &Attribute);
-
-    if (INVALID_HANDLE_VALUE != hMutex)
-    {
-        if (STATE_SUCCESS != caActiveObject(hMutex, &Attribute))
-        {
-            caFreeObject(hMutex);
-            hMutex = INVALID_HANDLE_VALUE;
-        }
-    }
-
-    return hMutex;
+    
+    return caCreateObject(lpCTName, MTX_MAGIC, &Attribute);
 }
 
 /**
@@ -224,25 +168,6 @@ FANSAPI RO_USER_CODE E_STATUS MutexLock(HANDLE hMutex)
     }
     
     return STATE_SUCCESS;
-#if 0
-    E_STATUS Result;
-    KIPC_WAIT_PARAM Param;
-
-    SetSignalID2Param(&Param, WAIT_SIGNAL_INVALID);
-    SetWaitTime2Param(&Param, WAIT_INFINITE);
-    
-    if (STATE_SUCCESS != (Result = caRequestMethod(hMutex, &Param, KIPC_METHOD_WAIT)))
-    {
-        return Result;
-    }
-    
-    if (WAIT_SIGNAL_ID_0 != Param.SignalID)
-    {
-        Result = STATE_INVALID_OBJECT;
-    }
-    
-    return Result;
-#endif
 }
 
 
@@ -264,40 +189,12 @@ FANSAPI RO_USER_CODE E_STATUS MutexLock(HANDLE hMutex)
  */
 FANSAPI RO_USER_CODE HANDLE CreateSemaphore(LPCTSTR lpCTName, SHORT Lights, SHORT MaxLights)
 {
-    HANDLE hSemaphore;
     SEMAPHORE_ATTRIBUTE Attribute;
-    CHAR caName[OBJECT_NAME_MAX];
-    
-    memset(caName, 0, sizeof(caName));
-
-    if (NULL == lpCTName)
-    {
-        caChooseName(caName, "MTX");
-    }
-    else
-    {
-#ifdef _UNICODE
-#error "Not implemented unicode."
-#else
-        strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
-#endif
-    }
 
     Attribute.Bits.Signal    = Lights;
     Attribute.Bits.MaxCount  = MaxLights;
-
-    hSemaphore = caMallocObject(caName, SEM_MAGIC, &Attribute);
-
-    if (INVALID_HANDLE_VALUE != hSemaphore)
-    {
-        if (STATE_SUCCESS != caActiveObject(hSemaphore, &Attribute))
-        {
-            caFreeObject(hSemaphore);
-            hSemaphore = INVALID_HANDLE_VALUE;
-        }
-    }
-
-    return hSemaphore;
+    
+    return caCreateObject(lpCTName, SEM_MAGIC, &Attribute);
 }
 
 
@@ -354,39 +251,11 @@ FANSAPI RO_USER_CODE E_STATUS PostSemaphore(HANDLE hSemaphore, SHORT Lights)
  */
 FANSAPI RO_USER_CODE HANDLE CreateSemset(LPCTSTR lpCTName, DWORD MaxLights, BOOL WaitFull)
 {
-    HANDLE hSemset;
     SEMSET_ATTRIBUTE Attribute;
-    CHAR caName[OBJECT_NAME_MAX];
     
-    memset(caName, 0, sizeof(caName));
-
-    if (NULL == lpCTName)
-    {
-        caChooseName(caName, "MTX");
-    }
-    else
-    {
-#ifdef _UNICODE
-#error "Not implemented unicode."
-#else
-        strncpy(caName, lpCTName, OBJECT_NAME_MAX-1);
-#endif
-    }
-
     Attribute.Value =   ((MaxLights << SEMSET_LIGHTS_SHIFT) | ((!!WaitFull)<< SEMSET_FULL_SHIFT));
 
-    hSemset = caMallocObject(caName, SET_MAGIC, &Attribute);
-
-    if (INVALID_HANDLE_VALUE != hSemset)
-    {
-        if (STATE_SUCCESS != caActiveObject(hSemset, &Attribute))
-        {
-            caFreeObject(hSemset);
-            hSemset = INVALID_HANDLE_VALUE;
-        }
-    }
-
-    return hSemset;
+    return caCreateObject(lpCTName, SET_MAGIC, &Attribute);
 }
 
 /**

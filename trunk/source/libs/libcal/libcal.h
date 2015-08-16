@@ -61,15 +61,16 @@ extern "C" {
 #if (CONFIG_PROFILER_CYCLE != 0)
     EXPORT E_STATUS ntSystemProfiler(VOID);
 #endif
-    EXPORT RO_CODE E_STATUS caGetObjectName(HANDLE handle,
+    EXPORT E_STATUS caGetObjectName(HANDLE handle,
                                 CHAR Name[OBJECT_NAME_MAX], SIZE_T Length);
     EXPORT HANDLE caMallocObject(LPCSTR lpName, DWORD Magic, LPVOID lpParam);
-    EXPORT RO_CODE HANDLE caMallocNoNameObject(DWORD Magic, LPVOID lpParam);
+    EXPORT HANDLE caMallocNoNameObject(DWORD Magic, LPVOID lpParam);
     EXPORT E_STATUS caActiveObject(HANDLE handle, LPVOID lpParam);
     EXPORT HANDLE caTakeObject(LPCSTR lpName, LPVOID lpParam);
     EXPORT E_STATUS caFreeObject(HANDLE handle);
     EXPORT E_STATUS caRequestMethod(HANDLE handle, LPVOID lpParam, DWORD Method);
     EXPORT SHORT caWaitObject(HANDLE handle, LONG WaitTime);
+    EXPORT HANDLE caCreateObject(LPCTSTR lpCTName, DWORD ClassMagic, LPVOID Attribute);
 
     EXPORT E_STATUS caStackMalloc(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);
     EXPORT E_STATUS caStackFill(HANDLE hTask, LPVOID lpParam, E_TASK_PERMISSION Permission);
