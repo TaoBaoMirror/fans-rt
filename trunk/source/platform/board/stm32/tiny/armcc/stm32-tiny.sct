@@ -35,6 +35,7 @@ LR_IROM1 0x08000000 0x0000D000  {    ; load region size_region
    kirq.o (.CoreRWdata, +ZI, +RW)
    kdebug.o (.CoreRWdata, +ZI, +RW)
    testtask.o (.UserRWdata, +RW +ZI)
+   cadebug.o (.UserRWdata, +RW +ZI)
    caobject.o (.UserRWdata, +RW +ZI)
    .ANY (+RW +ZI)
   }

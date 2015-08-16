@@ -104,11 +104,12 @@ EXPORT RO_CODE E_STATUS ProbeModule(LPTSTR lpModuleName)
 }
 EXPORT_SYMBOL(ProbeModule);
 #else
+PUBLIC E_STATUS initSystemApplicationDebug(VOID);
 
-EXPORT RO_CODE E_STATUS initSystemApplicationModulesStartup(VOID)
+STATIC RO_USER_CODE VOID initSystemApplicationModulesRun(VOID)
 {
     DWORD Id;
-
+    
     for (Id = 0; Id < GetNumberOfSystemModules(); Id ++)
     {
         LPMODULE_HEADER CONST lpModule = GetModuleArray()[Id];
@@ -132,6 +133,13 @@ EXPORT RO_CODE E_STATUS initSystemApplicationModulesStartup(VOID)
         }
     }
 
+    return;
+}
+
+EXPORT RO_CODE E_STATUS initSystemApplicationModulesStartup(VOID)
+{
+    initSystemApplicationDebug();
+    initSystemApplicationModulesRun();
     return STATE_SUCCESS;
 }
 
