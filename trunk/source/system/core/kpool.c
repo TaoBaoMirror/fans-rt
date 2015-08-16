@@ -21,6 +21,22 @@
 #include "kdebug.h"
 #include "ktable.h"
 
+#if (KPOOL_DEBUG_ENABLE == TRUE)
+#define     KPOOL_DEBUG(Enter, ...)                            CORE_DEBUG(Enter, __VA_ARGS__)
+#define     KPOOL_INFOR(Enter, ...)                            CORE_INFOR(Enter, __VA_ARGS__)
+#define     KPOOL_ERROR(Enter, ...)                            CORE_ERROR(Enter, __VA_ARGS__)
+#ifndef _MSC_VER
+#define     KPOOL_ASSERT(condition, code, ...)                 CORE_ASSERT(condition, code, __VA_ARGS__)
+#else
+#define     KPOOL_ASSERT(condition, code, ...)
+#endif
+#else
+#define     KPOOL_DEBUG(...)
+#define     KPOOL_INFOR(...)
+#define     KPOOL_ERROR(...)
+#define     KPOOL_ASSERT(condition, code, ...)
+#endif
+
 STATIC E_STATUS CreatePool(LPCORE_POOL lpCorePool)
 {
 #if (CONFIG_MEM_REGION_MAX == 0)
@@ -29,11 +45,11 @@ STATIC E_STATUS CreatePool(LPCORE_POOL lpCorePool)
     SIZE_T Length = 0;
     LPVOID lpContainer = NULL;
     
-    CORE_DEBUG(TRUE, "Create core pool %p.", lpCorePool);
+    KPOOL_DEBUG(TRUE, "Create core pool %p.", lpCorePool);
     
     if (INVALID_MAGIC != GetPoolMagic(lpCorePool))
     {
-        CORE_DEBUG(TRUE, "Create pool failed !");
+        KPOOL_DEBUG(TRUE, "Create pool failed !");
         return STATE_EXISTING;
     }
     
@@ -43,7 +59,7 @@ STATIC E_STATUS CreatePool(LPCORE_POOL lpCorePool)
     
     if (NULL == lpContainer)
     {
-        CORE_DEBUG(TRUE, "Malloc %d bytes to create pool failed, container is 0x%p !",
+        KPOOL_DEBUG(TRUE, "Malloc %d bytes to create pool failed, container is 0x%p !",
                 Length, lpContainer);
         
         return STATE_OUT_OF_MEMORY;
@@ -92,13 +108,13 @@ EXPORT E_STATUS CORE_CreatePoolContainer(LPCORE_CONTAINER lpManager, LPCSTR lpNa
             
             if (TRUE == AllocForInit && STATE_SUCCESS != (Result = CreatePool(lpCorePool)))
             {
-                CORE_ERROR(TRUE, "Malloc page to create pool '%s' failed.",
+                KPOOL_ERROR(TRUE, "Malloc page to create pool '%s' failed.",
                     GetContainerName(lpManager));
                 return Result;
             }
         }
         
-        CORE_INFOR(TRUE, "Create pool %d(0x%P) for '%s'(0x%P), have blocks %d.",
+        KPOOL_INFOR(TRUE, "Create pool %d(0x%P) for '%s'(0x%P), have blocks %d.",
                             Pid, lpCorePool, GetContainerName(lpManager), 
                             lpManager, GetBlocksPrePool(lpManager));
     }
@@ -116,11 +132,11 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
 
     Pid = GetFreePoolID(lpManager);
 
-    CORE_DEBUG(TRUE, "Malloc block in manager '%s' ...", GetContainerName(lpManager));
+    KPOOL_DEBUG(TRUE, "Malloc block in manager '%s' ...", GetContainerName(lpManager));
     
     if (Pid >= GetTotalPools(lpManager))
     {
-        CORE_ERROR(TRUE, "The pool id(%d) out of range(%d).", Pid, GetTotalPools(lpManager));
+        KPOOL_ERROR(TRUE, "The pool id(%d) out of range(%d).", Pid, GetTotalPools(lpManager));
         return INVALID_CONTAINER_ID;
     }
     
@@ -130,14 +146,14 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
     {
         if (STATE_SUCCESS != CreatePool(lpCorePool))
         {
-            CORE_ERROR(TRUE, "Invalid pool magic %p.", lpCorePool);
+            KPOOL_ERROR(TRUE, "Invalid pool magic %p.", lpCorePool);
             return INVALID_CONTAINER_ID;
         }
     }
     
     if (POL_MAGIC != GetPoolMagic(lpCorePool))
     {
-        CORE_ERROR(TRUE, "Invalid pool magic %p.", lpCorePool);
+        KPOOL_ERROR(TRUE, "Invalid pool magic %p.", lpCorePool);
         return INVALID_CONTAINER_ID;
     }
 
@@ -145,7 +161,7 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
  
     if (Bid >= GetPoolTotalBlocks(lpCorePool))
     {
-        CORE_ERROR(TRUE, "No free block in pool %d for '%s', bitmap(0x%08x), Bid(%d).",
+        KPOOL_ERROR(TRUE, "No free block in pool %d for '%s', bitmap(0x%08x), Bid(%d).",
             Pid, GetContainerName(lpManager), GetFreeBitmapMask4mPool(lpCorePool), Bid);
         return INVALID_CONTAINER_ID;
     }
@@ -155,7 +171,7 @@ EXPORT KCONTAINER_ID_T CORE_PoolMallocBlock(LPCORE_CONTAINER lpManager)
     
     Kid = GetContainerID(lpManager, Pid, Bid);
 
-    CORE_DEBUG(TRUE, "Malloc pool 0x%P Pid %u, Bid %u, Kid %u, for container '%s' ...",
+    KPOOL_DEBUG(TRUE, "Malloc pool 0x%P Pid %u, Bid %u, Kid %u, for container '%s' ...",
             lpCorePool, Pid, Bid, Kid, GetContainerName(lpManager));
     
     return Kid;
@@ -170,7 +186,7 @@ EXPORT LPVOID CORE_PoolTakeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T Kid
 
     if (Pid >= GetTotalPools(lpManager))
     {
-        CORE_ERROR(TRUE, "The handle pid(%d) max than manager total(%d) pools.",
+        KPOOL_ERROR(TRUE, "The handle pid(%d) max than manager total(%d) pools.",
             Pid, GetTotalPools(lpManager));
         return NULL;
     }
@@ -179,13 +195,13 @@ EXPORT LPVOID CORE_PoolTakeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T Kid
     
     if (POL_MAGIC != GetPoolMagic(lpCorePool))
     {
-        CORE_ERROR(TRUE, "Invalid pool magic %p.", lpCorePool);
+        KPOOL_ERROR(TRUE, "Invalid pool magic %p.", lpCorePool);
         return NULL;
     }
     
     if (Bid >= GetPoolTotalBlocks(lpCorePool))
     {
-        CORE_ERROR(TRUE, "The handle bid(%d) max than pool total(%d) items.",
+        KPOOL_ERROR(TRUE, "The handle bid(%d) max than pool total(%d) items.",
             Bid, GetPoolTotalBlocks(lpCorePool));
         return NULL;
     }
@@ -209,7 +225,7 @@ PUBLIC E_STATUS CORE_PoolFreeBlock(LPCORE_CONTAINER lpManager, KCONTAINER_ID_T K
     
     if (POL_MAGIC != GetPoolMagic(lpCorePool))
     {
-        CORE_ERROR(TRUE, "Container %s(0x%P) pool %p Pid %u, Bid %u, Kid %u magic invalid.",
+        KPOOL_ERROR(TRUE, "Container %s(0x%P) pool %p Pid %u, Bid %u, Kid %u magic invalid.",
             GetContainerName(lpManager), lpManager, lpCorePool, Pid, Bid, Kid);
         return STATE_SYSTEM_FAULT;
     }

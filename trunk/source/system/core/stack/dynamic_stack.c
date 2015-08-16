@@ -24,6 +24,21 @@
 #include "kboard.h"
 #include "kmem.h"
 
+#if (KSTACK_DEBUG_ENABLE == TRUE)
+#define     KSTACK_DEBUG(Enter, ...)                            CORE_DEBUG(Enter, __VA_ARGS__)
+#define     KSTACK_INFOR(Enter, ...)                            CORE_INFOR(Enter, __VA_ARGS__)
+#define     KSTACK_ERROR(Enter, ...)                            CORE_ERROR(Enter, __VA_ARGS__)
+#ifndef _MSC_VER
+#define     KSTACK_ASSERT(condition, code, ...)                 CORE_ASSERT(condition, code, __VA_ARGS__)
+#else
+#define     KSTACK_ASSERT(condition, code, ...)
+#endif
+#else
+#define     KSTACK_DEBUG(...)
+#define     KSTACK_INFOR(...)
+#define     KSTACK_ERROR(...)
+#define     KSTACK_ASSERT(condition, code, ...)
+#endif
 #if (CONFIG_DYNAMIC_STACK_ENABLE==TRUE)
 
 #if (CONFIG_MEM_REGION_MAX == 0)
@@ -48,20 +63,20 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
 
     if (NULL == lpTaskContext)
     {
-        CORE_ERROR(TRUE, "Invalid task context.");
+        KSTACK_ERROR(TRUE, "Invalid task context.");
         return STATE_INVALID_TASK;
     }
     
     if (NULL == lpTaskParam || Permission >= TASK_PERMISSION_MAX)
     {
-        CORE_ERROR(TRUE, "Invalid parameter TaskParam(%P) or Permission(%u).",
+        KSTACK_ERROR(TRUE, "Invalid parameter TaskParam(%P) or Permission(%u).",
             lpTaskParam, Permission);
         return STATE_INVALID_PARAMETER;
     }
 
     if (KOBJECT_STATE_CREATE != GetObjectState(GetContextHeader(lpCoreContext)))
     {
-        CORE_ERROR(TRUE, "Task state(%u) invalid.",
+        KSTACK_ERROR(TRUE, "Task state(%u) invalid.",
             GetObjectState(GetContextHeader(lpCoreContext)));
         return STATE_INVALID_STATE;
     }
@@ -75,7 +90,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         {
             SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
             SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
-            CORE_DEBUG(TRUE, "Task '%s' no need malloc core stack.",
+            KSTACK_DEBUG(TRUE, "Task '%s' no need malloc core stack.",
                 GetContextTaskName(lpCoreContext), Permission, lpHeader);
             return STATE_SUCCESS;
         }
@@ -89,27 +104,27 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
                 /* Boot 任务创建普通堆栈(BOOT任务为普通任务)*/
                 lpHeader = CORE_GetBootStackBuffer();
                 SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetBootStackLength());
-                CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                KSTACK_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                     Permission, lpHeader, GetContextTaskName(lpCoreContext));
             }
             else /* 创建非 BOOT 任务内核栈 */
             {
                 lpHeader = (LPVOID)CORE_PageAlloc(CONFIG_CORE_STACK_SIZE);
                 SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_CORE_STACK_SIZE);
-                CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+                KSTACK_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
             }
 #elif (CONFIG_ARCH_SUPPORT_KSTACK == TRUE)
             /* CPU 支持全局内核堆栈 */
             lpHeader = CORE_GetCoreStackBuffer();
             SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetCoreStackLength());
-            CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+            KSTACK_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
 #else
             /* CPU 不支持全局内核堆栈，每个任务一个独立的内核堆栈 */
             lpHeader = (LPVOID)CORE_PageAlloc(lpTaskParam->StackSize);
             SetStackCapacity(GetArchSD(lpArchContext, Permission), CONFIG_CORE_STACK_SIZE);
-            CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+            KSTACK_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
 #endif
         }
@@ -119,7 +134,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
         /* Idle 任务创建内核堆栈(Idle任务为内核任务)*/
         lpHeader = CORE_GetIdleStackBuffer(TASK_BOOTSTARTUP_CPUID);
         SetStackCapacity(GetArchSD(lpArchContext, Permission), CORE_GetIdleStackLength());
-        CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+        KSTACK_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
     }
     else
@@ -131,7 +146,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
             /* 任务权限和堆栈权限一致，但是没有全局内核栈，则任务不指定用户栈 */
             SetStackCapacity(GetArchSD(lpArchContext, Permission), 0);
             SetStackBuffer(GetArchSD(lpArchContext, Permission), NULL);
-            CORE_DEBUG(TRUE, "Task '%s' no need malloc user stack.",
+            KSTACK_DEBUG(TRUE, "Task '%s' no need malloc user stack.",
                 GetContextTaskName(lpCoreContext), Permission, lpHeader);
 
             return STATE_SUCCESS;
@@ -139,7 +154,7 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
 #endif
         lpHeader = (LPVOID)CORE_PageAlloc(lpTaskParam->StackSize);
         SetStackCapacity(GetArchSD(lpArchContext, Permission), lpTaskParam->StackSize);
-        CORE_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+        KSTACK_DEBUG(TRUE, "Malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 Permission, lpHeader, GetContextTaskName(lpCoreContext));
 
     }
@@ -148,12 +163,12 @@ PUBLIC E_STATUS CORE_StackMalloc(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PE
 
     if (NULL == lpHeader)
     {
-        CORE_ERROR(TRUE, "Malloc stack(%d) for task '%s' failed.",
+        KSTACK_ERROR(TRUE, "Malloc stack(%d) for task '%s' failed.",
             Permission, GetContextTaskName(lpCoreContext));
         return CORE_GetError();
     }
 
-    CORE_DEBUG(TRUE, "Task '%s' malloc stack(%d) buffer 0x%P for task '%s' successfully.",
+    KSTACK_DEBUG(TRUE, "Task '%s' malloc stack(%d) buffer 0x%P for task '%s' successfully.",
                 GetContextTaskName(lpCoreContext), Permission, lpHeader, GetContextTaskName(lpCoreContext));
     return STATE_SUCCESS;
 }
@@ -167,20 +182,20 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
 
     if (NULL == lpTaskContext)
     {
-        CORE_ERROR(TRUE, "Invalid task context.");
+        KSTACK_ERROR(TRUE, "Invalid task context.");
         return STATE_INVALID_TASK;
     }
     
     if (NULL == lpTaskParam || Permission >= TASK_PERMISSION_MAX)
     {
-        CORE_ERROR(TRUE, "Invalid parameter TaskParam(%P) or Permission(%u).",
+        KSTACK_ERROR(TRUE, "Invalid parameter TaskParam(%P) or Permission(%u).",
             lpTaskParam, Permission);
         return STATE_INVALID_PARAMETER;
     }
 
     if (KOBJECT_STATE_CREATE != GetObjectState(GetContextHeader(lpCoreContext)))
     {
-        CORE_ERROR(TRUE, "Task state(%u) invalid.",
+        KSTACK_ERROR(TRUE, "Task state(%u) invalid.",
             GetObjectState(GetContextHeader(lpCoreContext)));
         return STATE_INVALID_STATE;
     }
@@ -215,7 +230,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
 
         SetStackPosition(GetArchSD(lpArchContext, Permission), lpStackPosition);
         
-        CORE_DEBUG(TRUE, "Task '%s' fill stack(%d) buffer 0x%p buttom 0x%p position 0x%p.",
+        KSTACK_DEBUG(TRUE, "Task '%s' fill stack(%d) buffer 0x%p buttom 0x%p position 0x%p.",
             GetContextTaskName(lpCoreContext), Permission, lpHeader,
             lpStackBuffer + StackCapacity, lpStackPosition);
         
@@ -227,7 +242,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         /* 如果内核栈大小为0，所有任务均没有用户栈 */
         if (TASK_PERMISSION_USER == Permission)
         {
-            CORE_DEBUG(TRUE, "Task '%s' no need fill user stack.",
+            KSTACK_DEBUG(TRUE, "Task '%s' no need fill user stack.",
                 GetContextTaskName(lpCoreContext));
             
             return STATE_SUCCESS;
@@ -237,7 +252,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         if (TASK_PERMISSION_CORE != GetContextPermission(lpCoreContext) &&
             TASK_PERMISSION_USER == Permission)
         {
-            CORE_DEBUG(TRUE, "Task '%s' no need fill core stack.",
+            KSTACK_DEBUG(TRUE, "Task '%s' no need fill core stack.",
                 GetContextTaskName(lpCoreContext));
             
             return STATE_SUCCESS;
@@ -247,7 +262,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
         if (TASK_PERMISSION_CORE != GetContextPermission(lpCoreContext) &&
             TASK_PERMISSION_USER == Permission)
         {
-            CORE_DEBUG(TRUE, "Task '%s' no need fill user stack.",
+            KSTACK_DEBUG(TRUE, "Task '%s' no need fill user stack.",
                 GetContextTaskName(lpCoreContext));
             
             return STATE_SUCCESS;
@@ -255,7 +270,7 @@ PUBLIC E_STATUS CORE_StackInit(LPVOID lpTaskContext, LPVOID lpParam, E_TASK_PERM
 #endif
     }
 
-    CORE_ERROR(TRUE, "No task stack buffer found, permission is %d.", Permission);
+    KSTACK_ERROR(TRUE, "No task stack buffer found, permission is %d.", Permission);
 
     return STATE_INVALID_STACK;
 }
@@ -273,7 +288,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
 
     if (KOBJECT_STATE_FREE == GetObjectState(GetContextHeader(lpCoreContext)))
     {
-        CORE_ERROR(TRUE, "Task state(%u) invalid.",
+        KSTACK_ERROR(TRUE, "Task state(%u) invalid.",
             GetObjectState(GetContextHeader(lpCoreContext)));
         return STATE_INVALID_STATE;
     }
@@ -289,7 +304,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
             /* 没有全局内核栈，则普通任务也没有用户栈 */
             if (TASK_PERMISSION_USER == Permission)
             {
-                CORE_DEBUG(TRUE, "Task '%s' no need free user stack.",
+                KSTACK_DEBUG(TRUE, "Task '%s' no need free user stack.",
                     GetContextTaskName(lpCoreContext));
                 break;
             }            
@@ -300,7 +315,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
                 /* 普通任务释放内核栈，并且CPU支持全局内核栈 */
                 /* 则不会分配内核栈，直接使用全局内核栈，所以 */
                 /* 不需要释放也不能释放 */
-                CORE_DEBUG(TRUE, "Task '%s' no need free core stack.",
+                KSTACK_DEBUG(TRUE, "Task '%s' no need free core stack.",
                     GetContextTaskName(lpCoreContext));
                 break;
 
@@ -313,7 +328,7 @@ PUBLIC E_STATUS CORE_StackFree(LPVOID lpTaskContext, E_TASK_PERMISSION Permissio
             if (TASK_PERMISSION_USER == Permission)
             {
                 /* 内核任务不会分配用户栈，所以直接返回成功 */
-                CORE_DEBUG(TRUE, "Task '%s' no need free user stack",
+                KSTACK_DEBUG(TRUE, "Task '%s' no need free user stack",
                     GetContextTaskName(lpCoreContext));
                 break;
             }
