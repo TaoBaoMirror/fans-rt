@@ -181,13 +181,13 @@ STATIC E_STATUS DetachContexAndReleaseObjects(LPTASK_CONTEXT lpTaskContext)
         CORE_RestoreIRQ(dwFlags);
         return STATE_INVALID_STATE;
     }
-    
+/*
     if (TRUE == GetContextCancel(lpTaskContext))
     {
         CORE_RestoreIRQ(dwFlags);
         return STATE_REMOVED;
     }
-
+*/
     SetContextCancel(lpTaskContext, TRUE);
     SetContextState(lpTaskContext, TASK_STATE_DETACH);
     Detach4mReadyQueue(lpTaskContext);

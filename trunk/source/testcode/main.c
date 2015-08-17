@@ -32,6 +32,15 @@ RO_USER_DATA CONST TCHAR     g_TaskCase01Name[]  = {NAME_CASE01};
 RW_USER_DATA VOLATILE LPTSTR g_lpWakeupTaskName  = NULL;
 RW_USER_DATA VOLATILE DWORD  g_FinishedTaskCount = 0;
 
+#define     SEM_NAME         _TEXT("SEMAPH")
+#define     MTX_NAME         _TEXT("MUTEX")
+#define     EVT_NAME         _TEXT("EVENT")
+
+RO_USER_DATA CONST TCHAR     g_TestMutexName[] = {MTX_NAME};
+RO_USER_DATA CONST TCHAR     g_TestEventName[] = {EVT_NAME};
+RO_USER_DATA CONST TCHAR     g_TestSemapName[] = {SEM_NAME};
+RW_USER_DATA VOLATILE HANDLE g_FinishedTaskHandle = INVALID_HANDLE_VALUE;
+
 
 RO_USER_CODE VOID TEST_TASK_CLEANUP(HANDLE * hTask, DWORD Count)
 {

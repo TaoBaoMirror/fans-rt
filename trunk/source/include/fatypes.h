@@ -19,6 +19,14 @@
 #include <fadefs.h>
 #include <faerror.h>
 
+/* definition for semset, have 20 bits. */
+#define     WAIT_SIGNAL_INVALID         (-1)        /* If the signal id is -1, means return error. */
+#define     WAIT_SIGNAL_ID_0            (0)         /* The signal id for semset is -1 ~ 19. */
+                                                    /* The signal id for the other object is -1 ~ 0 */
+#define     WAIT_SIGNAL_MAX             (20)        /* The semset has 20 signals. */
+                                                    /* The other object have only 1 signals. */
+#define     SEMAPHORE_VALUE_MAX         16383       /* The max value of semaphore is 16383. */
+
 typedef unsigned short WORD16;
 typedef unsigned int WORD32;
 typedef unsigned long long WORD64;
@@ -84,10 +92,6 @@ typedef const WCHAR FAR * LPCWSTR;
 #define LPCTSTR LPCSTR
 #define _TEXT(text) text
 #endif
-
-#define     WAIT_SIGNAL_INVALID         (-1)
-#define     WAIT_SIGNAL_ID_0            (0)
-#define     WAIT_SIGNAL_MAX             (20)
 
 typedef signed short SHORT;
 typedef signed short * PSHORT;

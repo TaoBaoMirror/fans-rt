@@ -23,6 +23,8 @@
 #if (defined(CONFIG_BUILD_IPC_SEMAPHORE) && (TRUE == CONFIG_BUILD_IPC_SEMAPHORE))
 #include "testcode.h"
 
+
+
 /*
  * 创建、捕获、释放、名称获取、释放后再捕获、自动命名测试
  */
@@ -30,23 +32,22 @@ STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE00(VOID)
 {
     E_STATUS Result;
     TCHAR Name[OBJECT_NAME_MAX];
-    LPCTSTR lpName = NAME_CASE00;
     HANDLE handle = INVALID_HANDLE_VALUE;
     HANDLE hFind = INVALID_HANDLE_VALUE;
 
     /* 创建对象测试 */
-    handle = CreateSemaphore(lpName, 1, 100);
-    
+    handle = CreateSemaphore(g_TestSemapName, 1, 100);
+
     TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != handle, return GetError(),
-            "Create semaphore %s failed.", lpName);
-    
+            "Create semaphore %s failed.", g_TestSemapName);
+
     /* 名称获取测试 */
     Result = GetObjectName(handle, Name, OBJECT_NAME_MAX);
-    
+
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
             "Get semaphore(0x%08X) name failed.", handle);
     
-    TEST_CASE_ASSERT(0 == TSTRCMP(Name, lpName), return STATE_NOT_MATCH,
+    TEST_CASE_ASSERT(0 == TSTRCMP(Name, g_TestSemapName), return STATE_NOT_MATCH,
             "Object name not match !");
 
     /* 对象捕获测试 */
@@ -93,250 +94,156 @@ STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE00(VOID)
 STATIC RO_USER_CODE E_STATUS TEST_CASE01_TASK(LPVOID lpParam)
 {
     E_STATUS Result;
-    TASK_PRIORITY Priority;
-    DWORD TaskID = 0;
     TCHAR Name[OBJECT_NAME_MAX];
     SHORT SignalID = WAIT_SIGNAL_INVALID;
-    HANDLE hSemaphore = TakeObject(lpParam);
+	HANDLE hEvent = TakeObject(g_TestEventName);
+	HANDLE hMutex = TakeObject(g_TestMutexName);
+    HANDLE hSemap = TakeObject(g_TestSemapName);
     
     GetTaskSelfName(Name, OBJECT_NAME_MAX);
 
     LOG_INFOR(TRUE, "Task '%s' startup ...", Name);
 
-    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hSemaphore, return GetError(),
+    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hSemap, return GetError(),
             "Take mutex %s failed.", lpParam);
-    /* 1. 阻塞队列顺序测试，等待信号 */
-    SignalID = WaitObject(hSemaphore, WAIT_INFINITE);
+
+    SignalID = WaitObject(hSemap, WAIT_INFINITE);
 
     TEST_CASE_ASSERT(WAIT_SIGNAL_ID_0 == SignalID, return GetError(),
             "Task '%s' wait semaphore %s failed, id %d, error %d.",
-            Name, lpParam, SignalID, GetError());
+            Name, g_TestSemapName, SignalID, GetError());
+
+    g_FinishedTaskHandle = GetCurrentTask();
     
-    g_lpWakeupTaskName = Name;
-
-    /* 1. 根据唤醒顺序取 TASK ID */
-    TaskID = g_FinishedTaskCount ++;
-
-    /* 1. 唤醒主任务: 主任务为最高优先级，将被优先唤醒 */
-    Result = PostSemaphore(hSemaphore, 1);
+    Result = PostEvent(hEvent);
     
-    TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
-            "Task '%s' post semaphore %s failed, result %d.", Name, lpParam, Result);
-
-    LOG_INFOR(TRUE, "Task '%s' wakeup finished, task id is %d, conter is %d.",
-            Name, TaskID, g_FinishedTaskCount);
-    
-    /* 2. 优先级唤醒顺序测试，等待其他阻塞任务被全部唤醒 */
-    while(g_FinishedTaskCount < 4);
-
-    Sleep(1000);
-
-    /* 2. 按 ID 倒序进入阻塞队列 */
-    while (TaskID + 1 != g_FinishedTaskCount) Sleep(100);
-
-    /* 2. 计数器减一，使下一个任务进入阻塞队列 */
-    g_FinishedTaskCount --;
-
-    /* 2. 根据 ID 设置优先级， ID 越大的任务优先级越低 */
-    Result = SetTaskSelfPriority(TaskID + 1);
+    LOG_INFOR(TRUE, "Task '%s' wakeup ...", Name);
 
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return GetError(),
-            "'%s' set self priority to %u failed, result %d.", Name, TaskID + 1, Result);
-    
-    Priority = GetTaskSelfPriority();
-
-    TEST_CASE_ASSERT(TaskID + 1 == Priority, return GetError(),
-            "'%s' set self priority to %u failed, priority is %d.", Name, TaskID + 1, Priority);
+            "Task '%s' post event %s failed.",
+            Name, g_TestEventName);
             
-    LOG_INFOR(TRUE, "Task '%s' begin to priority test, conter is %d, priority is %u.",
-        Name, g_FinishedTaskCount, Priority);
-
-    /* 2. 当前任务等待信号 */
-    SignalID = WaitObject(hSemaphore, WAIT_INFINITE);
-
-    g_lpWakeupTaskName = Name;
-
-    TEST_CASE_ASSERT(WAIT_SIGNAL_ID_0 == SignalID, return GetError(),
-            "Task '%s' wait semaphore %s failed, error %d.", Name, lpParam, GetError());
-    /* 2. 唤醒主任务 */
-    Result = PostSemaphore(hSemaphore, 1);
+    while(!TestCancel()) Sleep(1);
     
-    TEST_CASE_ASSERT(STATE_SUCCESS == Result, return Result,
-            "Task '%s' post semaphore %s failed, result %d.", Name, lpParam, Result);
-            
+    LOG_INFOR(TRUE, "Task '%s' finished ...", Name);
+
+    Result = MutexLock(hMutex);
+
+    TEST_CASE_ASSERT(STATE_SUCCESS == Result, return GetError(),
+            "Task '%s' lock mutex %s failed.",
+            Name, g_TestMutexName);
+
     g_FinishedTaskCount ++;
-    
-    LOG_INFOR(TRUE, "******Task '%s' priority wakeup finished, conter is %d.",
-        Name, g_FinishedTaskCount);
-        
-    /* 3.恢复默认优先级 */
-    Result = SetTaskSelfPriority(TASK_PRIORITY_NORMAL);
+
+    Result = MutexUnlock(hMutex);
 
     TEST_CASE_ASSERT(STATE_SUCCESS == Result, return GetError(),
-            "'%s' set self priority to normal failed, result %d.", Name, Result);
-            
-    Priority = GetTaskSelfPriority();
-
-    TEST_CASE_ASSERT(TASK_PRIORITY_NORMAL == Priority, return GetError(),
-            "'%s' set self priority to normal failed, priority is %d.", Name, Priority);
-    /* 3. 等待其他阻塞任务被全部唤醒 */
-    while(g_FinishedTaskCount < 4) Sleep(1);
-
-    /* 3. 等待信号 */
-    SignalID = WaitObject(hSemaphore, WAIT_INFINITE);
-
-    TEST_CASE_ASSERT(WAIT_SIGNAL_INVALID == SignalID, return GetError(),
-            "Task '%s' wait semaphore %s failed, error %d.", Name, lpParam, GetError());
-
-    g_FinishedTaskCount --;
-    
-    LOG_INFOR(TRUE, "Task '%s' test finished, conter is %d.", Name, g_FinishedTaskCount);
+            "Task '%s' unlock mutex %s failed.",
+            Name, g_TestMutexName);
 
     return STATE_SUCCESS;
 }
 
-
-STATIC RO_USER_CODE E_STATUS SEMAPHORE_CASE01_POST(HANDLE hSemaphore, LPHANDLE hTask, DWORD Count)
-{
-    DWORD i = 0;
-    SHORT SignalID = WAIT_SIGNAL_INVALID;
-    E_STATUS Result = STATE_SUCCESS;
-    TCHAR TaskName[OBJECT_NAME_MAX];
-
-    GetTaskSelfName(TaskName, OBJECT_NAME_MAX);
-
-    for (i = 0; i < Count; i ++)
-    {
-        TCHAR Name[OBJECT_NAME_MAX];
-        
-        TSNPRINTF(Name, OBJECT_NAME_MAX, "TASK%02u", i);
-
-        Result = PostSemaphore(hSemaphore, 1);
-        
-        TEST_CASE_ASSERT(STATE_SUCCESS == Result, 
-                return Result,
-                "Task '%s' post semaphore %s failed, result %d.",
-                TaskName, g_TaskCase01Name, Result);
-        
-        SignalID = WaitObject(hSemaphore, 1000);
-        
-        TEST_CASE_ASSERT(WAIT_SIGNAL_ID_0 == SignalID, 
-                return STATE_SYSTEM_FAULT,
-                "Task '%s' wait semaphore %s failed, error %d.",
-                TaskName, g_TaskCase01Name, GetError());
-
-        TEST_CASE_ASSERT(NULL != g_lpWakeupTaskName, 
-                return STATE_SYSTEM_FAULT,
-                "Task '%s' post semaphore %s failed, invalid wakeup task name.",
-                TaskName, g_TaskCase01Name);
-
-        TEST_CASE_ASSERT(0 == TSTRCMP(g_lpWakeupTaskName, Name),
-                return STATE_SYSTEM_FAULT,
-                "Task '%s' post semaphore %s failed, wakeup task '%s' out of expetation.",
-                TaskName, g_TaskCase01Name, Name);
-    }
-    
-    return STATE_SUCCESS;
-}
 
 STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE01(VOID)
 {
     DWORD i;
     E_STATUS Result;
-    HANDLE hSemaphore;
-    TASK_PRIORITY Priority;
-    HANDLE hTask[MAX_TEST_TASK];
-    TCHAR TaskName[OBJECT_NAME_MAX];
+    SHORT SignalID;
 
-    GetTaskSelfName(TaskName, OBJECT_NAME_MAX);
+    TCHAR TaskName[OBJECT_NAME_MAX];
+    TCHAR PostName[OBJECT_NAME_MAX];
+    TCHAR HopeName[OBJECT_NAME_MAX];
+
+    HANDLE hEvent = INVALID_HANDLE_VALUE;
+    HANDLE hMutex = INVALID_HANDLE_VALUE;
+    HANDLE Handle = INVALID_HANDLE_VALUE;
+    HANDLE hTask[MAX_TEST_TASK] = {INVALID_HANDLE_VALUE};
     
     g_FinishedTaskCount = 0;
-
-    /* 创建一个被锁住的 MUTEX 对象*/
-    hSemaphore = CreateSemaphore(g_TaskCase01Name, 0, 127);
-
-    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hSemaphore, return GetError(),
-            "Create semaphore %s failed.", g_TaskCase01Name);
     
-    Result = TEST_TASK_CREATE(hTask, SIZEOF_ARRAY(hTask), TEST_CASE01_TASK, (void*)g_TaskCase01Name);
+    GetTaskSelfName(TaskName, OBJECT_NAME_MAX);
+    
+    hEvent = CreateEvent(g_TestEventName, TRUE, FALSE);
+    
+    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hEvent,
+            Result = GetError(); goto _exit,
+            "Create event %s failed.", g_TestEventName);
+    
+    hMutex = CreateMutex(g_TestMutexName, FALSE);
+    
+    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != hMutex,
+            Result = GetError(); goto _exit,
+            "Create mutex %s failed.", g_TestMutexName);
+    
+    Handle = CreateSemaphore(g_TestSemapName, 0, 127);
+    
+    TEST_CASE_ASSERT(INVALID_HANDLE_VALUE != Handle,
+            Result = GetError(); goto _exit,
+            "Create semaphore %s failed.", g_TestSemapName);
+    
+    Result = TEST_TASK_CREATE(hTask, SIZEOF_ARRAY(hTask), TEST_CASE01_TASK, NULL);
     
     TEST_CASE_ASSERT(STATE_SUCCESS == Result,
-            TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
-            CloseHandle(hSemaphore);
-            return Result,
+            goto _exit,
             "Create test task failed !");
-
-    /* 调整当前任务优先级为实时 */
-    Result = SetTaskSelfPriority(TASK_PRIORITY_REAL);
-
-    TEST_CASE_ASSERT(STATE_SUCCESS == Result, return GetError(),
-            "'%s' set self priority to realtime failed, result %d.", TaskName, Result);
-    
-    Priority = GetTaskSelfPriority();
-
-    TEST_CASE_ASSERT(TASK_PRIORITY_REAL == Priority, return GetError(),
-            "'%s' set self priority to realtime failed, priority is %d.", TaskName, Priority);
-    
-    Result = SEMAPHORE_CASE01_POST(hSemaphore, hTask, SIZEOF_ARRAY(hTask));
-    
-    TEST_CASE_ASSERT(STATE_SUCCESS == Result, 
-                TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
-                CloseHandle(hSemaphore);
-                return Result,
-                "Task '%s' test semaphore %s failed, result %d.",
-                TaskName, g_TaskCase01Name, Result);
-
-    while(g_FinishedTaskCount) Sleep(1);
-
-    LOG_INFOR(TRUE, "Semaphore highest test ...");
-
-    Result = SEMAPHORE_CASE01_POST(hSemaphore, hTask, SIZEOF_ARRAY(hTask));
-    
-    TEST_CASE_ASSERT(STATE_SUCCESS == Result, 
-                TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
-                CloseHandle(hSemaphore);
-                return Result,
-                "Task '%s' test semaphore %s failed, result %d.",
-                TaskName, g_TaskCase01Name, Result);
-                
-    Sleep(1000);
-
-        /* 关闭 MUTEX 对象 */
-    Result = CloseHandle(hSemaphore);
-    
-    TEST_CASE_ASSERT(STATE_SUCCESS == Result, 
-            TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
-            SetTaskSelfPriority(TASK_PRIORITY_NORMAL);
-            return Result,
-            "Task '%s' close mutex %s failed, result %d.",
-            TaskName, g_TaskCase01Name, Result);
-
-    /* 对象被删除后，在一定时间内，所有阻塞的任务必须全部被唤醒(获得STATE_REMOVED的返回值) */
-    for (i = 0; i < 1000 && 0 != g_FinishedTaskCount; i ++)
+            
+    for (i = 0; i < SIZEOF_ARRAY(hTask); i++)
     {
-        Sleep(10);
+        Result = PostSemaphore(Handle, 1);
+
+        TEST_CASE_ASSERT(STATE_SUCCESS == Result,
+                goto _exit,
+                "Task '%s' post semaphore %s failed, result %d.",
+                TaskName, g_TestSemapName, Result);
+        
+        SignalID = WaitObject(hEvent, 20000);
+        
+        Result = GetError();
+
+        GetObjectName(hTask[i], HopeName, OBJECT_NAME_MAX);
+
+        GetObjectName(g_FinishedTaskHandle, PostName, OBJECT_NAME_MAX);
+
+        TEST_CASE_ASSERT(WAIT_SIGNAL_ID_0 == SignalID,
+                goto _exit,
+                "Task '%s' wait event %s failed, result %d.",
+                TaskName, g_TestEventName, Result);
+
+        TEST_CASE_ASSERT(g_FinishedTaskHandle == hTask[i],
+                goto _exit,
+                "The task '%s' is out of expetation(%d).",
+                PostName, HopeName);
     }
-    /* 检查任务是否已经被全部唤醒 */
-    TEST_CASE_ASSERT(0 == g_FinishedTaskCount, 
-        TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
-        return STATE_SYSTEM_FAULT,
-        "Task '%s' unlock mutex %s failed, invalid conter %d.",
-        TaskName, g_TaskCase01Name, g_FinishedTaskCount);
+
+    for (i = 0; i < SIZEOF_ARRAY(hTask); i++)
+    {
+        Result = PostCancel(hTask[i]);
+        
+        TEST_CASE_ASSERT(STATE_SUCCESS == Result,
+                goto _exit,
+                "Task '%s' post semaphore %s failed, result %d.",
+                TaskName, g_TestSemapName, Result);
+    }
+
+    for (i = 0; i < 100; i++)
+    {
+        if (g_FinishedTaskCount >= SIZEOF_ARRAY(hTask)) break;
+        Sleep(100);
+    }
     
+    TEST_CASE_ASSERT(g_FinishedTaskCount >= SIZEOF_ARRAY(hTask),
+                goto _exit,
+                "Task '%s' wait the all test task failed.",
+                TaskName);
+    
+_exit:
+    CloseHandle(hEvent);
+    CloseHandle(hMutex);
+    CloseHandle(Handle);
     TEST_TASK_CLEANUP(hTask, SIZEOF_ARRAY(hTask));
     
-    /* 调整当前任务优先级为默认 */
-    Result = SetTaskSelfPriority(TASK_PRIORITY_NORMAL);
-
-    TEST_CASE_ASSERT(STATE_SUCCESS == Result, return GetError(),
-            "'%s' set self priority to normal failed, result %d.", TaskName, Result);
-    
-    Priority = GetTaskSelfPriority();
-
-    TEST_CASE_ASSERT(TASK_PRIORITY_NORMAL == Priority, return GetError(),
-            "'%s' set self priority to normal failed, priority is %d.", TaskName, Priority);
-
-    return STATE_SUCCESS;
+    return Result;
 }
 
 STATIC RO_USER_CODE E_STATUS SEMAPHORE_TEST_CASE02(VOID)
