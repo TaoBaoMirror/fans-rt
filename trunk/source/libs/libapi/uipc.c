@@ -191,6 +191,12 @@ FANSAPI RO_USER_CODE HANDLE CreateSemaphore(LPCTSTR lpCTName, SHORT Lights, SHOR
 {
     SEMAPHORE_ATTRIBUTE Attribute;
 
+    if (MaxLights >= SEMAPHORE_VALUE_MAX || MaxLights <= (0-SEMAPHORE_VALUE_MAX))
+    {
+        SetError(STATE_INVALID_VALUE);
+        return INVALID_HANDLE_VALUE;
+    }
+    
     Attribute.Bits.Signal    = Lights;
     Attribute.Bits.MaxCount  = MaxLights;
     

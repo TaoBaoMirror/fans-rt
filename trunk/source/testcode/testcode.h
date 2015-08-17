@@ -60,6 +60,10 @@
 EXTERN CONST TCHAR     g_TaskCase01Name[];
 EXTERN VOLATILE LPTSTR g_lpWakeupTaskName;
 EXTERN VOLATILE DWORD  g_FinishedTaskCount;
+EXTERN CONST TCHAR     g_TestMutexName[];
+EXTERN CONST TCHAR     g_TestEventName[];
+EXTERN CONST TCHAR     g_TestSemapName[];
+EXTERN VOLATILE HANDLE g_FinishedTaskHandle;
 
 typedef E_STATUS (*TEST_CASE_FUNCTION)(VOID);
             

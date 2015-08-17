@@ -157,8 +157,8 @@ union tagSEMAPHORE_ATTRIBUTE{
     struct {
         DWORD           Lock:1;
         DWORD           Reserved:1;
-        LONG            Signal:15;
-        LONG            MaxCount:15;
+        LONG            Signal:15;          /**< @see SEMAPHORE_VALUE_MAX */
+        LONG            MaxCount:15;        /**< @see SEMAPHORE_VALUE_MAX */
     }Bits;
     struct {
         SPIN_LOCK_T     Lock:1;

@@ -408,8 +408,9 @@ STATIC E_STATUS IPC_WaitEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
 {
     DWORD dwFlags;
 
-    IPC_INFOR(TRUE, "wait event '%s', state '%d'...",
-            GetObjectName(lpHeader), GetEventSignal(lpHeader));
+    IPC_INFOR(TRUE, "Wait event %s automatic is '%d', state is '%d', blocked '%d' ...",
+            GetObjectName(lpHeader), GetEventAutomatic(lpHeader),
+            GetEventSignal(lpHeader), GetEventBlockedTasks(lpHeader));
     
     IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags);;
 
@@ -441,14 +442,18 @@ STATIC E_STATUS IPC_PostEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     DWORD dwFlags = 0;
     E_STATUS State = STATE_SUCCESS;
 
+    IPC_INFOR(TRUE, "Post event %s automatic is '%d', state is '%d', blocked '%d' ...",
+            GetObjectName(lpHeader), GetEventAutomatic(lpHeader),
+            GetEventSignal(lpHeader), GetEventBlockedTasks(lpHeader));
+    
     IPC_SPIN_LOCK_IRQ(lpHeader, dwFlags);
 
-    if (DecEventBlockedTasks(lpHeader) > 0)
+    if (GetEventBlockedTasks(lpHeader) > 0)
     {
         /* If this is a automatic object, the blocked all task will be */
         /* return STATE_SUCCESS and the signal of this object will be lost */
-        SetEventSignal(lpHeader, !!GetEventAutomatic(lpHeader));
-        
+        SetEventSignal(lpHeader, !GetEventAutomatic(lpHeader));
+
         do {
             State = IPC_WakeupTask(lpHeader, WAIT_SIGNAL_ID_0, FALSE);
         }while(DecEventBlockedTasks(lpHeader) > 0);
@@ -460,9 +465,6 @@ STATIC E_STATUS IPC_PostEvent(LPKOBJECT_HEADER lpHeader, LPVOID lpParam)
     }
 
     IPC_SPIN_UNLOCK_IRQ(lpHeader, dwFlags);
-    
-    IPC_DEBUG(TRUE, "Event %s automatic is '%d', state is '%d' ...",
-            GetObjectName(lpHeader), GetEventAutomatic(lpHeader), GetEventSignal(lpHeader));
 
     return State;
 }
