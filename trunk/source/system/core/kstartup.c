@@ -56,6 +56,8 @@ STATIC VOID ShowSystemInformation(VOID)
     CORE_INFOR(TRUE, "The integer printf test: %8d, %08d, %lld, %03lld",
             12345678, 123, 20150630011218ll, 2013ll);
     CORE_INFOR(TRUE, "The float printf test: %f, %.2f, %.3f", 3.141592f, 3.141592f, 3.141592f);
+    
+    CORE_INFOR(TRUE, "The ST-LINK test message ....");
 }
 
 PUBLIC VOID CORE_Starting(VOID)
