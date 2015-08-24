@@ -1,0 +1,9 @@
+SUBDIRS_gcc			=	gcc_ride7
+SUBDIRS_armcc		=	arm
+SUBDIRS_iar			=	iar
+SUBDIRS				=	$(SUBDIRS_$(COMPILER))
+CONFIGS				=
+TARGETS				=
+OBJECTS_PATH		=	$(OBJECTS_ROOT)/libfw
+CONFIGS_PATH		=
+TARGETS_PATH		=

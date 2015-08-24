@@ -1,0 +1,3 @@
+#SUBDIRS				=	$(CHILDREN)
+OBJECTS_PATH		=	$(OBJECTS_ROOT)/libfw
+
