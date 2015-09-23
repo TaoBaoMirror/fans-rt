@@ -1,0 +1,11 @@
+TARGETNAME=filescsi
+TARGETTYPE=DRIVER
+OBJECTPATH=
+TARGETPATH=.
+TARGETLIBS=$(TARGETLIBS) $(DDK_LIB_PATH)\scsiport.lib
+
+INCLUDES=$(BASEDIR)\inc;\
+         $(BASEDIR)\inc\ddk;\
+
+SOURCES=main.c control.c adapter.c startio.c scsicdb.c scsilun.c media.c\
+	filemedia.c rammedia.c\

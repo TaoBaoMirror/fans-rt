@@ -1,0 +1,1 @@
+@copy i386\filescsi.sys c:\windows\system32\drivers\%1
