@@ -89,7 +89,7 @@ Entry:
 ;软盘BPB表的数据定义
 @OEM_STRING                     DB      'FANS 0.1'      	;                       8字节
 @BYTES_PRE_SECTOR               DW      0x0200          	; 字节/扇区             2字节
-@SECTOR_PRE_BLOCK               DB      0x0008          	; 每个簇占用扇区数      1字节
+@SECTOR_PRE_BLOCK               DB      0x08          	        ; 每个簇占用扇区数      1字节
 @RESAVED_SRCTORS                DW      0x0001          	; 保留扇区数            2字节
 @TOTAL_FATS                     DB      0x02            	; 有几个FAT表           1字节
 @FILES_OF_ROOT                  DW      0x0200          	; 根目录文件个数        2字节
