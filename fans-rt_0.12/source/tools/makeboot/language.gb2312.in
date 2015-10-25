@@ -1,0 +1,40 @@
+#ifndef __CHINESE_LANGUAGE_H
+#define __CHINESE_LANGUAGE_H
+
+#define TOOL_NAME                                                           \
+    "fans-rt 虚拟磁盘文件引导扇区修改工具"
+#define USAGE_HELP                                                          \
+    "用    法: makeboot [-f] <filename>"
+#define NOTES_HELP                                                          \
+    "    该工具用于在WINDOWS系统下制作启动盘镜像文件，支持 1.44M/2.88M软盘" \
+    "镜像以及任意容量的硬盘镜像。"
+#define ARGUMENT_HELP                                                       \
+    "可选参数："
+#define EXAMPLE_HELP                                                        \
+    "例    如： makeboot -f ./fans-pc.img"
+
+#define COMMENT1_HELP           " "
+#define COMMENT2_HELP           "显示帮助信息"
+
+#define COMMENT1_IMAGE          "<image>"
+#define COMMENT2_IMAGE                                                      \
+    "指定用于虚拟磁盘镜像文件路径，可以输入相对路径、绝对路径，也可以置输入"\
+    "文件名，如果只有文件名，则从当前路径打开镜像文件。"
+
+#define NOTE_FILE_OPEN_ERROR                                                \
+    " 错误: 文件打开失败，检查文件 %s 的访问权限。\n"
+#define NOTE_FILE_READ_ERROR                                                \
+    " 错误: 文件读取失败，检查文件的访问权限。\n"
+#define NOTE_DISK_BOOT_ERROR                                                \
+    " 错误: 虚拟磁盘文件的引导扇区无效。\n"
+#define NOTE_UNKNOW_SYSTEM                                                  \
+    " 错误: 磁盘未分区或未知的文件系统。\n"
+#define NOTE_FILE_SIZE_ERROR                                                \
+    " 错误: 虚拟磁盘文件的长度无效。\n"
+#define NOTE_FILE_OFFSET_ERROR                                              \
+    " 错误: 虚拟磁盘文件的偏移位置(%d)无效。\n"
+#define	NOTE_BOOT_SECTOR_LOW												\
+	" 错误: 分区的保留扇区数量(%d)太少，无法创建引导记录。"
+#endif
+
+

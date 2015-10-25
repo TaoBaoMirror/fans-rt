@@ -1,4 +1,4 @@
-#SUBDIRS				=
+SUBDIRS				=    charfont libtools makeboot
 OBJECTS				=
 TARGETS				=
 CONFIGS				=

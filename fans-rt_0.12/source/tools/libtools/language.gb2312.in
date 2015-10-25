@@ -1,0 +1,32 @@
+#ifndef __CHINESE_LANGUAGE_H
+#define __CHINESE_LANGUAGE_H
+
+#define MSG_OUT_OF_MEMORY                                                   \
+    " 错误：内存空间不足，无法执行内存分配。\n"
+#define MSG_NOFOUND_NAME                                                    \
+    " 错误：参数后面没有文件名，请在参数 %s 后指定目录或文件名。\n"         \
+    "       如有疑问，请用 -help 获得帮助。\n"
+#define MSG_LAWLESS_FILE                                                    \
+    " 错误：非法文件名 %s ，文件名中不能包含 '*' '?' 等通配符。\n"          \
+    "       如有疑问，请用 -help 获得帮助。\n"
+#define MSG_INVALID_PARAM                                                   \
+    " 错误：指定的选项 [%s] 不能被支持，请使用正确的选项。\n"               \
+    "       请用 -help 获得更多帮助信息。\n"
+#define MSG_INVALID_VALUE                                                   \
+    " 错误：选项 [%s] 的参数 %s 必须不是一个有效数字。\n"                   \
+    "       请用 -help 获得更多帮助信息。\n"
+#define MSG_INVALID_COUNT                                                   \
+    " 错误：没有为选项 [%s] 指定输入参数。\n"                               \
+    "       请用 -help 获得更多帮助信息。\n"
+#define MSG_FAILED_OPEN                                                     \
+    " 错误：无法打开文件 <%s> 请检查文件是否存在。\n"                       \
+    "       请用 -help 获得更多帮助信息。\n"
+#define MSG_FAILED_PARAM                                                    \
+    " 错误：选项 [%s] 的参数查询失败。"                                     \
+    "       请用 -help 获得更多帮助信息。\n"
+#define MSG_FATAL_ERROR                                                     \
+    " 错误：检测到程序内部严重错误，请联系开发人员定位。\n"
+
+#endif
+
+
