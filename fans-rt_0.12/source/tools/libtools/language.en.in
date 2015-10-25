@@ -1,0 +1,30 @@
+#ifndef __CHINESE_LANGUAGE_H
+#define __CHINESE_LANGUAGE_H
+
+#define MSG_OUT_OF_MEMORY                                                   \
+    "ERROR: Out of memory, can not allocation any memory.\n"
+#define MSG_NOFOUND_NAME                                                    \
+    "ERROR: Please input a file name after option [%s].\n"                  \
+    "       Please input -help to show help message.\n"
+#define MSG_LAWLESS_FILE                                                    \
+    "ERROR: invalid file name '%s' , don't us symbol '*' or '?'.\n"         \
+    "       Please input -help to show help message.\n"
+#define MSG_INVALID_PARAM                                                   \
+    "ERROR: The option [%s] can not be supported.\n"                        \
+    "       Please input -help to show help message.\n"
+#define MSG_INVALID_VALUE                                                   \
+    "ERROR: The option [%s] must be specify a number, '%s' is invalid.\n"   \
+    "       Please input -help to show help message.\n"
+#define MSG_INVALID_COUNT                                                   \
+    "ERROR: Please specify an parameter for option [%s].\n"                 \
+    "       Please input -help to show help message.\n"
+#define MSG_FAILED_OPEN                                                     \
+    "ERROR: Can not open file <%s>, please check it.\n"
+#define MSG_FAILED_PARAM                                                    \
+    "ERROR: Query the parameter for option [%s] failure."
+#define MSG_FATAL_ERROR                                                     \
+    "ERROR: Fatal error detected in the program.\n"
+
+#endif
+
+
