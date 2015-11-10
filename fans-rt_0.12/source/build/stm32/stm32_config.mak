@@ -1,25 +1,36 @@
-HOSTCC_PERFIX			=
-HOSTCC_ROOT_PATH		=
-HOSTCC					?=	gcc
-HOSTAS					?=	nasm
-HOSTAR					?=	ar
-HOSTLD					?=	ld
-HOSTOC					?=	objcopy
-HOSTRL					?=	ranlib
-CP						?=	cp
-RM						?=	rm
-MV						?=	mv
-MD						?=	mkdir
-RD						?=	rmdir
-CAT						?=	cat
-ECHO					?=	echo
+CP					=	cp
+RM					=	rm
+MV					=	mv
+MD					=	mkdir
+RD					=	rmdir
+CAT					=	cat
+ECHO				=	echo
+FOR					=	for
+COMMAND_SHOW		=
+MAKE_FLAGS			=	--no-print-directory
+MAKE				+=	$(MAKE_FLAGS)
 
-
-ARCHCC_PERFIX			?=	i386-elf
-ARCHCC_ROOT_PATH		?=	/usr/local/$(ARCHCC_PERFIX)-gcc
-ARCHCC					?=	$(ARCHCC_ROOT_PATH)/bin/$(ARCHCC_PERFIX)-gcc
-ARCHAS					?=	$(ARCHCC_ROOT_PATH)/bin/$(ARCHCC_PERFIX)-nasm
-ARCHAR					?=	$(ARCHCC_ROOT_PATH)/bin/$(ARCHCC_PERFIX)-ar
-ARCHLD					?=	$(ARCHCC_ROOT_PATH)/bin/$(ARCHCC_PERFIX)-ld
-ARCHOC					?=	$(ARCHCC_ROOT_PATH)/bin/$(ARCHCC_PERFIX)-objcopy
-ARCHRL					?=	$(ARCHCC_ROOT_PATH)/bin/$(ARCHCC_PERFIX)-ranlib
+############################################################################
+ifeq ($(SUFFIXS_MAKE), $(SUFFIXS_HOST))
+CC_PERFIX			=
+CC_ROOT_PATH		=
+CC					=	gcc
+AS					=	nasm
+AR					=	ar
+LD					=	ld
+OC					=	objcopy
+RL					=	ranlib
+CC_FLAGS			=	-c
+CC_INCLUDES			=	-I$(SOURCES_ROOT)/tools/include
+else
+############################################################################
+CC_PERFIX			=	arm-none-eabi
+CC_ROOT_PATH		=	/usr/local/$(CC_PERFIX)-gcc
+CC					=	$(CC_ROOT_PATH)/bin/$(CC_PERFIX)-gcc
+AS					=	$(CC_ROOT_PATH)/bin/$(CC_PERFIX)-nasm
+AR					=	$(CC_ROOT_PATH)/bin/$(CC_PERFIX)-ar
+LD					=	$(CC_ROOT_PATH)/bin/$(CC_PERFIX)-ld
+OC					=	$(CC_ROOT_PATH)/bin/$(CC_PERFIX)-objcopy
+RL					=	$(CC_ROOT_PATH)/bin/$(CC_PERFIX)-ranlib
+CC_FLAGS			=	-c
+endif
